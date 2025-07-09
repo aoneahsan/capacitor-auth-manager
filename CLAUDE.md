@@ -16,6 +16,7 @@ This is a Capacitor plugin project called "Capacitor Auth Manager" that provides
 - **Lint**: `npm run lint` - Runs ESLint on all TypeScript files
 - **Format**: `npm run prettier` - Formats all code files with Prettier
 - **iOS Lint**: `npm run swiftlint` - Runs SwiftLint on iOS code (when ios/ exists)
+- **Configure**: `npm run configure` - Interactive configuration script for setting up auth providers
 
 ### Package Manager
 This project uses Yarn. Install dependencies with `yarn install`.

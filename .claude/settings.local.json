@@ -35,7 +35,9 @@
       "Bash(yarn build)",
       "Bash(yarn add:*)",
       "Bash(yarn lint)",
-      "Bash(yarn prettier:*)"
+      "Bash(yarn prettier:*)",
+      "Bash(chmod:*)",
+      "Bash(npm run lint)"
     ],
     "deny": []
   }
