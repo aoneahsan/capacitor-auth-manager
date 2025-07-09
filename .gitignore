@@ -53,3 +53,5 @@ coverage/
 # Package lock files (using yarn)
 package-lock.json
 
+
+*.ignore.*
