@@ -1,0 +1,86 @@
+{
+  "name": "capacitor-auth-manager",
+  "version": "0.0.1",
+  "description": "Auth Manager Plugin for Capacitor, provides all the auth options that their provider provides, and provides a subscribable auth state. including google, apple, microsoft, facebook, github, slack, linkedin, email magic link, sms, email/phone/username + password, email code, biometric auth",
+  "main": "dist/plugin.cjs.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "unpkg": "dist/plugin.js",
+  "files": [
+    "android/src/main/",
+    "android/build.gradle",
+    "android/gradle.properties",
+    "android/settings.gradle",
+    "android/proguard-rules.pro",
+    "dist/",
+    "ios/Plugin/",
+    "CapacitorAuthManager.podspec"
+  ],
+  "author": {
+    "email": "aoneahsan@gmail.com",
+    "name": "Ahsan Mahmood (Aoneahsan)",
+    "url": "https://aoneahsan.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aoneahsan/capacitor-auth-manager.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aoneahsan/capacitor-auth-manager/issues"
+  },
+  "keywords": [
+    "capacitor",
+    "plugin",
+    "native",
+    "auth",
+    "google",
+    "apple",
+    "microsoft",
+    "facebook",
+    "github",
+    "slack",
+    "linkedin",
+    "email-magic-link",
+    "sms",
+    "email-code",
+    "biometric"
+  ],
+  "scripts": {
+    "build": "npm run clean && npm run tsc && rollup -c rollup.config.js",
+    "clean": "rimraf ./dist",
+    "tsc": "tsc",
+    "watch": "tsc --watch",
+    "lint": "eslint . --ext ts",
+    "prettier": "prettier --write .",
+    "prepublishOnly": "npm run build",
+    "swiftlint": "cd ios && swiftlint lint --fix --format --path Plugin --verbose"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^7.4.1",
+    "@capacitor/cli": "^7.4.1",
+    "@capacitor/core": "^7.4.1",
+    "@capacitor/ios": "^7.4.1",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@types/node": "^24.0.12",
+    "@typescript-eslint/eslint-plugin": "^8.36.0",
+    "@typescript-eslint/parser": "^8.36.0",
+    "eslint": "^9.30.1",
+    "prettier": "^3.6.2",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.44.2",
+    "typescript": "^5.8.3"
+  },
+  "peerDependencies": {
+    "@capacitor/core": "^7.0.0"
+  },
+  "capacitor": {
+    "ios": {
+      "src": "ios"
+    },
+    "android": {
+      "src": "android"
+    }
+  }
+}
