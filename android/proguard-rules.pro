@@ -35,4 +35,4 @@
 -keep class com.getcapacitor.** { *; }
 
 # Plugin classes
--keep class com.zaions.cap_auth_manager.** { *; }
+-keep class com.aoneahsan.capacitor_auth_manager.** { *; }

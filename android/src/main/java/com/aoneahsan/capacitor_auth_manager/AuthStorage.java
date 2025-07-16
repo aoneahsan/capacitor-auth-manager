@@ -1,4 +1,4 @@
-package com.zaions.cap_auth_manager;
+package com.aoneahsan.capacitor_auth_manager;
 
 import android.content.Context;
 import android.content.SharedPreferences;

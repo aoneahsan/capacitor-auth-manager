@@ -80,6 +80,6 @@ This project uses Yarn. Install dependencies with `yarn install`.
 4. **Testing**: No test framework is currently configured. Consider adding testing infrastructure as the plugin develops.
 
 5. **Package Metadata**:
-   - Package ID: `com.zaions.cap_auth_manager`
+   - Package ID: `com.aoneahsan.capacitor_auth_manager`
    - NPM package: `capacitor-auth-manager`
    - Repository: https://github.com/aoneahsan/capacitor-auth-manager

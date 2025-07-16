@@ -534,6 +534,41 @@ const result = await CapacitorAuthManager.signIn({
 });
 ```
 
+## 📚 Documentation
+
+For comprehensive documentation, examples, and guides, visit our [Documentation](./docs/README.md):
+
+### 🚀 Getting Started
+- [Installation Guide](./docs/getting-started/installation.md) - Step-by-step setup instructions
+- [Quick Start](./docs/getting-started/quick-start.md) - Get up and running in minutes
+- [Platform Setup](./docs/getting-started/platform-setup.md) - Platform-specific configuration
+
+### 🔧 API Reference
+- [Core API](./docs/api-reference/core-api.md) - Complete method reference
+- [Authentication State](./docs/api-reference/auth-state.md) - Understanding auth state
+- [Error Handling](./docs/api-reference/error-handling.md) - Handle errors gracefully
+
+### 🏢 Provider Guides
+- [Google Auth](./docs/providers/google.md) - Google Sign-In implementation
+- [Apple Auth](./docs/providers/apple.md) - Sign in with Apple
+- [Facebook Auth](./docs/providers/facebook.md) - Facebook Login
+- [Microsoft Auth](./docs/providers/microsoft.md) - Microsoft identity platform
+- [GitHub Auth](./docs/providers/github.md) - GitHub OAuth
+- [Firebase Auth](./docs/providers/firebase.md) - Firebase Authentication
+- [More providers...](./docs/providers/) - All 13+ supported providers
+
+### 💡 Framework Examples
+- [React Integration](./docs/examples/react.md) - Complete React implementation
+- [Angular Example](./docs/examples/angular.md) - Angular integration
+- [Vue Example](./docs/examples/vue.md) - Vue.js implementation
+- [Ionic Example](./docs/examples/ionic.md) - Ionic Framework integration
+
+### 📖 Advanced Guides
+- [Best Practices](./docs/guides/best-practices.md) - Authentication best practices
+- [Security Guide](./docs/guides/security.md) - Security considerations
+- [Token Management](./docs/guides/token-management.md) - Handling tokens
+- [Multi-Factor Auth](./docs/guides/mfa.md) - Implementing MFA
+
 ## Contributing
 
 Contributions are welcome! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
@@ -550,4 +585,4 @@ MIT
 
 ## Credits
 
-Created by [Ahsan Mahmood](https://aoneahsan.com) at [Zaions](https://zaions.com)
+Created by [Ahsan Mahmood](https://aoneahsan.com) - Open source for the community
