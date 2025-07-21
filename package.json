@@ -1,6 +1,6 @@
 {
   "name": "capacitor-auth-manager",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Auth Manager Plugin for Capacitor, provides all the auth options that their provider provides, and provides a subscribable auth state. including google, apple, microsoft, facebook, github, slack, linkedin, email magic link, sms, email/phone/username + password, email code, biometric auth",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
