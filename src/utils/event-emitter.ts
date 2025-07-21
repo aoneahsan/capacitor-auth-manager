@@ -1,7 +1,7 @@
-export type EventListener<T = any> = (data: T) => void;
+export type EventListener<T = unknown> = (data: T) => void;
 export type UnsubscribeFn = () => void;
 
-export class EventEmitter<T = any> {
+export class EventEmitter<T = unknown> {
   private listeners: Set<EventListener<T>> = new Set();
 
   emit(data: T): void {

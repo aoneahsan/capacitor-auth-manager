@@ -2,6 +2,22 @@
 
 A comprehensive authentication plugin for Capacitor that provides secure, type-safe, and framework-independent authentication implementations across Android, iOS, and Web platforms.
 
+## 📚 Documentation
+
+- [**Installation Guide**](./docs/installation.md) - Get started with Capacitor Auth Manager
+- [**Configuration Options**](./docs/configuration.md) - Complete list of all configuration options
+- [**Provider Guides**](./docs/providers/) - Detailed setup guides for each authentication provider
+  - [Google Auth](./docs/providers/google.md)
+  - [Apple Auth](./docs/providers/apple.md)
+  - [Microsoft Auth](./docs/providers/microsoft.md)
+  - [Facebook Auth](./docs/providers/facebook.md)
+  - [GitHub Auth](./docs/providers/github.md)
+  - [And more...](./docs/providers/)
+- [**API Reference**](./docs/api/) - Complete API documentation
+- [**Examples**](./docs/examples/) - Sample implementations and use cases
+- [**Migration Guide**](./docs/migration.md) - Upgrading from previous versions
+- [**Troubleshooting**](./docs/troubleshooting.md) - Common issues and solutions
+
 ## Features
 
 - 🔐 **13+ Authentication Providers**: Google, Apple, Microsoft, Facebook, GitHub, Slack, LinkedIn, Firebase, Email Magic Link, SMS, Email/Phone/Username + Password, Email Code, and Biometric Auth
@@ -455,6 +471,169 @@ const token = await CapacitorAuthManager.getIdToken({
 });
 ```
 
+## Configuration Options
+
+### Global Configuration
+
+All configuration options available when initializing the auth manager:
+
+```typescript
+interface AuthManagerInitOptions {
+  providers: AuthProviderConfig[];     // Required: Array of provider configurations
+  persistence?: AuthPersistence;        // 'local' | 'session' | 'none' (default: 'local')
+  autoRefreshToken?: boolean;           // Auto-refresh tokens before expiry (default: true)
+  tokenRefreshBuffer?: number;          // Ms before expiry to refresh (default: 300000 - 5 min)
+  enableLogging?: boolean;              // Enable debug logging (default: false)
+  logLevel?: LogLevel;                  // 'debug' | 'info' | 'warn' | 'error' (default: 'info')
+}
+```
+
+### Provider-Specific Options
+
+Each provider supports all options provided by their official SDKs:
+
+#### Google Auth Options
+```typescript
+interface GoogleAuthOptions {
+  clientId: string;                     // Required: Your Google Client ID
+  serverClientId?: string;              // Android: Server client ID for offline access
+  scopes?: string[];                    // OAuth scopes (default: ['openid', 'email', 'profile'])
+  offlineAccess?: boolean;              // Request refresh token (default: false)
+  hostedDomain?: string;                // Restrict to G Suite domain
+  forceCodeForRefreshToken?: boolean;   // Force auth code flow (default: false)
+}
+```
+
+#### Apple Auth Options
+```typescript
+interface AppleAuthOptions {
+  clientId: string;                     // Required: Your Service ID
+  redirectUri: string;                  // Required: Your redirect URI
+  scopes?: AppleAuthScope[];            // [EMAIL, NAME] (default: [])
+  usePopup?: boolean;                   // Use popup instead of redirect (default: true)
+  state?: string;                       // OAuth state parameter
+  nonce?: string;                       // OAuth nonce for security
+}
+```
+
+#### Microsoft Auth Options
+```typescript
+interface MicrosoftAuthOptions {
+  clientId: string;                     // Required: Your Azure AD Client ID
+  redirectUri?: string;                 // Redirect URI (default: current URL)
+  scopes?: string[];                    // OAuth scopes
+  tenantId?: string;                    // Azure AD tenant ID
+  prompt?: string;                      // 'login' | 'consent' | 'select_account'
+  loginHint?: string;                   // Pre-fill email
+  domainHint?: string;                  // 'consumers' | 'organizations'
+  responseType?: string;                // OAuth response type
+  responseMode?: string;                // 'query' | 'fragment'
+  codeChallenge?: string;               // PKCE code challenge
+  codeChallengeMethod?: string;         // PKCE method
+  state?: string;                       // OAuth state
+  nonce?: string;                       // OAuth nonce
+}
+```
+
+#### Facebook Auth Options
+```typescript
+interface FacebookAuthOptions {
+  appId: string;                        // Required: Your Facebook App ID
+  permissions?: string[];               // Facebook permissions
+  version?: string;                     // API version (default: 'v12.0')
+  loginBehavior?: string;               // iOS: 'browser' | 'native' | 'system'
+  limitedLogin?: boolean;               // iOS 14.5+: Use limited login
+  nonce?: string;                       // Security nonce
+}
+```
+
+#### Sign In Options
+
+Additional options available when calling `signIn()`:
+
+```typescript
+interface SignInProviderOptions {
+  scopes?: string[];                    // Override default scopes
+  customParameters?: Record<string, string>; // Provider-specific parameters
+  loginHint?: string;                   // Pre-fill username/email
+  prompt?: string;                      // UI behavior
+  display?: string;                     // UI display mode
+  accessType?: string;                  // 'online' | 'offline'
+  includeGrantedScopes?: boolean;       // Include previously granted scopes
+  state?: string;                       // OAuth state
+  nonce?: string;                       // OAuth nonce
+  pkceEnabled?: boolean;                // Enable PKCE (default: true where supported)
+}
+```
+
+### Complete Example with All Options
+
+```typescript
+await CapacitorAuthManager.initialize({
+  // Global options
+  persistence: 'local',
+  autoRefreshToken: true,
+  tokenRefreshBuffer: 300000,
+  enableLogging: true,
+  logLevel: 'debug',
+  
+  // Provider configurations
+  providers: [
+    {
+      provider: AuthProvider.GOOGLE,
+      options: {
+        clientId: 'YOUR_GOOGLE_CLIENT_ID',
+        serverClientId: 'YOUR_SERVER_CLIENT_ID',
+        scopes: ['email', 'profile', 'https://www.googleapis.com/auth/calendar'],
+        offlineAccess: true,
+        hostedDomain: 'company.com',
+        forceCodeForRefreshToken: true
+      }
+    },
+    {
+      provider: AuthProvider.APPLE,
+      options: {
+        clientId: 'com.company.service',
+        redirectUri: 'https://company.com/auth/callback',
+        scopes: [AppleAuthScope.EMAIL, AppleAuthScope.NAME],
+        usePopup: true,
+        state: crypto.randomUUID(),
+        nonce: crypto.randomUUID()
+      }
+    },
+    {
+      provider: AuthProvider.MICROSOFT,
+      options: {
+        clientId: 'YOUR_AZURE_CLIENT_ID',
+        redirectUri: 'https://company.com/auth/callback',
+        scopes: ['openid', 'profile', 'email', 'User.Read'],
+        tenantId: 'YOUR_TENANT_ID',
+        prompt: 'select_account',
+        responseType: 'code',
+        responseMode: 'query',
+        codeChallenge: 'YOUR_CODE_CHALLENGE',
+        codeChallengeMethod: 'S256'
+      }
+    }
+  ]
+});
+
+// Sign in with custom options
+const result = await CapacitorAuthManager.signIn({
+  provider: AuthProvider.GOOGLE,
+  options: {
+    scopes: ['email', 'profile', 'https://www.googleapis.com/auth/drive'],
+    loginHint: 'user@company.com',
+    prompt: 'consent',
+    accessType: 'offline',
+    includeGrantedScopes: true,
+    customParameters: {
+      'approval_prompt': 'force'
+    }
+  }
+});
+```
+
 ## Error Handling
 
 The plugin provides detailed error codes for different scenarios:
@@ -568,6 +747,36 @@ For comprehensive documentation, examples, and guides, visit our [Documentation]
 - [Security Guide](./docs/guides/security.md) - Security considerations
 - [Token Management](./docs/guides/token-management.md) - Handling tokens
 - [Multi-Factor Auth](./docs/guides/mfa.md) - Implementing MFA
+
+## Platform Compatibility
+
+### Supported Platforms
+
+| Provider | iOS | Android | Web |
+|----------|-----|---------|-----|
+| Google | ✅ | ✅ | ✅ |
+| Apple | ✅ | ✅ | ✅ |
+| Microsoft | ✅ | ✅ | ✅ |
+| Facebook | ✅ | ✅ | ✅ |
+| GitHub | ✅ | ✅ | ✅ |
+| Slack | ✅ | ✅ | ✅ |
+| LinkedIn | ✅ | ✅ | ✅ |
+| Firebase | ✅ | ✅ | ✅ |
+| Email Magic Link | ✅ | ✅ | ✅ |
+| SMS | ✅ | ✅ | ✅ |
+| Email/Phone/Username + Password | ✅ | ✅ | ✅ |
+| Email Code | ✅ | ✅ | ✅ |
+| Biometric | ✅ | ✅ | ❌ |
+
+### Platform Requirements
+
+- **iOS**: iOS 13.0+
+- **Android**: Android 5.0 (API 21)+
+- **Web**: Modern browsers with ES2017 support
+
+### Capacitor Version
+
+- Capacitor 7.0.0+
 
 ## Contributing
 

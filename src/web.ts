@@ -28,6 +28,7 @@ import type {
   RevokeAccessOptions,
   AuthProvider,
   AuthProviderConfig,
+  AuthCredential,
 } from './definitions';
 
 import { AuthErrorCode, AuthPersistence } from './definitions';
@@ -516,7 +517,7 @@ export class CapacitorAuthManagerWeb
     );
   }
 
-  private setupTokenRefresh(provider: AuthProvider, credential: any): void {
+  private setupTokenRefresh(provider: AuthProvider, credential: AuthCredential): void {
     // Cancel existing refresh timer
     this.cancelTokenRefresh(provider);
     

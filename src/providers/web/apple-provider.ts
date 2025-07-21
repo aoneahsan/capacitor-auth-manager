@@ -8,17 +8,43 @@ import {
   UnlinkAccountOptions,
   AuthResult,
   AuthErrorCode,
+  AuthUser,
+  AuthCredential,
 } from '../../definitions';
-import { OAuthProvider, OAuthConfig } from '../oauth-provider';
+import { OAuthProvider, OAuthConfig, OAuthTokenResponse, OAuthUserInfo } from '../oauth-provider';
 import { BaseProviderConfig } from '../base-provider';
 import { AuthError } from '../../utils/auth-error';
+
+interface AppleSignInResponse {
+  authorization: {
+    code: string;
+    id_token: string;
+    state: string;
+  };
+  user?: {
+    email?: string;
+    name?: {
+      firstName?: string;
+      lastName?: string;
+    };
+  };
+}
+
+interface AppleSignInConfig {
+  clientId: string;
+  scope: string;
+  redirectURI: string;
+  state: string;
+  nonce?: string;
+  usePopup?: boolean;
+}
 
 declare global {
   interface Window {
     AppleID?: {
       auth: {
-        init: (config: any) => void;
-        signIn: (config?: any) => Promise<any>;
+        init: (config: AppleSignInConfig) => void;
+        signIn: (config?: AppleSignInConfig) => Promise<AppleSignInResponse>;
       };
     };
   }
@@ -77,7 +103,7 @@ export class AppleAuthProviderWeb extends OAuthProvider {
         clientId: options.clientId,
         scope: this.mapAppleScopes(options.scopes).join(' '),
         redirectURI: options.redirectUri,
-        state: options.state,
+        state: options.state || this.generateSecureRandomString(),
         nonce: options.nonce,
         usePopup: options.usePopup !== false, // Default to true
       });
@@ -108,7 +134,7 @@ export class AppleAuthProviderWeb extends OAuthProvider {
       await this.storage.set(`${this.provider}_oauth_nonce`, nonce);
 
       // Configure sign-in options
-      const signInConfig: any = {
+      const signInConfig: AppleSignInConfig = {
         clientId: appleOptions.clientId,
         scope: this.mapAppleScopes(
           options?.options?.scopes as AppleAuthScope[] || appleOptions.scopes
@@ -139,8 +165,8 @@ export class AppleAuthProviderWeb extends OAuthProvider {
       
       if (error && typeof error === 'object' && 'error' in error) {
         throw new AuthError(
-          this.mapAppleError((error as any).error),
-          (error as any).error,
+          this.mapAppleError((error as { error: string }).error),
+          (error as { error: string }).error,
           this.provider
         );
       }
@@ -193,7 +219,7 @@ export class AppleAuthProviderWeb extends OAuthProvider {
     await this.signOut();
   }
 
-  protected async openAuthorizationUrl(_url: string): Promise<any> {
+  protected async openAuthorizationUrl(_url: string): Promise<{ code?: string; state?: string; error?: string }> {
     // This method is not used in Apple JS SDK flow
     throw new AuthError(
       AuthErrorCode.OPERATION_NOT_ALLOWED,
@@ -202,9 +228,10 @@ export class AppleAuthProviderWeb extends OAuthProvider {
     );
   }
 
-  protected async parseUserFromTokenResponse(response: any): Promise<any> {
+  protected async parseUserFromTokenResponse(_response: OAuthTokenResponse): Promise<OAuthUserInfo> {
     // Apple provides user info directly in the authorization response
-    return response.user || {};
+    // Note: This is a simplified implementation since Apple doesn't provide user info in the token response
+    return {} as OAuthUserInfo;
   }
 
   private async loadAppleSDK(): Promise<void> {
@@ -252,19 +279,19 @@ export class AppleAuthProviderWeb extends OAuthProvider {
   }
 
   private async validateAppleResponse(
-    response: any,
+    response: AppleSignInResponse,
     expectedState: string,
     _expectedNonce: string
   ): Promise<void> {
-    if (response.error) {
+    if ((response as unknown as { error?: string }).error) {
       throw new AuthError(
-        this.mapAppleError(response.error),
-        response.error,
+        this.mapAppleError((response as unknown as { error: string }).error),
+        (response as unknown as { error: string }).error,
         this.provider
       );
     }
 
-    if (response.state !== expectedState) {
+    if (response.authorization.state !== expectedState) {
       throw new AuthError(
         AuthErrorCode.INVALID_STATE,
         'OAuth state mismatch',
@@ -276,12 +303,12 @@ export class AppleAuthProviderWeb extends OAuthProvider {
     // For production, you should validate the ID token on your backend
   }
 
-  private createAppleAuthUser(response: any): any {
+  private createAppleAuthUser(response: AppleSignInResponse): AuthUser {
     const user = response.user || {};
     const idToken = response.authorization?.id_token;
     
     // Parse ID token claims (in production, do this on backend)
-    let claims: any = {};
+    let claims: { sub?: string; email?: string; email_verified?: boolean; [key: string]: unknown } = {};
     if (idToken) {
       try {
         const payload = idToken.split('.')[1];
@@ -302,7 +329,7 @@ export class AppleAuthProviderWeb extends OAuthProvider {
       tenantId: null,
       providerData: [{
         providerId: AuthProvider.APPLE,
-        uid: claims.sub || response.authorization?.code,
+        uid: claims.sub || response.authorization?.code || '',
         displayName: user.name ? `${user.name.firstName || ''} ${user.name.lastName || ''}`.trim() : null,
         email: user.email || claims.email || null,
         phoneNumber: null,
@@ -312,23 +339,21 @@ export class AppleAuthProviderWeb extends OAuthProvider {
         creationTime: new Date().toISOString(),
         lastSignInTime: new Date().toISOString(),
       },
-      refreshToken: response.authorization?.refresh_token,
+      refreshToken: undefined, // Apple doesn't provide refresh tokens through JS SDK
     };
   }
 
-  private createAppleCredential(response: any): any {
+  private createAppleCredential(response: AppleSignInResponse): AuthCredential {
     return {
       providerId: AuthProvider.APPLE,
       signInMethod: 'oauth',
-      accessToken: response.authorization?.access_token,
+      accessToken: undefined, // Apple doesn't provide access tokens through JS SDK
       idToken: response.authorization?.id_token,
-      refreshToken: response.authorization?.refresh_token,
-      expiresAt: response.authorization?.expires_in 
-        ? this.calculateTokenExpiry(response.authorization.expires_in)
-        : undefined,
+      refreshToken: undefined, // Apple doesn't provide refresh tokens through JS SDK
+      expiresAt: undefined,
       tokenType: 'Bearer',
-      scope: response.authorization?.scope,
-      rawNonce: response.nonce,
+      scope: undefined, // Apple doesn't provide scope info in JS SDK response
+      rawNonce: response.authorization?.state,
     };
   }
 

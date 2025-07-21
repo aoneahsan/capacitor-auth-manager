@@ -2,10 +2,10 @@ import { AuthError as IAuthError, AuthErrorCode, AuthProvider } from '../definit
 
 export class AuthError extends Error implements IAuthError {
   code: string;
-  details?: any;
+  details?: Record<string, unknown>;
   provider?: AuthProvider;
 
-  constructor(code: string, message: string, provider?: AuthProvider, details?: any) {
+  constructor(code: string, message: string, provider?: AuthProvider, details?: Record<string, unknown>) {
     super(message);
     this.name = 'AuthError';
     this.code = code;
@@ -18,14 +18,14 @@ export class AuthError extends Error implements IAuthError {
     }
   }
 
-  static fromError(error: any, provider?: AuthProvider): AuthError {
+  static fromError(error: unknown, provider?: AuthProvider): AuthError {
     if (error instanceof AuthError) {
       return error;
     }
 
     let code = AuthErrorCode.INTERNAL_ERROR;
     let message = 'An unknown error occurred';
-    let details = error;
+    let details: Record<string, unknown> | undefined = error as Record<string, unknown>;
 
     if (error instanceof Error) {
       message = error.message;
@@ -41,8 +41,12 @@ export class AuthError extends Error implements IAuthError {
     }
 
     // Handle provider-specific error codes
-    if (error?.code) {
-      code = error.code;
+    const errorObj = error as { code?: string };
+    if (errorObj?.code) {
+      // Check if the code is a valid AuthErrorCode
+      if (Object.values(AuthErrorCode).includes(errorObj.code as AuthErrorCode)) {
+        code = errorObj.code as AuthErrorCode;
+      }
     }
 
     return new AuthError(code, message, provider, details);
@@ -59,6 +63,9 @@ export class AuthError extends Error implements IAuthError {
   }
 }
 
-export function isAuthError(error: any): error is AuthError {
-  return error instanceof AuthError || (error?.name === 'AuthError' && error?.code);
+export function isAuthError(error: unknown): error is AuthError {
+  return error instanceof AuthError || 
+    (typeof error === 'object' && error !== null && 
+     (error as { name?: string }).name === 'AuthError' && 
+     (error as { code?: string }).code !== undefined);
 }

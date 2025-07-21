@@ -11,3 +11,7 @@ const CapacitorAuthManager = registerPlugin<CapacitorAuthManagerPlugin>(
 
 export * from './definitions';
 export { CapacitorAuthManager };
+
+// Export useful utilities for end users
+export { AuthError, isAuthError } from './utils/auth-error';
+export type { LogLevel } from './utils/logger';

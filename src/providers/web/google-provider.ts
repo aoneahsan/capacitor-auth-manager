@@ -7,15 +7,71 @@ import {
   UnlinkAccountOptions,
   AuthResult,
   AuthErrorCode,
+  AuthUser,
 } from '../../definitions';
-import { OAuthProvider, OAuthConfig } from '../oauth-provider';
+import { OAuthProvider, OAuthConfig, OAuthTokenResponse, OAuthUserInfo } from '../oauth-provider';
 import { BaseProviderConfig } from '../base-provider';
 import { AuthError } from '../../utils/auth-error';
 
+interface GoogleCredentialResponse {
+  credential?: string;
+  select_by?: string;
+  client_id?: string;
+  code?: string;
+  error?: string;
+  error_description?: string;
+}
+
+interface GoogleSignInConfig {
+  client_id: string;
+  auto_select?: boolean;
+  cancel_on_tap_outside?: boolean;
+  context?: 'signin' | 'signup' | 'use';
+  itp_support?: boolean;
+  login_uri?: string;
+  prompt_parent_id?: string;
+  callback?: (response: GoogleCredentialResponse) => void;
+  error_callback?: () => void;
+  intermediate_iframe_close_callback?: () => void;
+  native_callback?: (response: GoogleCredentialResponse) => void;
+  nonce?: string;
+  ux_mode?: 'popup' | 'redirect';
+  scope?: string;
+  login_hint?: string;
+  hd?: string;
+}
+
+interface GoogleAccounts {
+  id: {
+    initialize: (config: GoogleSignInConfig) => void;
+    prompt: (callback?: (notification: { isNotDisplayed(): boolean; isSkippedMoment(): boolean; isDismissedMoment(): boolean; getMomentType(): string; getNotDisplayedReason(): string; getSkippedReason(): string; getDismissedReason(): string }) => void) => void;
+    renderButton: (parent: HTMLElement, options: { theme?: string; size?: string; type?: string; shape?: string; text?: string; logo_alignment?: string; width?: number; locale?: string }) => void;
+    disableAutoSelect: () => void;
+    storeCredential: (credential: { id: string; password: string }, callback?: () => void) => void;
+    cancel: () => void;
+    revoke: (hint: string, callback?: (response: { successful: boolean; error?: string }) => void) => void;
+  };
+  oauth2: {
+    initTokenClient: (config: { client_id: string; scope: string; callback?: (response: unknown) => void }) => { requestAccessToken: () => void };
+    initCodeClient: (config: GoogleSignInConfig) => { requestCode: () => void };
+    hasGrantedAllScopes: (tokenResponse: unknown, ...scopes: string[]) => boolean;
+    hasGrantedAnyScope: (tokenResponse: unknown, ...scopes: string[]) => boolean;
+    revoke: (accessToken: string, callback?: (response: { successful: boolean; error?: string }) => void) => void;
+  };
+}
+
 declare global {
   interface Window {
-    google?: any;
-    gapi?: any;
+    google?: {
+      accounts: GoogleAccounts;
+    };
+    gapi?: {
+      load: (api: string, callback: () => void) => void;
+      auth2?: {
+        getAuthInstance: () => unknown;
+        init: (params: unknown) => Promise<unknown>;
+      };
+    };
   }
 }
 
@@ -72,11 +128,14 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
       await this.loadGoogleIdentityServices();
 
       // Initialize Google client
+      if (!window.google?.accounts?.oauth2) {
+        throw new Error('Google Identity Services not loaded');
+      }
       window.google.accounts.oauth2.initCodeClient({
         client_id: options.clientId,
         scope: (options.scopes || ['openid', 'email', 'profile']).join(' '),
         ux_mode: 'popup',
-        callback: (_response: any) => {
+        callback: (_response: GoogleCredentialResponse) => {
           // This callback will be overridden per sign-in
         },
       });
@@ -100,10 +159,10 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
         const googleOptions = this.options as GoogleAuthOptions;
         
         // Configure sign-in options
-        const signInConfig: any = {
+        const signInConfig: GoogleSignInConfig = {
           client_id: googleOptions.clientId,
           scope: (options?.options?.scopes || googleOptions.scopes || ['openid', 'email', 'profile']).join(' '),
-          callback: async (response: any) => {
+          callback: async (response: GoogleCredentialResponse) => {
             if (response.error) {
               reject(new AuthError(
                 this.mapGoogleError(response.error),
@@ -115,6 +174,13 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
 
             try {
               // Exchange authorization code for tokens
+              if (!response.code) {
+                throw new AuthError(
+                  AuthErrorCode.INVALID_GRANT,
+                  'No authorization code received',
+                  this.provider
+                );
+              }
               const tokenResponse = await this.exchangeCodeForTokens(
                 response.code,
                 this.getOAuthConfig()
@@ -149,6 +215,9 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
         }
 
         // Create new client with callback
+        if (!window.google?.accounts?.oauth2) {
+          throw new Error('Google Identity Services not loaded');
+        }
         const client = window.google.accounts.oauth2.initCodeClient(signInConfig);
         
         // Request authorization code
@@ -212,7 +281,7 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
     await this.signOut();
   }
 
-  protected async openAuthorizationUrl(_url: string): Promise<any> {
+  protected async openAuthorizationUrl(_url: string): Promise<{ code?: string; state?: string; error?: string }> {
     // This method is not used in Google Identity Services flow
     throw new AuthError(
       AuthErrorCode.OPERATION_NOT_ALLOWED,
@@ -221,7 +290,7 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
     );
   }
 
-  protected async parseUserFromTokenResponse(response: any): Promise<any> {
+  protected async parseUserFromTokenResponse(response: OAuthTokenResponse): Promise<OAuthUserInfo> {
     // Get user info from the userinfo endpoint
     if (response.access_token) {
       return this.getUserInfo(response.access_token);
@@ -234,7 +303,7 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
     );
   }
 
-  private async getUserInfo(accessToken: string): Promise<any> {
+  private async getUserInfo(accessToken: string): Promise<OAuthUserInfo> {
     try {
       const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: {
@@ -250,7 +319,7 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
         );
       }
 
-      return await response.json();
+      return await response.json() as OAuthUserInfo;
     } catch (error) {
       if (error instanceof AuthError) {
         throw error;
@@ -259,7 +328,7 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
         AuthErrorCode.NETWORK_ERROR,
         'Failed to fetch user info',
         this.provider,
-        error
+        error as Record<string, unknown>
       );
     }
   }
@@ -306,23 +375,23 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
     return errorMap[error] || AuthErrorCode.INTERNAL_ERROR;
   }
 
-  protected createAuthUser(userInfo: any, tokenResponse: any): any {
+  protected createAuthUser(userInfo: OAuthUserInfo, tokenResponse: OAuthTokenResponse): AuthUser {
     return {
-      uid: userInfo.sub,
-      email: userInfo.email,
+      uid: userInfo.sub || '',
+      email: userInfo.email || null,
       emailVerified: userInfo.email_verified || false,
-      displayName: userInfo.name,
-      photoURL: userInfo.picture,
+      displayName: userInfo.name || null,
+      photoURL: userInfo.picture || null,
       phoneNumber: null,
       isAnonymous: false,
       tenantId: null,
       providerData: [{
         providerId: AuthProvider.GOOGLE,
-        uid: userInfo.sub,
-        displayName: userInfo.name,
-        email: userInfo.email,
+        uid: userInfo.sub || '',
+        displayName: userInfo.name || null,
+        email: userInfo.email || null,
         phoneNumber: null,
-        photoURL: userInfo.picture,
+        photoURL: userInfo.picture || null,
       }],
       metadata: {
         creationTime: new Date().toISOString(),

@@ -349,7 +349,7 @@ export interface OAuthCredentials {
 }
 
 export interface CustomCredentials {
-  [key: string]: any;
+  [key: string]: string | number | boolean | null | undefined;
 }
 
 export type SignInProviderOptions = {
@@ -391,7 +391,7 @@ export interface AuthUser {
   providerData: UserInfo[];
   metadata: UserMetadata;
   refreshToken?: string;
-  customClaims?: Record<string, any>;
+  customClaims?: Record<string, string | number | boolean | null>;
 }
 
 export interface UserInfo {
@@ -424,7 +424,7 @@ export interface AuthCredential {
 export interface AdditionalUserInfo {
   isNewUser: boolean;
   providerId: string;
-  profile?: Record<string, any>;
+  profile?: Record<string, string | number | boolean | null | undefined>;
   username?: string;
 }
 
@@ -507,7 +507,7 @@ export interface UpdateProfileOptions {
   displayName?: string | null;
   photoURL?: string | null;
   phoneNumber?: string | null;
-  customClaims?: Record<string, any>;
+  customClaims?: Record<string, string | number | boolean | null>;
 }
 
 export interface DeleteAccountOptions {
@@ -539,7 +539,7 @@ export enum AuthPersistence {
 
 export interface AuthError extends Error {
   code: string;
-  details?: any;
+  details?: Record<string, unknown>;
   provider?: AuthProvider;
 }
 

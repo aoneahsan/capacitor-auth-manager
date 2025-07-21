@@ -4,9 +4,34 @@ import {
   AuthErrorCode,
   AuthCredential,
   RefreshTokenOptions,
+  AuthUser,
 } from '../definitions';
 import { BaseAuthProvider } from './base-provider';
 import { AuthError } from '../utils/auth-error';
+
+export interface OAuthTokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in?: number;
+  refresh_token?: string;
+  id_token?: string;
+  scope?: string;
+  [key: string]: string | number | undefined;
+}
+
+export interface OAuthUserInfo {
+  id?: string;
+  sub?: string;
+  email?: string;
+  email_verified?: boolean;
+  name?: string;
+  displayName?: string;
+  picture?: string;
+  photoURL?: string;
+  phone_number?: string;
+  isNewUser?: boolean;
+  [key: string]: string | boolean | undefined;
+}
 
 export interface OAuthConfig {
   clientId: string;
@@ -24,7 +49,7 @@ export interface OAuthConfig {
 
 export abstract class OAuthProvider extends BaseAuthProvider {
   protected abstract getOAuthConfig(): OAuthConfig;
-  protected abstract parseUserFromTokenResponse(response: any): Promise<any>;
+  protected abstract parseUserFromTokenResponse(response: OAuthTokenResponse): Promise<OAuthUserInfo>;
 
   protected async performOAuthFlow(options?: SignInOptions): Promise<AuthResult> {
     const config = this.getOAuthConfig();
@@ -48,6 +73,13 @@ export abstract class OAuthProvider extends BaseAuthProvider {
       await this.validateOAuthResponse(authResponse, state, nonce);
       
       // Exchange authorization code for tokens
+      if (!authResponse.code) {
+        throw new AuthError(
+          AuthErrorCode.INVALID_GRANT,
+          'No authorization code received',
+          this.provider
+        );
+      }
       const tokenResponse = await this.exchangeCodeForTokens(
         authResponse.code,
         config
@@ -64,7 +96,7 @@ export abstract class OAuthProvider extends BaseAuthProvider {
       await this.setCurrentUser(user);
       await this.saveCredential(credential);
       
-      return this.createAuthResult(user, credential, userInfo.isNewUser);
+      return this.createAuthResult(user, credential, userInfo.isNewUser || false);
     } catch (error) {
       this.logger.error(`OAuth flow failed for ${this.provider}`, error);
       throw AuthError.fromError(error, this.provider);
@@ -116,10 +148,10 @@ export abstract class OAuthProvider extends BaseAuthProvider {
     return `${config.authorizationEndpoint}?${params.toString()}`;
   }
 
-  protected abstract openAuthorizationUrl(url: string): Promise<any>;
+  protected abstract openAuthorizationUrl(url: string): Promise<{ code?: string; state?: string; error?: string }>;
 
   protected async validateOAuthResponse(
-    response: any,
+    response: { code?: string; state?: string; error?: string; error_description?: string },
     expectedState: string,
     _expectedNonce: string
   ): Promise<void> {
@@ -145,7 +177,7 @@ export abstract class OAuthProvider extends BaseAuthProvider {
   protected async exchangeCodeForTokens(
     code: string,
     config: OAuthConfig
-  ): Promise<any> {
+  ): Promise<OAuthTokenResponse> {
     const params = new URLSearchParams({
       grant_type: config.grantType || 'authorization_code',
       code,
@@ -166,14 +198,15 @@ export abstract class OAuthProvider extends BaseAuthProvider {
         body: params.toString(),
       });
       
-      const data = await response.json();
+      const data = await response.json() as OAuthTokenResponse;
       
       if (!response.ok) {
+        const errorData = data as unknown as { error: string; error_description?: string };
         throw new AuthError(
-          this.mapOAuthError(data.error),
-          data.error_description || 'Token exchange failed',
+          this.mapOAuthError(errorData.error),
+          errorData.error_description || 'Token exchange failed',
           this.provider,
-          data
+          errorData as Record<string, unknown>
         );
       }
       
@@ -186,7 +219,7 @@ export abstract class OAuthProvider extends BaseAuthProvider {
         AuthErrorCode.NETWORK_ERROR,
         'Failed to exchange authorization code for tokens',
         this.provider,
-        error
+        error as Record<string, unknown>
       );
     }
   }
@@ -224,14 +257,15 @@ export abstract class OAuthProvider extends BaseAuthProvider {
         body: params.toString(),
       });
       
-      const data = await response.json();
+      const data = await response.json() as OAuthTokenResponse;
       
       if (!response.ok) {
+        const errorData = data as unknown as { error: string; error_description?: string };
         throw new AuthError(
-          this.mapOAuthError(data.error),
-          data.error_description || 'Token refresh failed',
+          this.mapOAuthError(errorData.error),
+          errorData.error_description || 'Token refresh failed',
           this.provider,
-          data
+          errorData as Record<string, unknown>
         );
       }
       
@@ -254,7 +288,7 @@ export abstract class OAuthProvider extends BaseAuthProvider {
         AuthErrorCode.NETWORK_ERROR,
         'Failed to refresh token',
         this.provider,
-        error
+        error as Record<string, unknown>
       );
     }
   }
@@ -307,7 +341,7 @@ export abstract class OAuthProvider extends BaseAuthProvider {
     }
   }
 
-  protected createOAuthCredential(tokenResponse: any): AuthCredential {
+  protected createOAuthCredential(tokenResponse: OAuthTokenResponse): AuthCredential {
     return {
       providerId: this.provider,
       signInMethod: 'oauth',
@@ -322,23 +356,23 @@ export abstract class OAuthProvider extends BaseAuthProvider {
     };
   }
 
-  protected createAuthUser(userInfo: any, tokenResponse: any): any {
+  protected createAuthUser(userInfo: OAuthUserInfo, tokenResponse: OAuthTokenResponse): AuthUser {
     return {
       uid: userInfo.id || userInfo.sub || this.generateUniqueId(),
-      email: userInfo.email,
+      email: userInfo.email || null,
       emailVerified: userInfo.email_verified || false,
-      displayName: userInfo.name || userInfo.displayName,
-      photoURL: userInfo.picture || userInfo.photoURL,
-      phoneNumber: userInfo.phone_number,
+      displayName: userInfo.name || userInfo.displayName || null,
+      photoURL: userInfo.picture || userInfo.photoURL || null,
+      phoneNumber: userInfo.phone_number || null,
       isAnonymous: false,
       tenantId: null,
       providerData: [{
         providerId: this.provider,
-        uid: userInfo.id || userInfo.sub,
-        displayName: userInfo.name,
-        email: userInfo.email,
-        phoneNumber: userInfo.phone_number,
-        photoURL: userInfo.picture,
+        uid: userInfo.id || userInfo.sub || '',
+        displayName: userInfo.name || null,
+        email: userInfo.email || null,
+        phoneNumber: userInfo.phone_number || null,
+        photoURL: userInfo.picture || null,
       }],
       metadata: {
         creationTime: new Date().toISOString(),
