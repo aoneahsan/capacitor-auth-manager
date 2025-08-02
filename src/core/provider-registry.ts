@@ -112,10 +112,114 @@ To use Firebase authentication:
       }
     });
 
+    this.registerManifest({
+      name: 'microsoft',
+      displayName: 'Microsoft',
+      packageName: '@azure/msal-browser',
+      setupInstructions: `
+To use Microsoft authentication:
+
+1. Install the Microsoft Authentication Library:
+   npm install @azure/msal-browser
+
+2. Configure your Azure AD app:
+   - Go to https://portal.azure.com/
+   - Create or select an app registration
+   - Add platform configuration for SPA
+   - Add redirect URIs
+
+3. Configure the provider:
+   auth.configure({
+     providers: {
+       microsoft: {
+         clientId: 'YOUR_CLIENT_ID',
+         authority: 'YOUR_AUTHORITY', // optional
+         redirectUri: 'YOUR_REDIRECT_URI' // optional
+       }
+     }
+   })
+`,
+      platforms: ['web'],
+      configSchema: {
+        clientId: { type: 'string', required: true },
+        authority: { type: 'string' },
+        redirectUri: { type: 'string' },
+        scopes: { type: 'array', items: 'string' }
+      }
+    });
+
+    this.registerManifest({
+      name: 'facebook',
+      displayName: 'Facebook',
+      setupInstructions: `
+To use Facebook authentication:
+
+1. Configure your Facebook app:
+   - Go to https://developers.facebook.com/
+   - Create or select an app
+   - Add Facebook Login product
+   - Configure OAuth redirect URIs
+
+2. Add Facebook SDK to your HTML:
+   <script async defer crossorigin="anonymous" 
+     src="https://connect.facebook.net/en_US/sdk.js"></script>
+
+3. Configure the provider:
+   auth.configure({
+     providers: {
+       facebook: {
+         appId: 'YOUR_APP_ID',
+         version: 'v18.0' // optional
+       }
+     }
+   })
+`,
+      platforms: ['web'],
+      configSchema: {
+        appId: { type: 'string', required: true },
+        version: { type: 'string' },
+        scopes: { type: 'array', items: 'string' }
+      }
+    });
+
+    this.registerManifest({
+      name: 'github',
+      displayName: 'GitHub',
+      setupInstructions: `
+To use GitHub authentication:
+
+1. Configure your GitHub OAuth app:
+   - Go to https://github.com/settings/developers
+   - Create a new OAuth App
+   - Set authorization callback URL
+
+2. Configure the provider:
+   auth.configure({
+     providers: {
+       github: {
+         clientId: 'YOUR_CLIENT_ID',
+         redirectUri: 'YOUR_REDIRECT_URI'
+       }
+     }
+   })
+
+Note: You'll need a backend service to exchange the authorization code for an access token.
+`,
+      platforms: ['web'],
+      configSchema: {
+        clientId: { type: 'string', required: true },
+        redirectUri: { type: 'string' },
+        scopes: { type: 'array', items: 'string' }
+      }
+    });
+
     // Register provider loaders
     this.registerLoader('google', () => import('../providers/web/google-provider').then(m => ({ default: m.GoogleAuthProviderWeb })));
     this.registerLoader('apple', () => import('../providers/web/apple-provider').then(m => ({ default: m.AppleAuthProviderWeb })));
-    // More loaders will be added as providers are implemented
+    this.registerLoader('microsoft', () => import('../providers/web/microsoft-provider').then(m => ({ default: m.MicrosoftAuthProviderWeb })));
+    this.registerLoader('facebook', () => import('../providers/web/facebook-provider').then(m => ({ default: m.FacebookAuthProviderWeb })));
+    this.registerLoader('github', () => import('../providers/web/github-provider').then(m => ({ default: m.GitHubAuthProviderWeb })));
+    this.registerLoader('firebase', () => import('../providers/web/firebase-provider').then(m => ({ default: m.FirebaseAuthProviderWeb })));
   }
 
   static registerManifest(manifest: ProviderManifest): void {

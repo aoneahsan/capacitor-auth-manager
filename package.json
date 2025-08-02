@@ -17,6 +17,16 @@
       "require": "./dist/react.cjs.js",
       "types": "./dist/esm/react/index.d.ts"
     },
+    "./vue": {
+      "import": "./dist/esm/vue/index.js",
+      "require": "./dist/vue.cjs.js",
+      "types": "./dist/esm/vue/index.d.ts"
+    },
+    "./angular": {
+      "import": "./dist/esm/angular/index.js",
+      "require": "./dist/angular.cjs.js",
+      "types": "./dist/esm/angular/index.d.ts"
+    },
     "./core": {
       "import": "./dist/esm/core/index.js",
       "require": "./dist/core.cjs.js",
@@ -111,13 +121,21 @@
   },
   "peerDependencies": {
     "@capacitor/core": "^7.4.2",
-    "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+    "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+    "vue": "^3.0.0",
+    "@angular/core": "^12.0.0 || ^13.0.0 || ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0"
   },
   "peerDependenciesMeta": {
     "@capacitor/core": {
       "optional": true
     },
     "react": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    },
+    "@angular/core": {
       "optional": true
     }
   },

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GitHub Authentication</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background-color: #f6f8fa;
+    }
+    .container {
+      text-align: center;
+      padding: 2rem;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    }
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #24292e;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .error {
+      color: #d73a49;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="spinner"></div>
+    <h2>Completing GitHub Authentication...</h2>
+    <p>Please wait while we complete your sign-in.</p>
+    <div id="error" class="error" style="display: none;"></div>
+  </div>
+
+  <script>
+    // Parse URL parameters
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    const state = params.get('state');
+    const error = params.get('error');
+    const errorDescription = params.get('error_description');
+
+    // Send message to opener window
+    if (window.opener) {
+      if (error) {
+        window.opener.postMessage({
+          type: 'github-auth-callback',
+          error: errorDescription || error
+        }, window.location.origin);
+      } else if (code) {
+        window.opener.postMessage({
+          type: 'github-auth-callback',
+          code: code,
+          state: state
+        }, window.location.origin);
+      } else {
+        window.opener.postMessage({
+          type: 'github-auth-callback',
+          error: 'No authorization code received'
+        }, window.location.origin);
+      }
+      
+      // Close window after a short delay
+      setTimeout(() => {
+        window.close();
+      }, 1000);
+    } else {
+      // No opener window, show error
+      document.getElementById('error').style.display = 'block';
+      document.getElementById('error').textContent = 'Authentication window was not opened correctly. Please try again.';
+    }
+  </script>
+</body>
+</html>

@@ -1,4 +1,5 @@
 import resolve from '@rollup/plugin-node-resolve';
+import json from '@rollup/plugin-json';
 import { readFileSync } from 'fs';
 
 // Read package.json to get dependencies
@@ -11,7 +12,13 @@ const external = [
   ...Object.keys(pkg.optionalDependencies || {}),
   '@capacitor/core',
   'react',
-  'react-dom'
+  'react-dom',
+  'vue',
+  '@angular/core',
+  '@angular/common',
+  '@angular/router',
+  'rxjs',
+  'rxjs/operators'
 ];
 
 // Base configuration
