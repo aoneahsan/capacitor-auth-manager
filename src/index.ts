@@ -1,17 +1,49 @@
-import { registerPlugin } from '@capacitor/core';
+// Main export - the singleton auth instance
+export { auth } from './core/auth-manager';
 
-import type { CapacitorAuthManagerPlugin } from './definitions';
+// Core types and utilities
+export type {
+  AuthManagerConfig,
+  AuthState,
+  AuthStateListener,
+  AuthProviderInterface,
+  ProviderManifest
+} from './core/types';
 
-const CapacitorAuthManager = registerPlugin<CapacitorAuthManagerPlugin>(
-  'CapacitorAuthManager',
-  {
-    web: () => import('./web').then(m => new m.CapacitorAuthManagerWeb()),
-  },
-);
+// Re-export shared types from definitions (these are used by both old and new API)
+export {
+  AuthUser,
+  UserInfo,
+  UserMetadata,
+  AuthResult,
+  AuthCredential,
+  AdditionalUserInfo,
+  SignInOptions,
+  SignOutOptions,
+  AuthProvider,
+  AuthErrorCode,
+  AuthPersistence,
+  ProviderOptions,
+  RefreshTokenOptions,
+  LinkAccountOptions,
+  UnlinkAccountOptions,
+  AuthStateChangeCallback,
+  GetIdTokenOptions,
+  UpdateProfileOptions,
+  BiometricAuthOptions,
+  BiometricType,
+  AppleAuthScope,
+  PasswordStrengthRequirements,
+  UsernameRequirements,
+  AuthCredentials
+} from './definitions';
 
-export * from './definitions';
-export { CapacitorAuthManager };
+export { PlatformDetector } from './core/platform';
+export type { Platform, PlatformInfo } from './core/platform';
 
-// Export useful utilities for end users
+// Error handling
 export { AuthError, isAuthError } from './utils/auth-error';
-export type { LogLevel } from './utils/logger';
+
+// For backward compatibility with Capacitor plugin interface
+export { CapacitorAuthManager } from './capacitor-plugin';
+export type { CapacitorAuthManagerPlugin } from './definitions';

@@ -17,6 +17,7 @@ import { AuthError } from '../utils/auth-error';
 import { EventEmitter, UnsubscribeFn } from '../utils/event-emitter';
 import { StorageInterface } from '../utils/storage';
 import { Logger } from '../utils/logger';
+import { AuthProviderInterface } from '../core/types';
 
 export interface BaseProviderConfig {
   provider: AuthProvider;
@@ -26,7 +27,7 @@ export interface BaseProviderConfig {
   persistence?: AuthPersistence;
 }
 
-export abstract class BaseAuthProvider {
+export abstract class BaseAuthProvider implements AuthProviderInterface {
   protected provider: AuthProvider;
   protected options: ProviderOptions;
   protected storage: StorageInterface;
@@ -35,6 +36,10 @@ export abstract class BaseAuthProvider {
   protected currentUser: AuthUser | null = null;
   protected isInitialized = false;
   protected persistence: AuthPersistence;
+
+  get name(): string {
+    return this.provider;
+  }
 
   constructor(config: BaseProviderConfig) {
     this.provider = config.provider;
@@ -71,7 +76,7 @@ export abstract class BaseAuthProvider {
     // Persist user to storage
     const storageKey = `${this.provider}_current_user`;
     if (user) {
-      await this.storage.set(storageKey, JSON.stringify(user));
+      await this.storage.set(storageKey, user);
     } else {
       await this.storage.remove(storageKey);
     }
@@ -86,7 +91,7 @@ export abstract class BaseAuthProvider {
       const userData = await this.storage.get(storageKey);
       
       if (userData) {
-        this.currentUser = JSON.parse(userData);
+        this.currentUser = userData;
         this.logger.debug(`Loaded user from storage for provider ${this.provider}`);
       }
     } catch (error) {
@@ -96,7 +101,7 @@ export abstract class BaseAuthProvider {
 
   protected async saveCredential(credential: AuthCredential): Promise<void> {
     const storageKey = `${this.provider}_credential`;
-    await this.storage.set(storageKey, JSON.stringify(credential));
+    await this.storage.set(storageKey, credential);
   }
 
   protected async loadCredential(): Promise<AuthCredential | null> {
@@ -105,7 +110,7 @@ export abstract class BaseAuthProvider {
       const credentialData = await this.storage.get(storageKey);
       
       if (credentialData) {
-        return JSON.parse(credentialData);
+        return credentialData;
       }
     } catch (error) {
       this.logger.error('Failed to load credential from storage', error);

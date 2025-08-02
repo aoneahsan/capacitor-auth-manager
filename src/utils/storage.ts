@@ -1,8 +1,8 @@
 import { AuthPersistence } from '../definitions';
 
 export interface StorageInterface {
-  get(key: string): Promise<string | null>;
-  set(key: string, value: string): Promise<void>;
+  get(key: string): Promise<any>;
+  set(key: string, value: any): Promise<void>;
   remove(key: string): Promise<void>;
   clear(): Promise<void>;
 }
@@ -30,18 +30,27 @@ export class WebStorage implements StorageInterface {
     }
   }
 
-  async get(key: string): Promise<string | null> {
+  async get(key: string): Promise<any> {
     try {
-      return this.storage.getItem(this.prefix + key);
+      const value = this.storage.getItem(this.prefix + key);
+      if (value) {
+        try {
+          return JSON.parse(value);
+        } catch {
+          return value;
+        }
+      }
+      return null;
     } catch (error) {
       console.error('Storage get error:', error);
       return null;
     }
   }
 
-  async set(key: string, value: string): Promise<void> {
+  async set(key: string, value: any): Promise<void> {
     try {
-      this.storage.setItem(this.prefix + key, value);
+      const stringValue = typeof value === 'string' ? value : JSON.stringify(value);
+      this.storage.setItem(this.prefix + key, stringValue);
     } catch (error) {
       console.error('Storage set error:', error);
       throw error;

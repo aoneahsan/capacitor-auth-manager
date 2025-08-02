@@ -19,8 +19,15 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
-    "target": "ES2017"
+    "target": "ES2017",
+    "jsx": "react",
+    "paths": {
+      "capacitor-auth-manager": ["./src/index.ts"],
+      "capacitor-auth-manager/core": ["./src/core/index.ts"],
+      "capacitor-auth-manager/react": ["./src/react/index.ts"],
+      "capacitor-auth-manager/providers/*": ["./src/providers/*/index.ts"]
+    }
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "android", "ios", "dist", "example"]
 }
