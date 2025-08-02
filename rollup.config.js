@@ -28,6 +28,7 @@ const baseConfig = {
     resolve({
       preferBuiltins: false,
     }),
+    json(),
   ],
 };
 
@@ -81,5 +82,40 @@ export default [
       },
     ],
     external: [...baseConfig.external, 'react', 'react-dom'],
+  },
+  // Vue module
+  {
+    ...baseConfig,
+    input: 'dist/esm/vue/index.js',
+    output: [
+      {
+        file: 'dist/vue.cjs.js',
+        format: 'cjs',
+        sourcemap: true,
+        inlineDynamicImports: true,
+      },
+    ],
+    external: [...baseConfig.external, 'vue'],
+  },
+  // Angular module
+  {
+    ...baseConfig,
+    input: 'dist/esm/angular/index.js',
+    output: [
+      {
+        file: 'dist/angular.cjs.js',
+        format: 'cjs',
+        sourcemap: true,
+        inlineDynamicImports: true,
+      },
+    ],
+    external: [
+      ...baseConfig.external, 
+      '@angular/core',
+      '@angular/common',
+      '@angular/router',
+      'rxjs',
+      'rxjs/operators'
+    ],
   },
 ];
