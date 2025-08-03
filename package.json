@@ -1,6 +1,6 @@
 {
   "name": "capacitor-auth-manager",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Universal authentication manager with 13+ providers. Framework-agnostic, works with React, Vue, Angular, and vanilla JS. Optional Capacitor support for mobile apps.",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
