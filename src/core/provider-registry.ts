@@ -213,13 +213,138 @@ Note: You'll need a backend service to exchange the authorization code for an ac
       }
     });
 
+    // Register all new provider manifests
+    this.registerManifest({
+      name: 'magic-link',
+      displayName: 'Email Magic Link',
+      setupInstructions: `
+To use Email Magic Link authentication:
+
+1. Set up a backend endpoint to send emails:
+   - Endpoint should accept POST requests with email and magic link
+   - Send email with the magic link to the user
+
+2. Configure the provider:
+   auth.configure({
+     providers: {
+       'magic-link': {
+         sendLinkUrl: 'https://your-api.com/send-magic-link',
+         verifyUrl: 'https://your-api.com/verify-magic-link', // Optional
+         redirectUrl: window.location.origin + '/auth-callback'
+       }
+     }
+   })
+`,
+      platforms: ['web'],
+      configSchema: {
+        sendLinkUrl: { type: 'string', required: true },
+        verifyUrl: { type: 'string' },
+        redirectUrl: { type: 'string' }
+      }
+    });
+
+    this.registerManifest({
+      name: 'sms',
+      displayName: 'SMS Authentication',
+      setupInstructions: `
+To use SMS authentication:
+
+1. Set up backend endpoints:
+   - Send code endpoint: POST request to send SMS
+   - Verify code endpoint: POST request to verify SMS code
+
+2. Configure the provider:
+   auth.configure({
+     providers: {
+       sms: {
+         sendCodeUrl: 'https://your-api.com/sms/send',
+         verifyCodeUrl: 'https://your-api.com/sms/verify',
+         countryCode: '+1', // Default country code
+         codeLength: 6     // SMS code length
+       }
+     }
+   })
+`,
+      platforms: ['web', 'ios', 'android'],
+      configSchema: {
+        sendCodeUrl: { type: 'string', required: true },
+        verifyCodeUrl: { type: 'string', required: true },
+        countryCode: { type: 'string' },
+        codeLength: { type: 'number' }
+      }
+    });
+
+    this.registerManifest({
+      name: 'email-password',
+      displayName: 'Email & Password',
+      setupInstructions: `
+To use Email/Password authentication:
+
+1. Set up backend API endpoints for authentication
+
+2. Configure the provider:
+   auth.configure({
+     providers: {
+       'email-password': {
+         apiUrl: 'https://your-api.com',
+         passwordRequirements: {
+           minLength: 8,
+           requireUppercase: true,
+           requireNumbers: true
+         }
+       }
+     }
+   })
+`,
+      platforms: ['web', 'ios', 'android'],
+      configSchema: {
+        apiUrl: { type: 'string', required: true },
+        passwordRequirements: { type: 'object' }
+      }
+    });
+
+    this.registerManifest({
+      name: 'biometric',
+      displayName: 'Biometric Authentication',
+      packageName: 'capacitor-biometric-authentication',
+      setupInstructions: `
+To use Biometric authentication:
+
+1. Install the capacitor-biometric-authentication plugin:
+   npm install capacitor-biometric-authentication
+   npx cap sync
+
+2. Configure the provider:
+   auth.configure({
+     providers: {
+       biometric: {
+         reason: 'Authenticate to access your account',
+         title: 'Authentication Required'
+       }
+     }
+   })
+
+Note: Users must first authenticate with another method before enabling biometric authentication.
+`,
+      platforms: ['ios', 'android'],
+      configSchema: {
+        reason: { type: 'string' },
+        title: { type: 'string' },
+        subtitle: { type: 'string' }
+      }
+    });
+
     // Register provider loaders
-    this.registerLoader('google', () => import('../providers/web/google-provider').then(m => ({ default: m.GoogleAuthProviderWeb })));
-    this.registerLoader('apple', () => import('../providers/web/apple-provider').then(m => ({ default: m.AppleAuthProviderWeb })));
-    this.registerLoader('microsoft', () => import('../providers/web/microsoft-provider').then(m => ({ default: m.MicrosoftAuthProviderWeb })));
-    this.registerLoader('facebook', () => import('../providers/web/facebook-provider').then(m => ({ default: m.FacebookAuthProviderWeb })));
-    this.registerLoader('github', () => import('../providers/web/github-provider').then(m => ({ default: m.GitHubAuthProviderWeb })));
-    this.registerLoader('firebase', () => import('../providers/web/firebase-provider').then(m => ({ default: m.FirebaseAuthProviderWeb })));
+    this.registerLoader('google', () => import('../providers/web/google-provider').then(m => ({ default: m.GoogleProvider })));
+    this.registerLoader('apple', () => import('../providers/web/apple-provider').then(m => ({ default: m.AppleProvider })));
+    this.registerLoader('microsoft', () => import('../providers/web/microsoft-provider').then(m => ({ default: m.MicrosoftProvider })));
+    this.registerLoader('facebook', () => import('../providers/web/facebook-provider').then(m => ({ default: m.FacebookProvider })));
+    this.registerLoader('github', () => import('../providers/web/github-provider').then(m => ({ default: m.GitHubProvider })));
+    this.registerLoader('firebase', () => import('../providers/web/firebase-provider').then(m => ({ default: m.FirebaseProvider })));
+    this.registerLoader('magic-link', () => import('../providers/web/magic-link-provider').then(m => ({ default: m.MagicLinkProvider })));
+    this.registerLoader('sms', () => import('../providers/web/sms-provider').then(m => ({ default: m.SMSProvider })));
+    this.registerLoader('email-password', () => import('../providers/web/email-password-provider').then(m => ({ default: m.EmailPasswordProvider })));
+    this.registerLoader('biometric', () => import('../providers/web/biometric-provider').then(m => ({ default: m.BiometricProvider })));
   }
 
   static registerManifest(manifest: ProviderManifest): void {

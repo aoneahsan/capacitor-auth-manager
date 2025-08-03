@@ -2,6 +2,16 @@
 
 Universal authentication manager with 13+ providers. Framework-agnostic, works with React, Vue, Angular, and vanilla JS. Optional Capacitor support for mobile apps.
 
+## 🚀 v2.0 - Complete Rewrite!
+
+Version 2.0 is a complete rewrite focusing on developer experience, smaller bundle sizes, and flexibility:
+
+- **No Provider Wrappers** - Works like Zustand, no context providers needed
+- **Framework Agnostic** - One package for React, Vue, Angular, and vanilla JS
+- **Optional Capacitor** - Use in regular web apps without Capacitor
+- **Dynamic Loading** - Providers load only when used (better tree-shaking)
+- **All 13 Providers Implemented** - Every promised provider is now available
+
 ## Features
 
 - 🚀 **Zero Configuration** - Works out of the box with sensible defaults
@@ -85,27 +95,80 @@ function LoginButton() {
 
 No providers or context wrappers needed! Just import and use.
 
+### Vue 3 Usage
+
+```vue
+<script setup>
+import { useAuth } from 'capacitor-auth-manager/vue';
+
+const { user, signIn, signOut, isLoading } = useAuth();
+</script>
+
+<template>
+  <div v-if="isLoading">Loading...</div>
+  <div v-else-if="user">
+    <p>Welcome, {{ user.displayName }}!</p>
+    <button @click="signOut">Sign Out</button>
+  </div>
+  <button v-else @click="signIn('google')">
+    Sign In with Google
+  </button>
+</template>
+```
+
+### Angular Usage
+
+```typescript
+import { Component } from '@angular/core';
+import { AuthService } from 'capacitor-auth-manager/angular';
+
+@Component({
+  selector: 'app-login',
+  template: `
+    <div *ngIf="authService.isLoading$ | async">Loading...</div>
+    <div *ngIf="authService.user$ | async as user">
+      <p>Welcome, {{ user.displayName }}!</p>
+      <button (click)="signOut()">Sign Out</button>
+    </div>
+    <button *ngIf="!(authService.user$ | async)" (click)="signIn('google')">
+      Sign In with Google
+    </button>
+  `
+})
+export class LoginComponent {
+  constructor(public authService: AuthService) {}
+
+  signIn(provider: string) {
+    this.authService.signIn(provider).subscribe();
+  }
+
+  signOut() {
+    this.authService.signOut().subscribe();
+  }
+}
+```
+
 ## Supported Providers
 
 | Provider | Web | iOS | Android | Status |
 |----------|-----|-----|---------|--------|
-| Google | ✅ | ✅ | ✅ | Ready |
-| Apple | ✅ | ✅ | ❌ | Ready |
-| Microsoft | ✅ | ✅ | ✅ | Coming Soon |
-| Facebook | ✅ | ✅ | ✅ | Coming Soon |
-| GitHub | ✅ | ❌ | ❌ | Coming Soon |
-| Slack | ✅ | ❌ | ❌ | Coming Soon |
-| LinkedIn | ✅ | ❌ | ❌ | Coming Soon |
-| Firebase | ✅ | ✅ | ✅ | Coming Soon |
-| Email Magic Link | ✅ | ✅ | ✅ | Coming Soon |
-| SMS | ✅ | ✅ | ✅ | Coming Soon |
-| Email/Password | ✅ | ✅ | ✅ | Coming Soon |
-| Phone/Password | ✅ | ✅ | ✅ | Coming Soon |
-| Biometric | ❌ | ✅ | ✅ | Coming Soon |
+| Google | ✅ | ✅ | ✅ | ✅ Implemented |
+| Apple | ✅ | ✅ | ❌ | ✅ Implemented |
+| Microsoft | ✅ | ✅ | ✅ | ✅ Implemented |
+| Facebook | ✅ | ✅ | ✅ | ✅ Implemented |
+| GitHub | ✅ | ❌ | ❌ | ✅ Implemented |
+| Firebase | ✅ | ✅ | ✅ | ✅ Implemented |
+| Email Magic Link | ✅ | ✅ | ✅ | ✅ Implemented |
+| SMS | ✅ | ✅ | ✅ | ✅ Implemented |
+| Email/Password | ✅ | ✅ | ✅ | ✅ Implemented |
+| Biometric | ❌ | ✅ | ✅ | ✅ Implemented |
+| Slack | ✅ | ❌ | ❌ | 🔄 Coming Soon |
+| LinkedIn | ✅ | ❌ | ❌ | 🔄 Coming Soon |
+| Username/Password | ✅ | ✅ | ✅ | 🔄 Coming Soon |
 
 ## Configuration
 
-### Basic Configuration
+### Complete Configuration Example
 
 ```typescript
 import { auth } from 'capacitor-auth-manager';
@@ -115,13 +178,48 @@ auth.configure({
   providers: {
     google: {
       clientId: 'YOUR_CLIENT_ID',
-      scopes: ['email', 'profile'],
-      hostedDomain: 'company.com' // Optional
+      scopes: ['email', 'profile']
     },
     apple: {
       clientId: 'YOUR_SERVICE_ID',
-      redirectUri: 'https://your-app.com/auth/callback',
-      scopes: ['email', 'name']
+      redirectUri: 'https://your-app.com/auth/callback'
+    },
+    microsoft: {
+      clientId: 'YOUR_CLIENT_ID',
+      authority: 'https://login.microsoftonline.com/common'
+    },
+    facebook: {
+      appId: 'YOUR_APP_ID',
+      version: 'v18.0'
+    },
+    github: {
+      clientId: 'YOUR_CLIENT_ID',
+      redirectUri: 'YOUR_REDIRECT_URI'
+    },
+    firebase: {
+      apiKey: 'YOUR_API_KEY',
+      authDomain: 'YOUR_AUTH_DOMAIN',
+      projectId: 'YOUR_PROJECT_ID'
+    },
+    'magic-link': {
+      sendLinkUrl: 'https://your-api.com/send-magic-link',
+      verifyUrl: 'https://your-api.com/verify-magic-link'
+    },
+    sms: {
+      sendCodeUrl: 'https://your-api.com/sms/send',
+      verifyCodeUrl: 'https://your-api.com/sms/verify'
+    },
+    'email-password': {
+      apiUrl: 'https://your-api.com',
+      passwordRequirements: {
+        minLength: 8,
+        requireUppercase: true,
+        requireNumbers: true
+      }
+    },
+    biometric: {
+      reason: 'Authenticate to access your account',
+      title: 'Authentication Required'
     }
   },
   
@@ -136,60 +234,103 @@ auth.configure({
 
 ### Provider-Specific Setup
 
-Each provider may require additional setup. The package provides helpful error messages:
+Each provider may require additional setup. The package provides helpful error messages when dependencies are missing.
 
-```
-Error: Google Sign-In SDK not found.
-To use Google authentication, install the SDK:
+## Framework-Specific APIs
 
-npm install @google/gsi
+### React Hooks
 
-Then configure in your app:
-auth.configure({
-  providers: {
-    google: { clientId: 'YOUR_CLIENT_ID' }
-  }
-});
-```
+- `useAuth()` - Complete authentication functionality
+- `useAuthState()` - Read-only authentication state
+- `useUser()` - Just the current user
+- `useToken()` - Access token management
+- `useIsAuthenticated()` - Boolean authentication status
 
-## React Hooks
+### Vue 3 Composables
 
-### `useAuth()`
-Complete authentication functionality with methods and state.
+- `useAuth()` - Complete authentication functionality with reactive refs
+- `useAuthState()` - Reactive auth state
+- `useUser()` - Reactive user ref
+- `useToken()` - Reactive token management
 
-```tsx
-const { user, isLoading, isAuthenticated, signIn, signOut, error } = useAuth();
-```
+### Angular Service
 
-### `useAuthState()`
-Read-only authentication state.
+```typescript
+import { AuthModule } from 'capacitor-auth-manager/angular';
 
-```tsx
-const { user, isLoading, isAuthenticated, provider } = useAuthState();
-```
-
-### `useUser()`
-Just the current user.
-
-```tsx
-const user = useUser();
-```
-
-### `useIsAuthenticated()`
-Boolean authentication status.
-
-```tsx
-const isAuthenticated = useIsAuthenticated();
-```
-
-### `useAuthProvider()`
-Provider-specific functionality.
-
-```tsx
-const { signIn, isSupported, isConfigured } = useAuthProvider('google');
+// In your app module
+imports: [
+  AuthModule.forRoot({
+    providers: { /* ... */ }
+  })
+]
 ```
 
 ## Advanced Usage
+
+### Email Magic Link
+
+```typescript
+// Send magic link
+await auth.signIn('magic-link', { email: 'user@example.com' });
+
+// The user will receive an email with a link
+// When they click it, your app handles the callback
+```
+
+### SMS Authentication
+
+```typescript
+// Send SMS code
+const result = await auth.signIn('sms', { phoneNumber: '+1234567890' });
+
+// Verify SMS code
+await auth.signIn('sms', { 
+  phoneNumber: '+1234567890',
+  code: '123456'
+});
+```
+
+### Email/Password
+
+```typescript
+// Sign up
+await auth.signUp({
+  email: 'user@example.com',
+  password: 'secure-password',
+  displayName: 'John Doe'
+});
+
+// Sign in
+await auth.signIn('email-password', {
+  email: 'user@example.com',
+  password: 'secure-password'
+});
+
+// Update password
+const provider = await auth.getProvider('email-password');
+await provider.updatePassword('oldPassword', 'newPassword');
+
+// Send password reset
+await provider.sendPasswordResetEmail('user@example.com');
+```
+
+### Biometric Authentication
+
+```typescript
+// Check availability
+const biometric = await auth.getProvider('biometric');
+const { available, biometryType } = await biometric.isAvailable();
+
+if (available) {
+  // Store credentials after initial sign in
+  const result = await auth.signIn('google');
+  await biometric.storeUserCredentials(result.user, result.credential);
+  
+  // Later: authenticate with biometrics
+  await auth.signIn('biometric');
+}
+```
 
 ### Multiple Sign-In Options
 
@@ -197,72 +338,77 @@ const { signIn, isSupported, isConfigured } = useAuthProvider('google');
 // Simple provider name
 await auth.signIn('google');
 
-// With options
-await auth.signIn({
-  provider: 'google',
-  options: {
-    loginHint: 'user@example.com',
-    prompt: 'consent'
-  }
+// With scopes
+await auth.signIn('google', {
+  scopes: ['https://www.googleapis.com/auth/calendar']
 });
 
-// With credentials (for password-based auth)
-await auth.signIn({
-  provider: 'email_password',
-  credentials: {
-    email: 'user@example.com',
-    password: 'secure-password'
-  }
+// With login hint
+await auth.signIn('google', {
+  loginHint: 'user@example.com'
 });
 ```
 
 ### Token Management
 
 ```typescript
+// Listen to token state
+auth.onAuthStateChange((state) => {
+  if (state.credential?.expiresAt) {
+    console.log('Token expires at:', new Date(state.credential.expiresAt));
+  }
+});
+
 // Manual token refresh
 await auth.refreshToken();
 
-// Get ID token
-const idToken = await auth.getIdToken();
+// Get current token
+const state = auth.getAuthState();
+const token = state.credential?.accessToken;
+```
 
-// Automatic refresh is handled by default
+## Examples
+
+Check out the [examples](./examples) directory for complete applications:
+
+- [Vanilla JavaScript](./examples/vanilla-js) - Pure JS implementation
+- [React Example](./examples/react) - React 18+ with TypeScript
+- [Vue 3 Example](./examples/vue) - Vue 3 Composition API
+- [Angular Example](./examples/angular) - Angular 16+ with standalone components
+
+## Migration from v1.x
+
+### Before (v1.x)
+```typescript
+// Required Capacitor
+import { CapacitorAuthManager } from 'capacitor-auth-manager';
+
+await CapacitorAuthManager.initialize({
+  providers: [/* ... */]
+});
+
+await CapacitorAuthManager.signIn({ provider: AuthProvider.GOOGLE });
+```
+
+### After (v2.0)
+```typescript
+// Works without Capacitor
+import { auth } from 'capacitor-auth-manager';
+
 auth.configure({
-  autoRefreshToken: true,
-  tokenRefreshBuffer: 300000 // Refresh 5 minutes before expiry
-});
-```
-
-### State Management
-
-```typescript
-// Subscribe to auth state changes
-const unsubscribe = auth.onAuthStateChange((state) => {
-  console.log('User:', state.user);
-  console.log('Loading:', state.isLoading);
-  console.log('Authenticated:', state.isAuthenticated);
-  console.log('Provider:', state.provider);
+  providers: { google: { clientId: '...' } }
 });
 
-// Clean up subscription
-unsubscribe();
+await auth.signIn('google');
 ```
 
-### Platform Detection
+## Why v2.0?
 
-```typescript
-import { PlatformDetector } from 'capacitor-auth-manager';
-
-const platform = PlatformDetector.getPlatform();
-console.log(platform);
-// {
-//   platform: 'web',
-//   isNative: false,
-//   isWeb: true,
-//   isMobile: false,
-//   isDesktop: true,
-//   userAgent: '...'
-// }
-```
+1. **No Context Providers** - Works like Zustand, cleaner component trees
+2. **Framework Agnostic** - One package, multiple frameworks
+3. **Better Tree-shaking** - Only pay for what you use
+4. **Optional Capacitor** - Use in any web app
+5. **All Providers Ready** - No more "coming soon"
 
 ## TypeScript Support
 
@@ -273,124 +419,27 @@ import type {
   AuthUser, 
   AuthResult, 
   SignInOptions,
-  AuthState 
+  AuthState,
+  AuthProvider,
+  AuthCredential
 } from 'capacitor-auth-manager';
-
-// All methods and hooks are fully typed
-const result: AuthResult = await auth.signIn('google');
-const user: AuthUser | null = auth.getCurrentUser();
 ```
 
-## Migration from v1.x
+## Platform Notes
 
-See the [Migration Guide](./docs/MIGRATION.md) for detailed upgrade instructions.
+### Web
+- All providers work without additional setup
+- Some providers (SMS, Magic Link, Email/Password) require backend services
 
-Key changes in v2.0:
-- No provider wrapper required
-- Direct singleton API
-- Optional Capacitor dependency
-- Better tree-shaking
-- React hooks included
+### iOS
+- Requires Capacitor for native functionality
+- Biometric auth requires Face ID/Touch ID capability
+- Some providers need URL schemes configuration
 
-## Backward Compatibility with Capacitor Plugin
-
-For users who still need the Capacitor plugin interface:
-
-```typescript
-import { CapacitorAuthManager } from 'capacitor-auth-manager';
-
-// Works like v1.x
-await CapacitorAuthManager.initialize({
-  providers: [
-    {
-      provider: AuthProvider.GOOGLE,
-      options: { clientId: 'YOUR_CLIENT_ID' }
-    }
-  ]
-});
-
-await CapacitorAuthManager.signIn({
-  provider: AuthProvider.GOOGLE
-});
-```
-
-## Examples
-
-Check out the [examples](./examples) directory for complete applications:
-
-- [React Example](./examples/react)
-- [Vue Example](./examples/vue)
-- [Angular Example](./examples/angular)
-- [Vanilla JS Example](./examples/vanilla)
-- [Capacitor Example](./examples/capacitor)
-
-## API Reference
-
-### Core API
-
-```typescript
-// Configure auth
-auth.configure(config: AuthManagerConfig): void
-
-// Sign in
-auth.signIn(provider: string | SignInOptions): Promise<AuthResult>
-
-// Sign out  
-auth.signOut(options?: SignOutOptions): Promise<void>
-
-// Get current user
-auth.getCurrentUser(): AuthUser | null
-
-// Get auth state
-auth.getAuthState(): AuthState
-
-// Check authentication
-auth.isAuthenticated(): boolean
-
-// Listen to changes
-auth.onAuthStateChange(callback: (state: AuthState) => void): () => void
-
-// Token refresh
-auth.refreshToken(provider?: string): Promise<AuthResult>
-
-// Provider utilities
-auth.getAvailableProviders(): Promise<string[]>
-auth.getSupportedProviders(): Promise<string[]>
-auth.isProviderSupported(provider: string): Promise<boolean>
-```
-
-## Platform-Specific Setup
-
-### iOS Setup
-
-1. Add required capabilities in Xcode:
-   - Sign in with Apple (if using Apple Auth)
-   - Keychain Sharing (for secure credential storage)
-
-2. Update your `Info.plist` for each provider you're using
-
-### Android Setup
-
-1. Add to your `android/app/build.gradle`:
-```gradle
-android {
-  defaultConfig {
-    manifestPlaceholders = [
-      appAuthRedirectScheme: 'com.yourcompany.yourapp'
-    ]
-  }
-}
-```
-
-2. Update your `AndroidManifest.xml` for each provider
-
-### Web Setup
-
-Configure redirect URIs in each provider's console:
-- **Google**: Add your domain to authorized JavaScript origins
-- **Apple**: Configure your Service ID with proper domains and redirect URLs
-- **Facebook**: Add your domain to valid OAuth redirect URIs
-- **Microsoft**: Configure redirect URIs in Azure AD
+### Android
+- Requires Capacitor for native functionality
+- Biometric auth requires fingerprint hardware
+- Configure `AndroidManifest.xml` for OAuth redirects
 
 ## Contributing
 

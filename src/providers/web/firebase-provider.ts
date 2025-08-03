@@ -1,5 +1,6 @@
 import { BaseAuthProvider } from '../base-provider';
-import { AuthProvider, AuthResult, AuthError, AuthErrorCode, FirebaseAuthOptions } from '../../definitions';
+import { AuthResult, AuthErrorCode, FirebaseAuthOptions } from '../../definitions';
+import { AuthError } from '../../utils/auth-error';
 import type { SignInOptions, SignOutOptions } from '../../definitions';
 
 export class FirebaseAuthProviderWeb extends BaseAuthProvider {

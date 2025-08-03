@@ -1,5 +1,6 @@
 import { BaseAuthProvider } from '../base-provider';
-import { AuthProvider, AuthResult, AuthError, AuthErrorCode, FacebookAuthOptions } from '../../definitions';
+import { AuthResult, AuthErrorCode, FacebookAuthOptions } from '../../definitions';
+import { AuthError } from '../../utils/auth-error';
 import type { SignInOptions, SignOutOptions } from '../../definitions';
 
 declare global {

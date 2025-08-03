@@ -1,6 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable, from, throwError } from 'rxjs';
-import { map, catchError, tap } from 'rxjs/operators';
+import { map, catchError } from 'rxjs/operators';
 import { auth } from '../core/auth-manager';
 import type { AuthState } from '../core/types';
 import type { AuthUser, AuthResult, SignInOptions, SignOutOptions } from '../definitions';

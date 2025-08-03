@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "node_modules",
+    "android",
+    "ios", 
+    "dist",
+    "example",
+    "examples",
+    "src/angular/**/*",
+    "src/vue/**/*",
+    "src/react/**/*"
+  ]
+}

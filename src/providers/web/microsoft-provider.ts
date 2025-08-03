@@ -1,5 +1,6 @@
 import { BaseAuthProvider } from '../base-provider';
-import { AuthProvider, AuthResult, AuthError, AuthErrorCode, MicrosoftAuthOptions } from '../../definitions';
+import { AuthResult, AuthErrorCode, MicrosoftAuthOptions } from '../../definitions';
+import { AuthError } from '../../utils/auth-error';
 import type { SignInOptions, SignOutOptions } from '../../definitions';
 
 export class MicrosoftAuthProviderWeb extends BaseAuthProvider {

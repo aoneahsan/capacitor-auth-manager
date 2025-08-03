@@ -1,5 +1,6 @@
 import { BaseAuthProvider } from '../base-provider';
-import { AuthProvider, AuthResult, AuthError, AuthErrorCode, GitHubAuthOptions } from '../../definitions';
+import { AuthResult, AuthErrorCode, GitHubAuthOptions } from '../../definitions';
+import { AuthError } from '../../utils/auth-error';
 import type { SignInOptions, SignOutOptions } from '../../definitions';
 
 export class GitHubAuthProviderWeb extends BaseAuthProvider {
@@ -7,7 +8,7 @@ export class GitHubAuthProviderWeb extends BaseAuthProvider {
   private redirectUri: string;
   private scopes: string[];
   private authWindow: Window | null = null;
-  private authPromise: { resolve: Function; reject: Function } | null = null;
+  private authPromise: { resolve: (value: AuthResult) => void; reject: (reason: AuthError) => void } | null = null;
 
   async initialize(): Promise<void> {
     const options = this.options as GitHubAuthOptions;
@@ -34,7 +35,7 @@ export class GitHubAuthProviderWeb extends BaseAuthProvider {
     this.logger.info('GitHub auth provider initialized');
   }
 
-  async signIn(options?: SignInOptions): Promise<AuthResult> {
+  async signIn(_options?: SignInOptions): Promise<AuthResult> {
     this.validateInitialized();
 
     return new Promise((resolve, reject) => {
@@ -150,7 +151,7 @@ export class GitHubAuthProviderWeb extends BaseAuthProvider {
     await this.signOut();
   }
 
-  async revokeAccess(token?: string): Promise<void> {
+  async revokeAccess(_token?: string): Promise<void> {
     // GitHub token revocation requires server-side implementation
     // for security reasons (needs client secret)
     this.logger.warn('GitHub token revocation should be implemented server-side');
@@ -242,7 +243,7 @@ export class GitHubAuthProviderWeb extends BaseAuthProvider {
     }
   }
 
-  private async exchangeCodeForToken(code: string): Promise<any> {
+  private async exchangeCodeForToken(_code: string): Promise<any> {
     // NOTE: This should be done server-side in production to keep client secret secure
     throw new AuthError(
       AuthErrorCode.INTERNAL_ERROR,
