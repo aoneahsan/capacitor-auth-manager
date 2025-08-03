@@ -1,6 +1,6 @@
-import { BaseAuthProvider } from '../base-provider';
-import { AuthResult, AuthUser, SignInOptions, SignUpOptions } from '../../definitions';
+import { AuthResult, AuthUser, SignInOptions, SignUpOptions, RefreshTokenOptions } from '../../definitions';
 import { AuthError } from '../../utils/auth-error';
+import { AuthProviderInterface } from '../../core/types';
 
 export interface EmailPasswordConfig {
   apiUrl: string;
@@ -27,14 +27,15 @@ interface EmailPasswordSignUpOptions extends SignUpOptions {
   photoURL?: string;
 }
 
-export class EmailPasswordProvider extends BaseAuthProvider {
+export class EmailPasswordProvider implements AuthProviderInterface {
+  name = 'email-password';
   private config: EmailPasswordConfig;
   private currentUser: AuthUser | null = null;
   private authToken: string | null = null;
-  private refreshToken: string | null = null;
+  private refreshTokenValue: string | null = null;
 
   constructor(config: EmailPasswordConfig) {
-    super('email-password');
+    // Initialize with config
     this.config = {
       allowSignUp: true,
       passwordRequirements: {
@@ -84,7 +85,7 @@ export class EmailPasswordProvider extends BaseAuthProvider {
         photoURL: data.photoURL || null,
         emailVerified: data.emailVerified || false,
         providerData: [{
-          providerId: this.provider,
+          providerId: this.name,
           uid: data.uid,
           displayName: data.displayName || data.email.split('@')[0],
           email: data.email,
@@ -100,19 +101,20 @@ export class EmailPasswordProvider extends BaseAuthProvider {
       // Store auth state
       this.currentUser = user;
       this.authToken = data.accessToken;
-      this.refreshToken = data.refreshToken;
+      this.refreshTokenValue = data.refreshToken;
 
       return {
         user,
         credential: {
-          providerId: this.provider,
+          providerId: this.name,
           signInMethod: 'password',
           accessToken: data.accessToken,
           refreshToken: data.refreshToken,
           expiresAt: data.expiresAt
         },
         additionalUserInfo: {
-          isNewUser: false
+          isNewUser: false,
+          providerId: this.name
         }
       };
     } catch (error: any) {
@@ -177,7 +179,7 @@ export class EmailPasswordProvider extends BaseAuthProvider {
         photoURL: options.photoURL || null,
         emailVerified: false,
         providerData: [{
-          providerId: this.provider,
+          providerId: this.name,
           uid: data.uid,
           displayName: data.displayName || data.email.split('@')[0],
           email: data.email,
@@ -193,19 +195,20 @@ export class EmailPasswordProvider extends BaseAuthProvider {
       // Store auth state
       this.currentUser = user;
       this.authToken = data.accessToken;
-      this.refreshToken = data.refreshToken;
+      this.refreshTokenValue = data.refreshToken;
 
       return {
         user,
         credential: {
-          providerId: this.provider,
+          providerId: this.name,
           signInMethod: 'password',
           accessToken: data.accessToken,
           refreshToken: data.refreshToken,
           expiresAt: data.expiresAt
         },
         additionalUserInfo: {
-          isNewUser: true
+          isNewUser: true,
+          providerId: this.name
         }
       };
     } catch (error: any) {
@@ -237,15 +240,15 @@ export class EmailPasswordProvider extends BaseAuthProvider {
 
     this.currentUser = null;
     this.authToken = null;
-    this.refreshToken = null;
+    this.refreshTokenValue = null;
   }
 
   async getCurrentUser(): Promise<AuthUser | null> {
     return this.currentUser;
   }
 
-  async refreshAuthToken(): Promise<AuthResult> {
-    if (!this.refreshToken) {
+  async refreshToken(_options?: RefreshTokenOptions): Promise<AuthResult> {
+    if (!this.refreshTokenValue) {
       throw new AuthError('NO_REFRESH_TOKEN', 'No refresh token available');
     }
 
@@ -256,7 +259,7 @@ export class EmailPasswordProvider extends BaseAuthProvider {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          refreshToken: this.refreshToken,
+          refreshToken: this.refreshTokenValue,
           clientId: this.config.clientId
         })
       });
@@ -270,13 +273,13 @@ export class EmailPasswordProvider extends BaseAuthProvider {
       // Update tokens
       this.authToken = data.accessToken;
       if (data.refreshToken) {
-        this.refreshToken = data.refreshToken;
+        this.refreshTokenValue = data.refreshToken;
       }
 
       return {
         user: this.currentUser!,
         credential: {
-          providerId: this.provider,
+          providerId: this.name,
           signInMethod: 'password',
           accessToken: data.accessToken,
           refreshToken: data.refreshToken,
@@ -426,6 +429,34 @@ export class EmailPasswordProvider extends BaseAuthProvider {
     }
 
     return null;
+  }
+
+  async initialize(): Promise<void> {
+    // Email/Password provider doesn't require initialization
+  }
+
+  async isSupported(): Promise<boolean> {
+    // Email/Password auth is supported if we have the required config
+    return !!this.config.apiUrl;
+  }
+
+  async linkAccount(_options: any): Promise<AuthResult> {
+    throw new AuthError(
+      'NOT_SUPPORTED',
+      'Account linking is not supported for email/password authentication'
+    );
+  }
+
+  async unlinkAccount(_options: any): Promise<void> {
+    throw new AuthError(
+      'NOT_SUPPORTED',
+      'Account unlinking is not supported for email/password authentication'
+    );
+  }
+
+  async revokeAccess(_token?: string): Promise<void> {
+    // For email/password auth, revoking access means signing out
+    await this.signOut();
   }
 }
 

@@ -1,6 +1,6 @@
-import { BaseAuthProvider } from '../base-provider';
 import { AuthResult, AuthUser, SignInOptions } from '../../definitions';
 import { AuthError } from '../../utils/auth-error';
+import { AuthProviderInterface } from '../../core/types';
 
 // Using the capacitor-biometric-authentication package
 interface BiometricAuth {
@@ -25,13 +25,13 @@ interface StoredCredentials {
   lastAuthTime: number;
 }
 
-export class BiometricProvider extends BaseAuthProvider {
+export class BiometricProvider implements AuthProviderInterface {
+  name = 'biometric';
   private config: BiometricConfig;
   private biometricAuth: BiometricAuth | null = null;
   private storageKey: string;
 
   constructor(config: BiometricConfig = {}) {
-    super('biometric');
     this.config = {
       reason: 'Authenticate to access your account',
       title: 'Authentication Required',
@@ -50,7 +50,7 @@ export class BiometricProvider extends BaseAuthProvider {
   private async loadBiometricPlugin(): Promise<void> {
     try {
       // Dynamic import to avoid errors if plugin not installed
-      const { BiometricAuth } = await import('capacitor-biometric-authentication');
+      const { BiometricAuth } = await import('capacitor-biometric-authentication' as any);
       this.biometricAuth = BiometricAuth as any;
     } catch {
       console.warn('Biometric authentication plugin not available');
@@ -112,13 +112,17 @@ export class BiometricProvider extends BaseAuthProvider {
       return {
         user: storedCredentials.user,
         credential: {
-          providerId: this.provider,
+          providerId: this.name,
           signInMethod: 'biometric',
           accessToken: storedCredentials.accessToken,
           refreshToken: storedCredentials.refreshToken
         },
         additionalUserInfo: {
-          biometryType: checkResult.biometryType
+          isNewUser: false,
+          providerId: this.name,
+          profile: {
+            biometryType: checkResult.biometryType
+          }
         }
       };
     } catch (error: any) {
@@ -246,6 +250,34 @@ export class BiometricProvider extends BaseAuthProvider {
   private async decrypt(data: string): Promise<string> {
     // In a real implementation, use Web Crypto API or similar
     return atob(data);
+  }
+
+  async initialize(): Promise<void> {
+    // Biometric provider is initialized in constructor
+    // Provider is initialized
+  }
+
+  async isSupported(): Promise<boolean> {
+    // Check if biometric authentication is available
+    const result = await this.isAvailable();
+    return result.available;
+  }
+
+  async linkAccount(_options: any): Promise<AuthResult> {
+    throw new AuthError(
+      'NOT_SUPPORTED',
+      'Account linking is not supported for biometric authentication'
+    );
+  }
+
+  async unlinkAccount(_options: any): Promise<void> {
+    // Unlinking biometric auth means clearing stored credentials
+    await this.clearStoredCredentials();
+  }
+
+  async revokeAccess(_token?: string): Promise<void> {
+    // For biometric auth, revoking access means clearing stored credentials
+    await this.clearStoredCredentials();
   }
 }
 

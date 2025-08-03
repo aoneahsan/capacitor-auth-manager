@@ -170,7 +170,7 @@ export class FirebaseAuthProviderWeb extends BaseAuthProvider {
         additionalUserInfo = { isNewUser: true, providerId: 'anonymous' };
       } else {
         throw new AuthError(
-          AuthErrorCode.INVALID_ARGUMENT,
+          AuthErrorCode.INVALID_REQUEST,
           'Invalid sign-in method or missing credentials',
           this.provider
         );
@@ -294,7 +294,7 @@ export class FirebaseAuthProviderWeb extends BaseAuthProvider {
         result = await currentUser.linkWithCredential(credential);
       } else {
         throw new AuthError(
-          AuthErrorCode.INVALID_ARGUMENT,
+          AuthErrorCode.INVALID_REQUEST,
           'Invalid link method or missing credentials',
           this.provider
         );

@@ -51,13 +51,23 @@ export enum AuthProvider {
   LINKEDIN = 'linkedin',
   FIREBASE = 'firebase',
   EMAIL_MAGIC_LINK = 'email_magic_link',
+  MAGIC_LINK = 'magic-link',
   SMS = 'sms',
-  EMAIL_PASSWORD = 'email_password',
+  EMAIL_PASSWORD = 'email-password',
   PHONE_PASSWORD = 'phone_password',
   USERNAME_PASSWORD = 'username_password',
   EMAIL_CODE = 'email_code',
   BIOMETRIC = 'biometric',
 }
+
+// Additional provider values for backward compatibility
+export const AUTH_PROVIDERS = {
+  ...AuthProvider,
+  'magic-link': AuthProvider.MAGIC_LINK,
+  'email-password': AuthProvider.EMAIL_PASSWORD,
+  'sms': AuthProvider.SMS,
+  'biometric': AuthProvider.BIOMETRIC,
+} as const;
 
 export type ProviderOptions =
   | GoogleAuthOptions
@@ -294,6 +304,12 @@ export interface UsernameRequirements {
 }
 
 export interface SignInOptions {
+  provider: AuthProvider;
+  credentials?: AuthCredentials;
+  options?: SignInProviderOptions;
+}
+
+export interface SignUpOptions {
   provider: AuthProvider;
   credentials?: AuthCredentials;
   options?: SignInProviderOptions;
@@ -601,10 +617,17 @@ export enum AuthErrorCode {
   CONSENT_REQUIRED = 'auth/consent-required',
   INVALID_GRANT = 'auth/invalid-grant',
   UNSUPPORTED_GRANT_TYPE = 'auth/unsupported-grant-type',
-  INVALID_SCOPE = 'auth/invalid-scope',
-  INVALID_REQUEST = 'auth/invalid-request',
-  CLIENT_NOT_FOUND = 'auth/client-not-found',
+  PROVIDER_INIT_FAILED = 'auth/provider-init-failed',
+  SIGN_IN_FAILED = 'auth/sign-in-failed',
+  SIGN_OUT_FAILED = 'auth/sign-out-failed',
+  NO_AUTH_SESSION = 'auth/no-auth-session',
+  TOKEN_REFRESH_FAILED = 'auth/token-refresh-failed',
   ACCESS_DENIED = 'auth/access-denied',
   SERVER_ERROR = 'auth/server-error',
   TEMPORARILY_UNAVAILABLE = 'auth/temporarily-unavailable',
+  INVALID_REQUEST = 'auth/invalid-request',
+  INVALID_SCOPE = 'auth/invalid-scope',
+  CLIENT_NOT_FOUND = 'auth/client-not-found',
+  MISSING_CONFIG = 'auth/missing-config',
+  PROVIDER_NOT_INITIALIZED = 'auth/provider-not-initialized',
 }

@@ -335,12 +335,12 @@ Note: Users must first authenticate with another method before enabling biometri
     });
 
     // Register provider loaders
-    this.registerLoader('google', () => import('../providers/web/google-provider').then(m => ({ default: m.GoogleProvider })));
-    this.registerLoader('apple', () => import('../providers/web/apple-provider').then(m => ({ default: m.AppleProvider })));
-    this.registerLoader('microsoft', () => import('../providers/web/microsoft-provider').then(m => ({ default: m.MicrosoftProvider })));
-    this.registerLoader('facebook', () => import('../providers/web/facebook-provider').then(m => ({ default: m.FacebookProvider })));
-    this.registerLoader('github', () => import('../providers/web/github-provider').then(m => ({ default: m.GitHubProvider })));
-    this.registerLoader('firebase', () => import('../providers/web/firebase-provider').then(m => ({ default: m.FirebaseProvider })));
+    this.registerLoader('google', () => import('../providers/web/google-provider').then(m => ({ default: m.GoogleAuthProviderWeb })));
+    this.registerLoader('apple', () => import('../providers/web/apple-provider').then(m => ({ default: m.AppleAuthProviderWeb })));
+    this.registerLoader('microsoft', () => import('../providers/web/microsoft-provider').then(m => ({ default: m.MicrosoftAuthProviderWeb })));
+    this.registerLoader('facebook', () => import('../providers/web/facebook-provider').then(m => ({ default: m.FacebookAuthProviderWeb })));
+    this.registerLoader('github', () => import('../providers/web/github-provider').then(m => ({ default: m.GitHubAuthProviderWeb })));
+    this.registerLoader('firebase', () => import('../providers/web/firebase-provider').then(m => ({ default: m.FirebaseAuthProviderWeb })));
     this.registerLoader('magic-link', () => import('../providers/web/magic-link-provider').then(m => ({ default: m.MagicLinkProvider })));
     this.registerLoader('sms', () => import('../providers/web/sms-provider').then(m => ({ default: m.SMSProvider })));
     this.registerLoader('email-password', () => import('../providers/web/email-password-provider').then(m => ({ default: m.EmailPasswordProvider })));

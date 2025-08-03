@@ -6,10 +6,10 @@ import type { SignInOptions, SignOutOptions } from '../../definitions';
 export class MicrosoftAuthProviderWeb extends BaseAuthProvider {
   private msalInstance: any;
   private msalConfig: any;
-  private clientId: string;
-  private authority: string;
-  private redirectUri: string;
-  private scopes: string[];
+  private clientId: string = '';
+  private authority: string = '';
+  private redirectUri: string = '';
+  private scopes: string[] = [];
 
   async initialize(): Promise<void> {
     const options = this.options as MicrosoftAuthOptions;
@@ -51,10 +51,8 @@ export class MicrosoftAuthProviderWeb extends BaseAuthProvider {
       },
       system: {
         loggerOptions: {
-          loggerCallback: (level: number, message: string) => {
-            if (this.logger.isEnabled()) {
-              this.logger.debug(`MSAL: ${message}`);
-            }
+          loggerCallback: (_level: number, message: string) => {
+            this.logger.debug(`MSAL: ${message}`);
           },
         },
       },

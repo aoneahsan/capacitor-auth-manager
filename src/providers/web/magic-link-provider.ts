@@ -1,6 +1,6 @@
-import { BaseAuthProvider } from '../base-provider';
 import { AuthResult, AuthUser, SignInOptions } from '../../definitions';
 import { AuthError } from '../../utils/auth-error';
+import { AuthProviderInterface } from '../../core/types';
 
 export interface MagicLinkConfig {
   sendLinkUrl: string;
@@ -19,12 +19,13 @@ interface MagicLinkOptions extends SignInOptions {
   email: string;
 }
 
-export class MagicLinkProvider extends BaseAuthProvider {
+export class MagicLinkProvider implements AuthProviderInterface {
+  name = 'magic-link';
   private config: MagicLinkConfig;
   private pendingVerification: Map<string, { email: string; expires: number }> = new Map();
 
   constructor(config: MagicLinkConfig) {
-    super('magic-link');
+    // Initialize with config
     this.config = config;
     
     // Check for magic link callback on initialization
@@ -65,14 +66,35 @@ export class MagicLinkProvider extends BaseAuthProvider {
         throw new AuthError('SEND_LINK_FAILED', 'Failed to send magic link');
       }
 
-      // Return pending state
+      // Return partial auth result for pending state
+      const tempUser: AuthUser = {
+        uid: `magic-link-pending:${token}`,
+        email: options.email,
+        displayName: options.email.split('@')[0],
+        photoURL: null,
+        emailVerified: false,
+        providerData: [],
+        metadata: {
+          creationTime: new Date().toISOString(),
+          lastSignInTime: new Date().toISOString()
+        }
+      };
+
       return {
-        user: null,
-        credential: null,
+        user: tempUser,
+        credential: {
+          providerId: this.name,
+          signInMethod: 'magic-link',
+          accessToken: token
+        },
         additionalUserInfo: {
-          pending: true,
-          email: options.email,
-          message: 'Magic link sent. Check your email to complete sign in.'
+          isNewUser: false,
+          providerId: this.name,
+          profile: {
+            email: options.email,
+            message: 'Magic link sent. Check your email to complete sign in.',
+            pending: true
+          }
         }
       };
     } catch (error: any) {
@@ -124,13 +146,13 @@ export class MagicLinkProvider extends BaseAuthProvider {
           photoURL: data.photoURL || null,
           emailVerified: true,
           providerData: [{
-          providerId: this.provider,
-          uid: data.uid || email,
-          displayName: data.displayName || email.split('@')[0],
-          email: email,
-          phoneNumber: null,
-          photoURL: data.photoURL || null
-        }],
+            providerId: this.name,
+            uid: data.uid || pending.email,
+            displayName: data.displayName || pending.email.split('@')[0],
+            email: pending.email,
+            phoneNumber: null,
+            photoURL: data.photoURL || null
+          }],
           metadata: {
             creationTime: data.createdAt || new Date().toISOString(),
             lastSignInTime: new Date().toISOString()
@@ -143,13 +165,14 @@ export class MagicLinkProvider extends BaseAuthProvider {
         return {
           user,
           credential: {
-            providerId: this.provider,
+            providerId: this.name,
             signInMethod: 'magic-link',
             accessToken: data.accessToken || token,
             expiresAt: data.expiresAt
           },
           additionalUserInfo: {
-            isNewUser: data.isNewUser || false
+            isNewUser: data.isNewUser || false,
+            providerId: this.name
           }
         };
       } else {
@@ -161,13 +184,13 @@ export class MagicLinkProvider extends BaseAuthProvider {
           photoURL: null,
           emailVerified: true,
           providerData: [{
-          providerId: this.provider,
-          uid: data.uid || email,
-          displayName: data.displayName || email.split('@')[0],
-          email: email,
-          phoneNumber: null,
-          photoURL: data.photoURL || null
-        }],
+            providerId: this.name,
+            uid: pending.email,
+            displayName: pending.email.split('@')[0],
+            email: pending.email,
+            phoneNumber: null,
+            photoURL: null
+          }],
           metadata: {
             creationTime: new Date().toISOString(),
             lastSignInTime: new Date().toISOString()
@@ -180,12 +203,13 @@ export class MagicLinkProvider extends BaseAuthProvider {
         return {
           user,
           credential: {
-            providerId: this.provider,
+            providerId: this.name,
             signInMethod: 'magic-link',
             accessToken: token
           },
           additionalUserInfo: {
-            isNewUser: true
+            isNewUser: true,
+            providerId: this.name
           }
         };
       }
@@ -266,6 +290,34 @@ export class MagicLinkProvider extends BaseAuthProvider {
       sessionStorage.removeItem('magic-link-token');
       throw error;
     }
+  }
+
+  async initialize(): Promise<void> {
+    // Magic link provider doesn't require initialization
+  }
+
+  async isSupported(): Promise<boolean> {
+    // Magic link auth is supported if we have the required config
+    return !!this.config.sendLinkUrl;
+  }
+
+  async linkAccount(_options: any): Promise<AuthResult> {
+    throw new AuthError(
+      'NOT_SUPPORTED',
+      'Account linking is not supported for magic link authentication'
+    );
+  }
+
+  async unlinkAccount(_options: any): Promise<void> {
+    throw new AuthError(
+      'NOT_SUPPORTED',
+      'Account unlinking is not supported for magic link authentication'
+    );
+  }
+
+  async revokeAccess(_token?: string): Promise<void> {
+    // Magic link doesn't have persistent access to revoke
+    this.pendingVerification.clear();
   }
 }
 

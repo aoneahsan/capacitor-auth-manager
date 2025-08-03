@@ -1,6 +1,6 @@
 import resolve from '@rollup/plugin-node-resolve';
 import json from '@rollup/plugin-json';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 
 // Read package.json to get dependencies
 const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'));
@@ -32,7 +32,8 @@ const baseConfig = {
   ],
 };
 
-export default [
+// Check if framework modules exist before adding them to the build
+const configs = [
   // Main entry point
   {
     ...baseConfig,
@@ -69,8 +70,11 @@ export default [
       },
     ],
   },
-  // React module
-  {
+];
+
+// Add framework modules only if they exist
+if (existsSync('dist/esm/react/index.js')) {
+  configs.push({
     ...baseConfig,
     input: 'dist/esm/react/index.js',
     output: [
@@ -82,9 +86,11 @@ export default [
       },
     ],
     external: [...baseConfig.external, 'react', 'react-dom'],
-  },
-  // Vue module
-  {
+  });
+}
+
+if (existsSync('dist/esm/vue/index.js')) {
+  configs.push({
     ...baseConfig,
     input: 'dist/esm/vue/index.js',
     output: [
@@ -96,9 +102,11 @@ export default [
       },
     ],
     external: [...baseConfig.external, 'vue'],
-  },
-  // Angular module
-  {
+  });
+}
+
+if (existsSync('dist/esm/angular/index.js')) {
+  configs.push({
     ...baseConfig,
     input: 'dist/esm/angular/index.js',
     output: [
@@ -117,5 +125,7 @@ export default [
       'rxjs',
       'rxjs/operators'
     ],
-  },
-];
+  });
+}
+
+export default configs;

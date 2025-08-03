@@ -4,9 +4,9 @@ import { AuthError } from '../../utils/auth-error';
 import type { SignInOptions, SignOutOptions } from '../../definitions';
 
 export class GitHubAuthProviderWeb extends BaseAuthProvider {
-  private clientId: string;
-  private redirectUri: string;
-  private scopes: string[];
+  private clientId: string = '';
+  private redirectUri: string = '';
+  private scopes: string[] = [];
   private authWindow: Window | null = null;
   private authPromise: { resolve: (value: AuthResult) => void; reject: (reason: AuthError) => void } | null = null;
 
@@ -239,7 +239,7 @@ export class GitHubAuthProviderWeb extends BaseAuthProvider {
       const result = this.createAuthResult(user, credential, true);
       resolve(result);
     } catch (error) {
-      reject(error);
+      reject(AuthError.fromError(error, this.provider));
     }
   }
 

@@ -1,6 +1,6 @@
-import { BaseAuthProvider } from '../base-provider';
 import { AuthResult, AuthUser, SignInOptions, RefreshTokenOptions } from '../../definitions';
 import { AuthError } from '../../utils/auth-error';
+import { AuthProviderInterface } from '../../core/types';
 
 export interface SMSConfig {
   sendCodeUrl: string;
@@ -24,13 +24,14 @@ interface PendingSMS {
   lastResent?: number;
 }
 
-export class SMSProvider extends BaseAuthProvider {
+export class SMSProvider implements AuthProviderInterface {
+  name = 'sms';
   private config: SMSConfig;
   private pendingVerifications: Map<string, PendingSMS> = new Map();
   private readonly MAX_ATTEMPTS = 3;
 
   constructor(config: SMSConfig) {
-    super('sms');
+    // Initialize with config
     this.config = {
       countryCode: '+1',
       codeLength: 6,
@@ -100,15 +101,38 @@ export class SMSProvider extends BaseAuthProvider {
         lastResent: Date.now()
       });
 
-      // Return pending state
+      // Return partial auth result for pending state
+      // SMS requires two-step process, so we return a temporary user
+      const tempUser: AuthUser = {
+        uid: `sms-pending:${data.sessionId}`,
+        email: null,
+        displayName: this.maskPhoneNumber(formattedPhone),
+        photoURL: null,
+        phoneNumber: formattedPhone,
+        emailVerified: false,
+        providerData: [],
+        metadata: {
+          creationTime: new Date().toISOString(),
+          lastSignInTime: new Date().toISOString()
+        }
+      };
+
       return {
-        user: null,
-        credential: null,
+        user: tempUser,
+        credential: {
+          providerId: this.name,
+          signInMethod: 'sms',
+          accessToken: data.sessionId
+        },
         additionalUserInfo: {
-          pending: true,
-          phoneNumber: formattedPhone,
-          sessionId: data.sessionId,
-          message: `SMS code sent to ${this.maskPhoneNumber(formattedPhone)}`
+          isNewUser: false,
+          providerId: this.name,
+          profile: {
+            phoneNumber: formattedPhone,
+            sessionId: data.sessionId,
+            message: `SMS code sent to ${this.maskPhoneNumber(formattedPhone)}`,
+            pending: true
+          }
         }
       };
     } catch (error: any) {
@@ -175,7 +199,7 @@ export class SMSProvider extends BaseAuthProvider {
         phoneNumber: formattedPhone,
         emailVerified: false,
         providerData: [{
-          providerId: this.provider,
+          providerId: this.name,
           uid: data.uid || phoneNumber,
           displayName: phoneNumber,
           email: null,
@@ -194,14 +218,15 @@ export class SMSProvider extends BaseAuthProvider {
       return {
         user,
         credential: {
-          providerId: this.provider,
+          providerId: this.name,
           signInMethod: 'sms',
           accessToken: data.accessToken,
           refreshToken: data.refreshToken,
           expiresAt: data.expiresAt
         },
         additionalUserInfo: {
-          isNewUser: data.isNewUser || false
+          isNewUser: data.isNewUser || false,
+          providerId: this.name
         }
       };
     } catch (error: any) {
@@ -281,6 +306,34 @@ export class SMSProvider extends BaseAuthProvider {
     }
 
     return { canResend: true };
+  }
+
+  async initialize(): Promise<void> {
+    // SMS provider doesn't require initialization
+  }
+
+  async isSupported(): Promise<boolean> {
+    // SMS auth is supported if we have the required config
+    return !!(this.config.sendCodeUrl && this.config.verifyCodeUrl);
+  }
+
+  async linkAccount(_options: any): Promise<AuthResult> {
+    throw new AuthError(
+      'NOT_SUPPORTED',
+      'Account linking is not supported for SMS authentication'
+    );
+  }
+
+  async unlinkAccount(_options: any): Promise<void> {
+    throw new AuthError(
+      'NOT_SUPPORTED',
+      'Account unlinking is not supported for SMS authentication'
+    );
+  }
+
+  async revokeAccess(_token?: string): Promise<void> {
+    // SMS auth doesn't have persistent access to revoke
+    this.pendingVerifications.clear();
   }
 }
 

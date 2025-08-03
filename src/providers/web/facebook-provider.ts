@@ -11,10 +11,10 @@ declare global {
 }
 
 export class FacebookAuthProviderWeb extends BaseAuthProvider {
-  private appId: string;
-  private version: string;
-  private scopes: string[];
-  private fields: string[];
+  private appId: string = '';
+  private version: string = '';
+  private scopes: string[] = [];
+  private fields: string[] = [];
   private fbInitialized = false;
 
   async initialize(): Promise<void> {
@@ -114,7 +114,7 @@ export class FacebookAuthProviderWeb extends BaseAuthProvider {
     });
   }
 
-  async signIn(options?: SignInOptions): Promise<AuthResult> {
+  async signIn(_options?: SignInOptions): Promise<AuthResult> {
     this.validateInitialized();
 
     return new Promise((resolve, reject) => {
@@ -139,7 +139,7 @@ export class FacebookAuthProviderWeb extends BaseAuthProvider {
             this.provider
           ));
         }
-      }, { scope: this.scopes.join(','), auth_type: options?.authType });
+      }, { scope: this.scopes.join(','), auth_type: (this.options as FacebookAuthOptions).authType });
     });
   }
 
