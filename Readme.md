@@ -164,9 +164,9 @@ export class LoginComponent {
 | SMS               | ✅  | ✅  | ✅      | ✅ Implemented |
 | Email/Password    | ✅  | ✅  | ✅      | ✅ Implemented |
 | Biometric         | ❌  | ✅  | ✅      | ✅ Implemented |
-| Slack             | ✅  | ❌  | ❌      | 🔄 Coming Soon |
-| LinkedIn          | ✅  | ❌  | ❌      | 🔄 Coming Soon |
-| Username/Password | ✅  | ✅  | ✅      | 🔄 Coming Soon |
+| Slack             | ✅  | ❌  | ❌      | ✅ Implemented |
+| LinkedIn          | ✅  | ❌  | ❌      | ✅ Implemented |
+| Username/Password | ✅  | ✅  | ✅      | ✅ Implemented |
 
 ## Configuration
 
@@ -222,6 +222,23 @@ auth.configure({
     biometric: {
       reason: 'Authenticate to access your account',
       title: 'Authentication Required',
+    },
+    slack: {
+      clientId: 'YOUR_CLIENT_ID',
+      redirectUri: 'https://your-app.com/auth/slack/callback',
+      teamId: 'OPTIONAL_TEAM_ID', // Restrict to specific workspace
+    },
+    linkedin: {
+      clientId: 'YOUR_CLIENT_ID',
+      redirectUri: 'https://your-app.com/auth/linkedin/callback',
+    },
+    'username-password': {
+      apiUrl: 'https://your-api.com',
+      usernameRequirements: {
+        minLength: 3,
+        maxLength: 20,
+      },
+      allowSignUp: true,
     },
   },
 
@@ -334,6 +351,64 @@ if (available) {
   // Later: authenticate with biometrics
   await auth.signIn('biometric');
 }
+```
+
+### Username/Password Authentication
+
+```typescript
+// Sign up with username
+await auth.signUp({
+  username: 'johndoe',
+  password: 'secure-password',
+  email: 'john@example.com', // optional
+  displayName: 'John Doe', // optional
+});
+
+// Sign in
+await auth.signIn('username-password', {
+  username: 'johndoe',
+  password: 'secure-password',
+});
+
+// Check username availability
+const provider = await auth.getProvider('username-password');
+const isAvailable = await provider.checkUsernameAvailability('johndoe');
+```
+
+### Slack Authentication
+
+```typescript
+// Sign in with Slack
+await auth.signIn('slack');
+
+// Restrict to specific workspace
+auth.configure({
+  providers: {
+    slack: {
+      clientId: 'YOUR_CLIENT_ID',
+      redirectUri: 'YOUR_REDIRECT_URI',
+      teamId: 'SPECIFIC_TEAM_ID', // Optional
+    },
+  },
+});
+```
+
+### LinkedIn Authentication
+
+```typescript
+// Sign in with LinkedIn
+await auth.signIn('linkedin');
+
+// Configure with scopes
+auth.configure({
+  providers: {
+    linkedin: {
+      clientId: 'YOUR_CLIENT_ID',
+      redirectUri: 'YOUR_REDIRECT_URI',
+      scopes: ['openid', 'profile', 'email'],
+    },
+  },
+});
 ```
 
 ### Multiple Sign-In Options

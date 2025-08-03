@@ -336,6 +336,159 @@ Note: Users must first authenticate with another method before enabling biometri
       },
     });
 
+    this.registerManifest({
+      name: 'slack',
+      displayName: 'Slack',
+      setupInstructions: `
+To use Slack authentication:
+
+1. Create a Slack App:
+   - Go to https://api.slack.com/apps
+   - Click "Create New App" > "From scratch"
+   - Name your app and select workspace
+
+2. Configure OAuth & Permissions:
+   - Add redirect URL: https://your-app.com/auth/slack/callback
+   - Add required scopes:
+     - openid
+     - profile
+     - email
+
+3. Get your credentials:
+   - Go to "Basic Information"
+   - Copy Client ID and Client Secret
+
+4. Configure the provider:
+   auth.configure({
+     providers: {
+       slack: {
+         clientId: 'YOUR_CLIENT_ID',
+         redirectUri: 'https://your-app.com/auth/slack/callback',
+         scopes: ['openid', 'profile', 'email'],
+         teamId: 'OPTIONAL_TEAM_ID' // Restrict to specific workspace
+       }
+     }
+   })
+
+Note: Slack OAuth requires a backend service to exchange the authorization code for access tokens.
+`,
+      platforms: ['web'],
+      configSchema: {
+        clientId: { type: 'string', required: true },
+        redirectUri: { type: 'string', required: true },
+        scopes: { type: 'array', items: 'string' },
+        teamId: { type: 'string' },
+      },
+    });
+
+    this.registerManifest({
+      name: 'linkedin',
+      displayName: 'LinkedIn',
+      setupInstructions: `
+To use LinkedIn authentication:
+
+1. Create a LinkedIn App:
+   - Go to https://www.linkedin.com/developers/apps
+   - Click "Create app"
+   - Fill in required information
+   - Verify your app
+
+2. Configure OAuth 2.0:
+   - Go to the "Auth" tab
+   - Add authorized redirect URLs:
+     - https://your-app.com/auth/linkedin/callback
+   - Note your Client ID and Client Secret
+
+3. Configure scopes:
+   - Under "OAuth 2.0 scopes", select:
+     - openid
+     - profile
+     - email
+
+4. Configure the provider:
+   auth.configure({
+     providers: {
+       linkedin: {
+         clientId: 'YOUR_CLIENT_ID',
+         redirectUri: 'https://your-app.com/auth/linkedin/callback',
+         scopes: ['openid', 'profile', 'email']
+       }
+     }
+   })
+
+Note: LinkedIn OAuth requires a backend service to exchange the authorization code for access tokens.
+The redirect URI must be HTTPS in production (LinkedIn requirement).
+`,
+      platforms: ['web'],
+      configSchema: {
+        clientId: { type: 'string', required: true },
+        redirectUri: { type: 'string', required: true },
+        scopes: { type: 'array', items: 'string' },
+      },
+    });
+
+    this.registerManifest({
+      name: 'username-password',
+      displayName: 'Username & Password',
+      setupInstructions: `
+To use Username/Password authentication:
+
+1. Set up backend API endpoints:
+   - /auth/signin - Sign in with username/password
+   - /auth/signup - Create new account
+   - /auth/signout - Sign out user
+   - /auth/refresh - Refresh access token
+   - /auth/update-password - Update password
+   - /auth/check-username - Check username availability
+
+2. Configure the provider:
+   auth.configure({
+     providers: {
+       'username-password': {
+         apiUrl: 'https://your-api.com',
+         usernameRequirements: {
+           minLength: 3,
+           maxLength: 20,
+           allowedCharacters: /^[a-zA-Z0-9_-]+$/,
+           reservedUsernames: ['admin', 'root', 'system']
+         },
+         passwordRequirements: {
+           minLength: 8,
+           requireUppercase: true,
+           requireLowercase: true,
+           requireNumbers: true,
+           requireSpecialChars: false
+         },
+         allowSignUp: true
+       }
+     }
+   })
+
+3. Sign in:
+   await auth.signIn('username-password', {
+     username: 'johndoe',
+     password: 'password123'
+   });
+
+4. Sign up:
+   await auth.signUp({
+     username: 'johndoe',
+     password: 'password123',
+     email: 'john@example.com', // optional
+     displayName: 'John Doe' // optional
+   });
+
+Note: This provider requires a backend service to handle authentication.
+`,
+      platforms: ['web', 'ios', 'android'],
+      configSchema: {
+        apiUrl: { type: 'string', required: true },
+        usernameRequirements: { type: 'object' },
+        passwordRequirements: { type: 'object' },
+        allowSignUp: { type: 'boolean' },
+      },
+    });
+
     // Register provider loaders
     this.registerLoader('google', () =>
       import('../providers/web/google-provider').then((m) => ({
@@ -385,6 +538,21 @@ Note: Users must first authenticate with another method before enabling biometri
     this.registerLoader('biometric', () =>
       import('../providers/web/biometric-provider').then((m) => ({
         default: m.BiometricProvider,
+      }))
+    );
+    this.registerLoader('slack', () =>
+      import('../providers/web/slack-provider').then((m) => ({
+        default: m.SlackProvider,
+      }))
+    );
+    this.registerLoader('linkedin', () =>
+      import('../providers/web/linkedin-provider').then((m) => ({
+        default: m.LinkedInProvider,
+      }))
+    );
+    this.registerLoader('username-password', () =>
+      import('../providers/web/username-password-provider').then((m) => ({
+        default: m.UsernamePasswordProvider,
       }))
     );
   }

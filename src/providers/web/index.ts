@@ -9,3 +9,6 @@ export { MagicLinkProvider } from './magic-link-provider';
 export { SMSProvider } from './sms-provider';
 export { EmailPasswordProvider } from './email-password-provider';
 export { BiometricProvider } from './biometric-provider';
+export { SlackProvider } from './slack-provider';
+export { LinkedInProvider } from './linkedin-provider';
+export { UsernamePasswordProvider } from './username-password-provider';
