@@ -114,21 +114,25 @@ We welcome the following types of contributions:
 ### Contribution Areas
 
 #### 1. Authentication Providers
+
 - Add support for new authentication providers
 - Improve existing provider implementations
 - Fix provider-specific bugs
 
 #### 2. Platform Support
+
 - Enhance iOS implementation
 - Improve Android functionality
 - Optimize web platform support
 
 #### 3. Framework Integration
+
 - Create framework-specific examples
 - Develop helper libraries
 - Improve integration guides
 
 #### 4. Developer Experience
+
 - Improve error messages
 - Add better debugging tools
 - Enhance TypeScript definitions
@@ -158,6 +162,7 @@ test(providers): add unit tests for apple provider
 ```
 
 Types:
+
 - `feat`: New features
 - `fix`: Bug fixes
 - `docs`: Documentation changes
@@ -190,20 +195,24 @@ Types:
 
 ```markdown
 ## Description
+
 Brief description of the changes made.
 
 ## Type of Change
+
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Breaking change
 - [ ] Documentation update
 
 ## Testing
+
 - [ ] Unit tests added/updated
 - [ ] Integration tests added/updated
 - [ ] Manual testing performed
 
 ## Checklist
+
 - [ ] Code follows project style guidelines
 - [ ] Self-review completed
 - [ ] Documentation updated
@@ -235,6 +244,7 @@ Use the bug report template:
 Clear description of the bug.
 
 **Steps to Reproduce**
+
 1. Step one
 2. Step two
 3. Step three
@@ -246,6 +256,7 @@ What should happen.
 What actually happens.
 
 **Environment**
+
 - Plugin version:
 - Capacitor version:
 - Platform (iOS/Android/Web):
@@ -449,6 +460,7 @@ For maintainers:
 ### Contributors
 
 All contributors are recognized in:
+
 - GitHub contributors list
 - Release notes
 - Documentation credits
@@ -481,4 +493,4 @@ Thank you for contributing to Capacitor Auth Manager! Your efforts help make aut
 **License**: MIT  
 **Repository**: [GitHub](https://github.com/aoneahsan/capacitor-auth-manager)
 
-*This project is open source and created for the developer community.*
+_This project is open source and created for the developer community._

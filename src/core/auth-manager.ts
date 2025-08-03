@@ -3,16 +3,12 @@ import { Logger } from '../utils/logger';
 import { WebStorage, StorageInterface } from '../utils/storage';
 import { AuthError } from '../utils/auth-error';
 import { ProviderRegistry } from './provider-registry';
-import type {
-  AuthManagerConfig,
-  AuthState,
-  AuthStateListener
-} from './types';
+import type { AuthManagerConfig, AuthState, AuthStateListener } from './types';
 import type {
   AuthUser,
   AuthResult,
   SignInOptions,
-  SignOutOptions
+  SignOutOptions,
 } from '../definitions';
 import { AuthProvider } from '../definitions';
 
@@ -21,7 +17,7 @@ class AuthManagerCore {
     user: null,
     isLoading: false,
     isAuthenticated: false,
-    provider: null
+    provider: null,
   };
 
   private stateEmitter = new EventEmitter<AuthState>();
@@ -36,12 +32,12 @@ class AuthManagerCore {
     this.logger = new Logger({
       enableLogging: false,
       logLevel: 'info',
-      prefix: 'AuthManager'
+      prefix: 'AuthManager',
     });
 
     // Auto-initialize on first use
     if (typeof window !== 'undefined') {
-      this.initialize().catch(err => {
+      this.initialize().catch((err) => {
         this.logger.error('Auto-initialization failed:', err);
       });
     }
@@ -78,7 +74,7 @@ class AuthManagerCore {
 
   configure(config: AuthManagerConfig): void {
     this.config = { ...this.config, ...config };
-    
+
     if (config.enableLogging !== undefined) {
       this.logger.setEnabled(config.enableLogging);
     }
@@ -95,17 +91,18 @@ class AuthManagerCore {
 
     let providerName: string;
     let signInOptions: any = {};
-    
+
     if (typeof providerOrOptions === 'string') {
       providerName = providerOrOptions;
     } else {
       // Convert AuthProvider enum to string if needed
-      providerName = typeof providerOrOptions.provider === 'string' 
-        ? providerOrOptions.provider 
-        : AuthProvider[providerOrOptions.provider];
+      providerName =
+        typeof providerOrOptions.provider === 'string'
+          ? providerOrOptions.provider
+          : AuthProvider[providerOrOptions.provider];
       signInOptions = {
         credentials: providerOrOptions.credentials,
-        options: providerOrOptions.options
+        options: providerOrOptions.options,
       };
     }
 
@@ -122,13 +119,16 @@ class AuthManagerCore {
       }
 
       // Get provider instance
-      const provider = await ProviderRegistry.getProvider(providerName, providerConfig);
+      const provider = await ProviderRegistry.getProvider(
+        providerName,
+        providerConfig
+      );
 
       // Sign in
       this.logger.info(`Signing in with ${providerName}`);
       const result = await provider.signIn({
         ...signInOptions.options,
-        credentials: signInOptions.credentials
+        credentials: signInOptions.credentials,
       });
 
       // Update state
@@ -136,14 +136,14 @@ class AuthManagerCore {
         user: result.user,
         isAuthenticated: true,
         provider: providerName,
-        isLoading: false
+        isLoading: false,
       });
 
       // Store auth state
       await this.storage.set('auth_state', {
         user: result.user,
         provider: providerName,
-        credential: result.credential
+        credential: result.credential,
       });
 
       // Setup token refresh
@@ -173,7 +173,10 @@ class AuthManagerCore {
     try {
       // Get provider instance
       const providerConfig = this.config.providers?.[provider];
-      const providerInstance = await ProviderRegistry.getProvider(provider, providerConfig);
+      const providerInstance = await ProviderRegistry.getProvider(
+        provider,
+        providerConfig
+      );
 
       // Sign out
       await providerInstance.signOut(options);
@@ -186,7 +189,7 @@ class AuthManagerCore {
         user: null,
         isAuthenticated: false,
         provider: null,
-        isLoading: false
+        isLoading: false,
       });
 
       // Clear storage
@@ -229,7 +232,10 @@ class AuthManagerCore {
 
     try {
       const providerConfig = this.config.providers?.[targetProvider];
-      const providerInstance = await ProviderRegistry.getProvider(targetProvider, providerConfig);
+      const providerInstance = await ProviderRegistry.getProvider(
+        targetProvider,
+        providerConfig
+      );
 
       if (!providerInstance.refreshToken) {
         throw new AuthError(
@@ -258,7 +264,7 @@ class AuthManagerCore {
   onAuthStateChange(listener: AuthStateListener): () => void {
     // Immediately call with current state
     listener(this.getAuthState());
-    
+
     // Subscribe to future changes
     return this.stateEmitter.subscribe(listener);
   }
@@ -295,18 +301,24 @@ class AuthManagerCore {
         const providerConfig = this.config.providers?.[stored.provider];
         if (providerConfig) {
           try {
-            const provider = await ProviderRegistry.getProvider(stored.provider, providerConfig);
+            const provider = await ProviderRegistry.getProvider(
+              stored.provider,
+              providerConfig
+            );
             const currentUser = await provider.getCurrentUser();
-            
+
             if (currentUser) {
               this.updateState({
                 user: currentUser,
                 isAuthenticated: true,
-                provider: stored.provider
+                provider: stored.provider,
               });
 
               // Setup token refresh if needed
-              if (stored.credential?.refreshToken && this.config.autoRefreshToken) {
+              if (
+                stored.credential?.refreshToken &&
+                this.config.autoRefreshToken
+              ) {
                 this.setupTokenRefresh(stored.provider, stored.credential);
               }
             }

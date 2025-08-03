@@ -11,7 +11,12 @@ import {
   AuthUser,
   AuthCredential,
 } from '../../definitions';
-import { OAuthProvider, OAuthConfig, OAuthTokenResponse, OAuthUserInfo } from '../oauth-provider';
+import {
+  OAuthProvider,
+  OAuthConfig,
+  OAuthTokenResponse,
+  OAuthUserInfo,
+} from '../oauth-provider';
 import { BaseProviderConfig } from '../base-provider';
 import { AuthError } from '../../utils/auth-error';
 
@@ -59,7 +64,7 @@ export class AppleAuthProviderWeb extends OAuthProvider {
 
   protected getOAuthConfig(): OAuthConfig {
     const options = this.options as AppleAuthOptions;
-    
+
     return {
       clientId: options.clientId,
       redirectUri: options.redirectUri,
@@ -83,7 +88,7 @@ export class AppleAuthProviderWeb extends OAuthProvider {
     }
 
     this.initPromise = this._initialize();
-    
+
     try {
       await this.initPromise;
     } finally {
@@ -124,11 +129,13 @@ export class AppleAuthProviderWeb extends OAuthProvider {
 
     try {
       const appleOptions = this.options as AppleAuthOptions;
-      
+
       // Generate state and nonce for security
-      const state = options?.options?.state || this.generateSecureRandomString();
-      const nonce = options?.options?.nonce || this.generateSecureRandomString();
-      
+      const state =
+        options?.options?.state || this.generateSecureRandomString();
+      const nonce =
+        options?.options?.nonce || this.generateSecureRandomString();
+
       // Store state and nonce for validation
       await this.storage.set(`${this.provider}_oauth_state`, state);
       await this.storage.set(`${this.provider}_oauth_nonce`, nonce);
@@ -137,7 +144,7 @@ export class AppleAuthProviderWeb extends OAuthProvider {
       const signInConfig: AppleSignInConfig = {
         clientId: appleOptions.clientId,
         scope: this.mapAppleScopes(
-          options?.options?.scopes as AppleAuthScope[] || appleOptions.scopes
+          (options?.options?.scopes as AppleAuthScope[]) || appleOptions.scopes
         ).join(' '),
         redirectURI: appleOptions.redirectUri,
         state,
@@ -159,10 +166,14 @@ export class AppleAuthProviderWeb extends OAuthProvider {
       await this.setCurrentUser(user);
       await this.saveCredential(credential);
 
-      return this.createAuthResult(user, credential, response.user ? true : false);
+      return this.createAuthResult(
+        user,
+        credential,
+        response.user ? true : false
+      );
     } catch (error) {
       this.logger.error('Apple sign in failed', error);
-      
+
       if (error && typeof error === 'object' && 'error' in error) {
         throw new AuthError(
           this.mapAppleError((error as { error: string }).error),
@@ -170,7 +181,7 @@ export class AppleAuthProviderWeb extends OAuthProvider {
           this.provider
         );
       }
-      
+
       throw AuthError.fromError(error, this.provider);
     } finally {
       // Clean up temporary storage
@@ -202,7 +213,10 @@ export class AppleAuthProviderWeb extends OAuthProvider {
     }
 
     // Check if we're on HTTPS (required for Apple Sign In)
-    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+    if (
+      window.location.protocol !== 'https:' &&
+      window.location.hostname !== 'localhost'
+    ) {
       return false;
     }
 
@@ -219,7 +233,9 @@ export class AppleAuthProviderWeb extends OAuthProvider {
     await this.signOut();
   }
 
-  protected async openAuthorizationUrl(_url: string): Promise<{ code?: string; state?: string; error?: string }> {
+  protected async openAuthorizationUrl(
+    _url: string
+  ): Promise<{ code?: string; state?: string; error?: string }> {
     // This method is not used in Apple JS SDK flow
     throw new AuthError(
       AuthErrorCode.OPERATION_NOT_ALLOWED,
@@ -228,7 +244,9 @@ export class AppleAuthProviderWeb extends OAuthProvider {
     );
   }
 
-  protected async parseUserFromTokenResponse(_response: OAuthTokenResponse): Promise<OAuthUserInfo> {
+  protected async parseUserFromTokenResponse(
+    _response: OAuthTokenResponse
+  ): Promise<OAuthUserInfo> {
     // Apple provides user info directly in the authorization response
     // Note: This is a simplified implementation since Apple doesn't provide user info in the token response
     return {} as OAuthUserInfo;
@@ -241,10 +259,11 @@ export class AppleAuthProviderWeb extends OAuthProvider {
 
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = 'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js';
+      script.src =
+        'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js';
       script.async = true;
       script.defer = true;
-      
+
       script.onload = () => {
         if (window.AppleID?.auth) {
           resolve();
@@ -252,11 +271,11 @@ export class AppleAuthProviderWeb extends OAuthProvider {
           reject(new Error('Apple ID SDK failed to load'));
         }
       };
-      
+
       script.onerror = () => {
         reject(new Error('Failed to load Apple ID SDK'));
       };
-      
+
       document.head.appendChild(script);
     });
   }
@@ -266,7 +285,7 @@ export class AppleAuthProviderWeb extends OAuthProvider {
       return [];
     }
 
-    return scopes.map(scope => {
+    return scopes.map((scope) => {
       switch (scope) {
         case AppleAuthScope.EMAIL:
           return 'email';
@@ -306,9 +325,14 @@ export class AppleAuthProviderWeb extends OAuthProvider {
   private createAppleAuthUser(response: AppleSignInResponse): AuthUser {
     const user = response.user || {};
     const idToken = response.authorization?.id_token;
-    
+
     // Parse ID token claims (in production, do this on backend)
-    let claims: { sub?: string; email?: string; email_verified?: boolean; [key: string]: unknown } = {};
+    let claims: {
+      sub?: string;
+      email?: string;
+      email_verified?: boolean;
+      [key: string]: unknown;
+    } = {};
     if (idToken) {
       try {
         const payload = idToken.split('.')[1];
@@ -319,22 +343,29 @@ export class AppleAuthProviderWeb extends OAuthProvider {
     }
 
     return {
-      uid: claims.sub || response.authorization?.code || this.generateUniqueId(),
+      uid:
+        claims.sub || response.authorization?.code || this.generateUniqueId(),
       email: user.email || claims.email || null,
       emailVerified: claims.email_verified || false,
-      displayName: user.name ? `${user.name.firstName || ''} ${user.name.lastName || ''}`.trim() : null,
+      displayName: user.name
+        ? `${user.name.firstName || ''} ${user.name.lastName || ''}`.trim()
+        : null,
       photoURL: null, // Apple doesn't provide profile photos
       phoneNumber: null,
       isAnonymous: false,
       tenantId: null,
-      providerData: [{
-        providerId: AuthProvider.APPLE,
-        uid: claims.sub || response.authorization?.code || '',
-        displayName: user.name ? `${user.name.firstName || ''} ${user.name.lastName || ''}`.trim() : null,
-        email: user.email || claims.email || null,
-        phoneNumber: null,
-        photoURL: null,
-      }],
+      providerData: [
+        {
+          providerId: AuthProvider.APPLE,
+          uid: claims.sub || response.authorization?.code || '',
+          displayName: user.name
+            ? `${user.name.firstName || ''} ${user.name.lastName || ''}`.trim()
+            : null,
+          email: user.email || claims.email || null,
+          phoneNumber: null,
+          photoURL: null,
+        },
+      ],
       metadata: {
         creationTime: new Date().toISOString(),
         lastSignInTime: new Date().toISOString(),
@@ -359,17 +390,17 @@ export class AppleAuthProviderWeb extends OAuthProvider {
 
   private mapAppleError(error: string): AuthErrorCode {
     const errorMap: Record<string, AuthErrorCode> = {
-      'user_cancelled_authorize': AuthErrorCode.USER_CANCELLED,
-      'popup_closed_by_user': AuthErrorCode.POPUP_CLOSED_BY_USER,
-      'popup_blocked': AuthErrorCode.POPUP_BLOCKED,
-      'invalid_request': AuthErrorCode.INVALID_REQUEST,
-      'invalid_client': AuthErrorCode.CLIENT_NOT_FOUND,
-      'invalid_scope': AuthErrorCode.INVALID_SCOPE,
-      'unauthorized_client': AuthErrorCode.APP_NOT_AUTHORIZED,
-      'access_denied': AuthErrorCode.ACCESS_DENIED,
-      'unsupported_response_type': AuthErrorCode.UNSUPPORTED_GRANT_TYPE,
-      'server_error': AuthErrorCode.SERVER_ERROR,
-      'temporarily_unavailable': AuthErrorCode.TEMPORARILY_UNAVAILABLE,
+      user_cancelled_authorize: AuthErrorCode.USER_CANCELLED,
+      popup_closed_by_user: AuthErrorCode.POPUP_CLOSED_BY_USER,
+      popup_blocked: AuthErrorCode.POPUP_BLOCKED,
+      invalid_request: AuthErrorCode.INVALID_REQUEST,
+      invalid_client: AuthErrorCode.CLIENT_NOT_FOUND,
+      invalid_scope: AuthErrorCode.INVALID_SCOPE,
+      unauthorized_client: AuthErrorCode.APP_NOT_AUTHORIZED,
+      access_denied: AuthErrorCode.ACCESS_DENIED,
+      unsupported_response_type: AuthErrorCode.UNSUPPORTED_GRANT_TYPE,
+      server_error: AuthErrorCode.SERVER_ERROR,
+      temporarily_unavailable: AuthErrorCode.TEMPORARILY_UNAVAILABLE,
     };
 
     return errorMap[error] || AuthErrorCode.INTERNAL_ERROR;

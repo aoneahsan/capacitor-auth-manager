@@ -17,16 +17,22 @@ export class PlatformDetector {
       return this.platformInfo;
     }
 
-    const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+    const userAgent =
+      typeof navigator !== 'undefined' ? navigator.userAgent : '';
     const platform = this.detectPlatform(userAgent);
-    
+
     this.platformInfo = {
       platform,
       isNative: platform === 'ios' || platform === 'android',
       isWeb: platform === 'web',
-      isMobile: platform === 'ios' || platform === 'android' || this.isMobileWeb(userAgent),
-      isDesktop: platform === 'electron' || (platform === 'web' && !this.isMobileWeb(userAgent)),
-      userAgent
+      isMobile:
+        platform === 'ios' ||
+        platform === 'android' ||
+        this.isMobileWeb(userAgent),
+      isDesktop:
+        platform === 'electron' ||
+        (platform === 'web' && !this.isMobileWeb(userAgent)),
+      userAgent,
     };
 
     return this.platformInfo;
@@ -45,12 +51,18 @@ export class PlatformDetector {
     }
 
     // Check if running in Electron
-    if (typeof window !== 'undefined' && (window as any).process?.versions?.electron) {
+    if (
+      typeof window !== 'undefined' &&
+      (window as any).process?.versions?.electron
+    ) {
       return 'electron';
     }
 
     // Check for React Native
-    if (typeof navigator !== 'undefined' && navigator.product === 'ReactNative') {
+    if (
+      typeof navigator !== 'undefined' &&
+      navigator.product === 'ReactNative'
+    ) {
       if (/iPhone|iPad|iPod/i.test(userAgent)) {
         return 'ios';
       }
@@ -60,7 +72,11 @@ export class PlatformDetector {
     }
 
     // Check for native iOS/Android webviews
-    if (/iPhone|iPad|iPod/i.test(userAgent) && /WebKit/i.test(userAgent) && !/Safari/i.test(userAgent)) {
+    if (
+      /iPhone|iPad|iPod/i.test(userAgent) &&
+      /WebKit/i.test(userAgent) &&
+      !/Safari/i.test(userAgent)
+    ) {
       return 'ios';
     }
     if (/Android/i.test(userAgent) && /wv/i.test(userAgent)) {
@@ -72,7 +88,9 @@ export class PlatformDetector {
   }
 
   private static isMobileWeb(userAgent: string): boolean {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      userAgent
+    );
   }
 
   static isCapacitorAvailable(): boolean {
@@ -85,7 +103,7 @@ export class PlatformDetector {
     }
 
     try {
-      const { Capacitor } = (window as any);
+      const { Capacitor } = window as any;
       return !!(Capacitor.Plugins && Capacitor.Plugins[pluginName]);
     } catch {
       return false;

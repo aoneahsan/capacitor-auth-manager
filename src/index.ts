@@ -7,7 +7,7 @@ export type {
   AuthState,
   AuthStateListener,
   AuthProviderInterface,
-  ProviderManifest
+  ProviderManifest,
 } from './core/types';
 
 // Re-export shared types from definitions (these are used by both old and new API)
@@ -35,7 +35,7 @@ export {
   AppleAuthScope,
   PasswordStrengthRequirements,
   UsernameRequirements,
-  AuthCredentials
+  AuthCredentials,
 } from './definitions';
 
 export { PlatformDetector } from './core/platform';

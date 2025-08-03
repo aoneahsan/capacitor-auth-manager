@@ -1,5 +1,9 @@
 import { BaseAuthProvider } from '../base-provider';
-import { AuthResult, AuthErrorCode, FirebaseAuthOptions } from '../../definitions';
+import {
+  AuthResult,
+  AuthErrorCode,
+  FirebaseAuthOptions,
+} from '../../definitions';
 import { AuthError } from '../../utils/auth-error';
 import type { SignInOptions, SignOutOptions } from '../../definitions';
 
@@ -10,7 +14,7 @@ export class FirebaseAuthProviderWeb extends BaseAuthProvider {
 
   async initialize(): Promise<void> {
     const options = this.options as FirebaseAuthOptions;
-    
+
     if (!options.apiKey || !options.authDomain || !options.projectId) {
       throw new AuthError(
         AuthErrorCode.MISSING_CONFIG,
@@ -42,9 +46,10 @@ export class FirebaseAuthProviderWeb extends BaseAuthProvider {
       };
 
       // Check if app already exists
-      this.firebaseApp = firebase.apps.length > 0 
-        ? firebase.app() 
-        : firebase.initializeApp(firebaseConfig);
+      this.firebaseApp =
+        firebase.apps.length > 0
+          ? firebase.app()
+          : firebase.initializeApp(firebaseConfig);
 
       this.firebaseAuth = firebase.auth(this.firebaseApp);
 
@@ -53,14 +58,16 @@ export class FirebaseAuthProviderWeb extends BaseAuthProvider {
       await this.firebaseAuth.setPersistence(persistenceMode);
 
       // Set up auth state listener
-      this.unsubscribeAuth = this.firebaseAuth.onAuthStateChanged(async (firebaseUser: any) => {
-        if (firebaseUser) {
-          const user = await this.createUserFromFirebaseUser(firebaseUser);
-          await this.setCurrentUser(user);
-        } else {
-          await this.setCurrentUser(null);
+      this.unsubscribeAuth = this.firebaseAuth.onAuthStateChanged(
+        async (firebaseUser: any) => {
+          if (firebaseUser) {
+            const user = await this.createUserFromFirebaseUser(firebaseUser);
+            await this.setCurrentUser(user);
+          } else {
+            await this.setCurrentUser(null);
+          }
         }
-      });
+      );
 
       // Wait for auth state to be determined
       await new Promise((resolve) => {
@@ -96,8 +103,8 @@ export class FirebaseAuthProviderWeb extends BaseAuthProvider {
   async signIn(options?: SignInOptions): Promise<AuthResult> {
     this.validateInitialized();
 
-    const signInOptions = options as any || {};
-    
+    const signInOptions = (options as any) || {};
+
     try {
       let firebaseUser: any;
       let credential: any;
@@ -107,16 +114,22 @@ export class FirebaseAuthProviderWeb extends BaseAuthProvider {
       if (signInOptions.method === 'google') {
         const provider = new (window as any).firebase.auth.GoogleAuthProvider();
         if (signInOptions.scopes) {
-          signInOptions.scopes.forEach((scope: string) => provider.addScope(scope));
+          signInOptions.scopes.forEach((scope: string) =>
+            provider.addScope(scope)
+          );
         }
         const result = await this.firebaseAuth.signInWithPopup(provider);
         firebaseUser = result.user;
         credential = result.credential;
         additionalUserInfo = result.additionalUserInfo;
       } else if (signInOptions.method === 'facebook') {
-        const provider = new (window as any).firebase.auth.FacebookAuthProvider();
+        const provider = new (
+          window as any
+        ).firebase.auth.FacebookAuthProvider();
         if (signInOptions.scopes) {
-          signInOptions.scopes.forEach((scope: string) => provider.addScope(scope));
+          signInOptions.scopes.forEach((scope: string) =>
+            provider.addScope(scope)
+          );
         }
         const result = await this.firebaseAuth.signInWithPopup(provider);
         firebaseUser = result.user;
@@ -125,31 +138,45 @@ export class FirebaseAuthProviderWeb extends BaseAuthProvider {
       } else if (signInOptions.method === 'github') {
         const provider = new (window as any).firebase.auth.GithubAuthProvider();
         if (signInOptions.scopes) {
-          signInOptions.scopes.forEach((scope: string) => provider.addScope(scope));
+          signInOptions.scopes.forEach((scope: string) =>
+            provider.addScope(scope)
+          );
         }
         const result = await this.firebaseAuth.signInWithPopup(provider);
         firebaseUser = result.user;
         credential = result.credential;
         additionalUserInfo = result.additionalUserInfo;
       } else if (signInOptions.method === 'microsoft') {
-        const provider = new (window as any).firebase.auth.OAuthProvider('microsoft.com');
+        const provider = new (window as any).firebase.auth.OAuthProvider(
+          'microsoft.com'
+        );
         if (signInOptions.scopes) {
-          signInOptions.scopes.forEach((scope: string) => provider.addScope(scope));
+          signInOptions.scopes.forEach((scope: string) =>
+            provider.addScope(scope)
+          );
         }
         const result = await this.firebaseAuth.signInWithPopup(provider);
         firebaseUser = result.user;
         credential = result.credential;
         additionalUserInfo = result.additionalUserInfo;
       } else if (signInOptions.method === 'apple') {
-        const provider = new (window as any).firebase.auth.OAuthProvider('apple.com');
+        const provider = new (window as any).firebase.auth.OAuthProvider(
+          'apple.com'
+        );
         if (signInOptions.scopes) {
-          signInOptions.scopes.forEach((scope: string) => provider.addScope(scope));
+          signInOptions.scopes.forEach((scope: string) =>
+            provider.addScope(scope)
+          );
         }
         const result = await this.firebaseAuth.signInWithPopup(provider);
         firebaseUser = result.user;
         credential = result.credential;
         additionalUserInfo = result.additionalUserInfo;
-      } else if (signInOptions.method === 'email' && signInOptions.email && signInOptions.password) {
+      } else if (
+        signInOptions.method === 'email' &&
+        signInOptions.email &&
+        signInOptions.password
+      ) {
         const result = await this.firebaseAuth.signInWithEmailAndPassword(
           signInOptions.email,
           signInOptions.password
@@ -177,8 +204,11 @@ export class FirebaseAuthProviderWeb extends BaseAuthProvider {
       }
 
       const user = await this.createUserFromFirebaseUser(firebaseUser);
-      const authCredential = await this.createCredentialFromFirebase(credential, firebaseUser);
-      
+      const authCredential = await this.createCredentialFromFirebase(
+        credential,
+        firebaseUser
+      );
+
       await this.saveCredential(authCredential);
 
       return this.createAuthResult(
@@ -188,15 +218,18 @@ export class FirebaseAuthProviderWeb extends BaseAuthProvider {
       );
     } catch (error: any) {
       this.logger.error('Firebase sign in failed', error);
-      
-      if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+
+      if (
+        error.code === 'auth/popup-closed-by-user' ||
+        error.code === 'auth/cancelled-popup-request'
+      ) {
         throw new AuthError(
           AuthErrorCode.USER_CANCELLED,
           'User cancelled the sign in',
           this.provider
         );
       }
-      
+
       throw new AuthError(
         AuthErrorCode.SIGN_IN_FAILED,
         `Firebase sign in failed: ${error.message}`,
@@ -210,7 +243,7 @@ export class FirebaseAuthProviderWeb extends BaseAuthProvider {
 
     try {
       await this.firebaseAuth.signOut();
-      
+
       if (options?.redirectUrl) {
         window.location.href = options.redirectUrl;
       }
@@ -239,7 +272,7 @@ export class FirebaseAuthProviderWeb extends BaseAuthProvider {
 
       // Force token refresh
       const idToken = await currentUser.getIdToken(true);
-      
+
       const user = await this.createUserFromFirebaseUser(currentUser);
       const credential = {
         providerId: this.provider,
@@ -282,12 +315,18 @@ export class FirebaseAuthProviderWeb extends BaseAuthProvider {
 
     try {
       let result: any;
-      
+
       if (options.method === 'google') {
         const provider = new (window as any).firebase.auth.GoogleAuthProvider();
         result = await currentUser.linkWithPopup(provider);
-      } else if (options.method === 'email' && options.email && options.password) {
-        const credential = (window as any).firebase.auth.EmailAuthProvider.credential(
+      } else if (
+        options.method === 'email' &&
+        options.email &&
+        options.password
+      ) {
+        const credential = (
+          window as any
+        ).firebase.auth.EmailAuthProvider.credential(
           options.email,
           options.password
         );
@@ -301,7 +340,10 @@ export class FirebaseAuthProviderWeb extends BaseAuthProvider {
       }
 
       const user = await this.createUserFromFirebaseUser(result.user);
-      const authCredential = await this.createCredentialFromFirebase(result.credential, result.user);
+      const authCredential = await this.createCredentialFromFirebase(
+        result.credential,
+        result.user
+      );
 
       return this.createAuthResult(user, authCredential, false, 'link');
     } catch (error: any) {
@@ -343,7 +385,7 @@ export class FirebaseAuthProviderWeb extends BaseAuthProvider {
 
   private async createUserFromFirebaseUser(firebaseUser: any): Promise<any> {
     const idTokenResult = await firebaseUser.getIdTokenResult();
-    
+
     return {
       uid: firebaseUser.uid,
       email: firebaseUser.email,
@@ -370,9 +412,12 @@ export class FirebaseAuthProviderWeb extends BaseAuthProvider {
     };
   }
 
-  private async createCredentialFromFirebase(credential: any, user: any): Promise<any> {
+  private async createCredentialFromFirebase(
+    credential: any,
+    user: any
+  ): Promise<any> {
     const idToken = await user.getIdToken();
-    
+
     return {
       providerId: credential?.providerId || this.provider,
       signInMethod: credential?.signInMethod || 'firebase',

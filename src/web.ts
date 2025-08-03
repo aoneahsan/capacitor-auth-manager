@@ -42,8 +42,8 @@ import { ProviderFactory } from './providers/provider-factory';
 
 export class CapacitorAuthManagerWeb
   extends WebPlugin
-  implements CapacitorAuthManagerPlugin {
-  
+  implements CapacitorAuthManagerPlugin
+{
   private providers: Map<AuthProvider, BaseAuthProvider> = new Map();
   private storage: StorageInterface;
   private logger: Logger;
@@ -110,26 +110,26 @@ export class CapacitorAuthManagerWeb
 
   async signIn(options: SignInOptions): Promise<AuthResult> {
     this.validateInitialized();
-    
+
     const provider = this.getProvider(options.provider);
-    
+
     try {
       this.logger.info(`Signing in with ${options.provider}`);
-      
+
       const result = await provider.signIn(options);
-      
+
       // Set as current provider
       this.currentProvider = options.provider;
       await this.storage.set('last_auth_provider', options.provider);
-      
+
       // Setup token refresh if needed
       if (this.autoRefreshToken && result.credential.refreshToken) {
         this.setupTokenRefresh(options.provider, result.credential);
       }
-      
+
       // Forward auth state change
       this.authStateEmitter.emit(result.user);
-      
+
       return result;
     } catch (error) {
       this.logger.error(`Sign in failed for ${options.provider}`, error);
@@ -139,23 +139,23 @@ export class CapacitorAuthManagerWeb
 
   async signOut(options?: SignOutOptions): Promise<void> {
     this.validateInitialized();
-    
+
     try {
       if (options?.provider) {
         // Sign out from specific provider
         const provider = this.getProvider(options.provider);
         await provider.signOut(options);
-        
+
         // Cancel token refresh
         this.cancelTokenRefresh(options.provider);
       } else if (this.currentProvider) {
         // Sign out from current provider
         const provider = this.getProvider(this.currentProvider);
         await provider.signOut(options);
-        
+
         // Cancel token refresh
         this.cancelTokenRefresh(this.currentProvider);
-        
+
         // Clear current provider
         this.currentProvider = null;
         await this.storage.remove('last_auth_provider');
@@ -169,11 +169,11 @@ export class CapacitorAuthManagerWeb
             this.logger.error(`Failed to sign out from ${providerId}`, error);
           }
         }
-        
+
         this.currentProvider = null;
         await this.storage.remove('last_auth_provider');
       }
-      
+
       // Emit null user
       this.authStateEmitter.emit(null);
     } catch (error) {
@@ -184,12 +184,12 @@ export class CapacitorAuthManagerWeb
 
   async getCurrentUser(): Promise<AuthUser | null> {
     this.validateInitialized();
-    
+
     if (this.currentProvider) {
       const provider = this.getProvider(this.currentProvider);
       return provider.getCurrentUser();
     }
-    
+
     // Try to get user from any provider
     for (const provider of this.providers.values()) {
       const user = await provider.getCurrentUser();
@@ -197,13 +197,13 @@ export class CapacitorAuthManagerWeb
         return user;
       }
     }
-    
+
     return null;
   }
 
   async refreshToken(options?: RefreshTokenOptions): Promise<AuthResult> {
     this.validateInitialized();
-    
+
     const providerId = options?.provider || this.currentProvider;
     if (!providerId) {
       throw new AuthError(
@@ -211,17 +211,17 @@ export class CapacitorAuthManagerWeb
         'No provider specified for token refresh'
       );
     }
-    
+
     const provider = this.getProvider(providerId);
-    
+
     try {
       const result = await provider.refreshToken(options);
-      
+
       // Setup new token refresh
       if (this.autoRefreshToken && result.credential.refreshToken) {
         this.setupTokenRefresh(providerId, result.credential);
       }
-      
+
       return result;
     } catch (error) {
       this.logger.error(`Token refresh failed for ${providerId}`, error);
@@ -233,24 +233,24 @@ export class CapacitorAuthManagerWeb
     callback: AuthStateChangeCallback
   ): Promise<PluginListenerHandle> {
     const unsubscribe = this.authStateEmitter.subscribe(callback);
-    
+
     // Create a Capacitor-compatible listener handle
     const handle: PluginListenerHandle = {
       remove: async () => {
         unsubscribe();
-      }
+      },
     };
-    
+
     // Emit current user state
     const currentUser = await this.getCurrentUser();
     callback(currentUser);
-    
+
     return handle;
   }
 
   async removeAllListeners(): Promise<void> {
     this.authStateEmitter.clear();
-    
+
     // Also clear provider listeners
     for (const provider of this.providers.values()) {
       provider.dispose();
@@ -266,13 +266,15 @@ export class CapacitorAuthManagerWeb
           availableProviders: Array.from(this.providers.keys()),
         };
       }
-      
+
       const provider = this.getProvider(options.provider);
       const isSupported = await provider.isSupported();
-      
+
       return {
         isSupported,
-        reason: isSupported ? undefined : 'Provider not supported on this platform',
+        reason: isSupported
+          ? undefined
+          : 'Provider not supported on this platform',
         availableProviders: Array.from(this.providers.keys()),
       };
     } catch (error) {
@@ -286,44 +288,50 @@ export class CapacitorAuthManagerWeb
 
   async configure(options: ConfigureOptions): Promise<void> {
     this.validateInitialized();
-    
+
     const providerConfig: AuthProviderConfig = {
       provider: options.provider,
       options: options.options,
     };
-    
+
     await this.initializeProvider(providerConfig);
   }
 
   async linkAccount(options: LinkAccountOptions): Promise<AuthResult> {
     this.validateInitialized();
-    
+
     const provider = this.getProvider(options.provider);
-    
+
     try {
       return await provider.linkAccount(options);
     } catch (error) {
-      this.logger.error(`Account linking failed for ${options.provider}`, error);
+      this.logger.error(
+        `Account linking failed for ${options.provider}`,
+        error
+      );
       throw AuthError.fromError(error, options.provider);
     }
   }
 
   async unlinkAccount(options: UnlinkAccountOptions): Promise<void> {
     this.validateInitialized();
-    
+
     const provider = this.getProvider(options.provider);
-    
+
     try {
       await provider.unlinkAccount(options);
     } catch (error) {
-      this.logger.error(`Account unlinking failed for ${options.provider}`, error);
+      this.logger.error(
+        `Account unlinking failed for ${options.provider}`,
+        error
+      );
       throw AuthError.fromError(error, options.provider);
     }
   }
 
   async sendPasswordResetEmail(_options: PasswordResetOptions): Promise<void> {
     this.validateInitialized();
-    
+
     // This would typically be implemented by specific providers
     throw new AuthError(
       AuthErrorCode.OPERATION_NOT_ALLOWED,
@@ -331,9 +339,11 @@ export class CapacitorAuthManagerWeb
     );
   }
 
-  async sendEmailVerification(_options?: EmailVerificationOptions): Promise<void> {
+  async sendEmailVerification(
+    _options?: EmailVerificationOptions
+  ): Promise<void> {
     this.validateInitialized();
-    
+
     // This would typically be implemented by specific providers
     throw new AuthError(
       AuthErrorCode.OPERATION_NOT_ALLOWED,
@@ -343,7 +353,7 @@ export class CapacitorAuthManagerWeb
 
   async sendSmsCode(_options: SendSmsCodeOptions): Promise<void> {
     this.validateInitialized();
-    
+
     // This would typically be implemented by SMS provider
     throw new AuthError(
       AuthErrorCode.OPERATION_NOT_ALLOWED,
@@ -353,7 +363,7 @@ export class CapacitorAuthManagerWeb
 
   async verifySmsCode(_options: VerifySmsCodeOptions): Promise<AuthResult> {
     this.validateInitialized();
-    
+
     // This would typically be implemented by SMS provider
     throw new AuthError(
       AuthErrorCode.OPERATION_NOT_ALLOWED,
@@ -363,7 +373,7 @@ export class CapacitorAuthManagerWeb
 
   async sendEmailCode(_options: SendEmailCodeOptions): Promise<void> {
     this.validateInitialized();
-    
+
     // This would typically be implemented by email code provider
     throw new AuthError(
       AuthErrorCode.OPERATION_NOT_ALLOWED,
@@ -373,7 +383,7 @@ export class CapacitorAuthManagerWeb
 
   async verifyEmailCode(_options: VerifyEmailCodeOptions): Promise<AuthResult> {
     this.validateInitialized();
-    
+
     // This would typically be implemented by email code provider
     throw new AuthError(
       AuthErrorCode.OPERATION_NOT_ALLOWED,
@@ -383,14 +393,14 @@ export class CapacitorAuthManagerWeb
 
   async updateProfile(_options: UpdateProfileOptions): Promise<AuthUser> {
     this.validateInitialized();
-    
+
     if (!this.currentProvider) {
       throw new AuthError(
         AuthErrorCode.MISSING_CONFIGURATION,
         'No authenticated user found'
       );
     }
-    
+
     // This would typically be implemented by specific providers
     throw new AuthError(
       AuthErrorCode.OPERATION_NOT_ALLOWED,
@@ -400,14 +410,14 @@ export class CapacitorAuthManagerWeb
 
   async deleteAccount(_options?: DeleteAccountOptions): Promise<void> {
     this.validateInitialized();
-    
+
     if (!this.currentProvider) {
       throw new AuthError(
         AuthErrorCode.MISSING_CONFIGURATION,
         'No authenticated user found'
       );
     }
-    
+
     // This would typically be implemented by specific providers
     throw new AuthError(
       AuthErrorCode.OPERATION_NOT_ALLOWED,
@@ -417,7 +427,7 @@ export class CapacitorAuthManagerWeb
 
   async getIdToken(options?: GetIdTokenOptions): Promise<string> {
     this.validateInitialized();
-    
+
     const providerId = options?.provider || this.currentProvider;
     if (!providerId) {
       throw new AuthError(
@@ -425,7 +435,7 @@ export class CapacitorAuthManagerWeb
         'No provider specified for ID token'
       );
     }
-    
+
     // This would typically be implemented by specific providers
     throw new AuthError(
       AuthErrorCode.OPERATION_NOT_ALLOWED,
@@ -433,9 +443,11 @@ export class CapacitorAuthManagerWeb
     );
   }
 
-  async setCustomParameters(options: SetCustomParametersOptions): Promise<void> {
+  async setCustomParameters(
+    options: SetCustomParametersOptions
+  ): Promise<void> {
     this.validateInitialized();
-    
+
     // Store custom parameters for the provider
     await this.storage.set(
       `${options.provider}_custom_params`,
@@ -445,7 +457,7 @@ export class CapacitorAuthManagerWeb
 
   async revokeAccess(options?: RevokeAccessOptions): Promise<void> {
     this.validateInitialized();
-    
+
     const providerId = options?.provider || this.currentProvider;
     if (!providerId) {
       throw new AuthError(
@@ -453,9 +465,9 @@ export class CapacitorAuthManagerWeb
         'No provider specified for access revocation'
       );
     }
-    
+
     const provider = this.getProvider(providerId);
-    
+
     try {
       await provider.revokeAccess(options?.token);
     } catch (error) {
@@ -488,45 +500,56 @@ export class CapacitorAuthManagerWeb
     try {
       // Dynamically import provider implementation
       const provider = await this.createProvider(config);
-      
+
       if (provider) {
         await provider.initialize();
-        
+
         // Forward auth state changes
         provider.addAuthStateListener((user) => {
           if (user) {
             this.authStateEmitter.emit(user);
           }
         });
-        
+
         this.providers.set(config.provider, provider);
         this.logger.info(`Provider ${config.provider} initialized`);
       }
     } catch (error) {
-      this.logger.error(`Failed to initialize provider ${config.provider}`, error);
+      this.logger.error(
+        `Failed to initialize provider ${config.provider}`,
+        error
+      );
       throw error;
     }
   }
 
-  private async createProvider(config: AuthProviderConfig): Promise<BaseAuthProvider | null> {
+  private async createProvider(
+    config: AuthProviderConfig
+  ): Promise<BaseAuthProvider | null> {
     return ProviderFactory.createProvider(
       config,
       this.storage,
       this.logger,
-      this.storage instanceof WebStorage ? AuthPersistence.LOCAL : AuthPersistence.NONE
+      this.storage instanceof WebStorage
+        ? AuthPersistence.LOCAL
+        : AuthPersistence.NONE
     );
   }
 
-  private setupTokenRefresh(provider: AuthProvider, credential: AuthCredential): void {
+  private setupTokenRefresh(
+    provider: AuthProvider,
+    credential: AuthCredential
+  ): void {
     // Cancel existing refresh timer
     this.cancelTokenRefresh(provider);
-    
+
     if (!credential.expiresAt || !credential.refreshToken) {
       return;
     }
-    
-    const refreshTime = credential.expiresAt - this.tokenRefreshBuffer - Date.now();
-    
+
+    const refreshTime =
+      credential.expiresAt - this.tokenRefreshBuffer - Date.now();
+
     if (refreshTime > 0) {
       const timer = setTimeout(async () => {
         try {
@@ -535,7 +558,7 @@ export class CapacitorAuthManagerWeb
           this.logger.error(`Auto token refresh failed for ${provider}`, error);
         }
       }, refreshTime);
-      
+
       this.tokenRefreshTimers.set(provider, timer);
     }
   }

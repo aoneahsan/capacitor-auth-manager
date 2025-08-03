@@ -2,7 +2,11 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { auth } from '../core/auth-manager';
 import type { AuthState } from '../core/types';
 import type { AuthUser, SignInOptions, SignOutOptions } from '../definitions';
-import type { UseAuthReturn, UseAuthStateReturn, UseAuthProviderReturn } from './types';
+import type {
+  UseAuthReturn,
+  UseAuthStateReturn,
+  UseAuthProviderReturn,
+} from './types';
 
 /**
  * Hook for complete authentication functionality
@@ -10,9 +14,9 @@ import type { UseAuthReturn, UseAuthStateReturn, UseAuthProviderReturn } from '.
  * ```tsx
  * function LoginComponent() {
  *   const { user, signIn, signOut, isLoading } = useAuth();
- *   
+ *
  *   if (isLoading) return <div>Loading...</div>;
- *   
+ *
  *   if (user) {
  *     return (
  *       <div>
@@ -21,7 +25,7 @@ import type { UseAuthReturn, UseAuthStateReturn, UseAuthProviderReturn } from '.
  *       </div>
  *     );
  *   }
- *   
+ *
  *   return (
  *     <button onClick={() => signIn('google')}>
  *       Sign In with Google
@@ -43,16 +47,19 @@ export function useAuth(): UseAuthReturn {
     return unsubscribe;
   }, []);
 
-  const signIn = useCallback(async (providerOrOptions: string | SignInOptions) => {
-    setError(null);
-    try {
-      const result = await auth.signIn(providerOrOptions);
-      return result;
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    }
-  }, []);
+  const signIn = useCallback(
+    async (providerOrOptions: string | SignInOptions) => {
+      setError(null);
+      try {
+        const result = await auth.signIn(providerOrOptions);
+        return result;
+      } catch (err) {
+        setError(err as Error);
+        throw err;
+      }
+    },
+    []
+  );
 
   const signOut = useCallback(async (options?: SignOutOptions) => {
     setError(null);
@@ -83,7 +90,7 @@ export function useAuth(): UseAuthReturn {
     signIn,
     signOut,
     refreshToken,
-    error
+    error,
   };
 }
 
@@ -93,11 +100,11 @@ export function useAuth(): UseAuthReturn {
  * ```tsx
  * function UserProfile() {
  *   const { user, isAuthenticated } = useAuthState();
- *   
+ *
  *   if (!isAuthenticated) {
  *     return <div>Please log in to view your profile</div>;
  *   }
- *   
+ *
  *   return (
  *     <div>
  *       <img src={user.photoURL} alt={user.displayName} />
@@ -123,7 +130,7 @@ export function useAuthState(): UseAuthStateReturn {
     user: state.user,
     isLoading: state.isLoading,
     isAuthenticated: state.isAuthenticated,
-    provider: state.provider
+    provider: state.provider,
   };
 }
 
@@ -133,15 +140,15 @@ export function useAuthState(): UseAuthStateReturn {
  * ```tsx
  * function GoogleLoginButton() {
  *   const { signIn, isSupported, isConfigured } = useAuthProvider('google');
- *   
+ *
  *   if (!isSupported) {
  *     return <div>Google Sign-In is not supported on this platform</div>;
  *   }
- *   
+ *
  *   if (!isConfigured) {
  *     return <div>Google Sign-In is not configured</div>;
  *   }
- *   
+ *
  *   return (
  *     <button onClick={() => signIn({ scopes: ['email', 'profile'] })}>
  *       Sign In with Google
@@ -197,25 +204,28 @@ export function useAuthProvider(provider: string): UseAuthProviderReturn {
     }
   }, [provider]);
 
-  const signOut = useCallback(async (options?: any) => {
-    setError(null);
-    try {
-      await auth.signOut({
-        ...options,
-        provider
-      });
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    }
-  }, [provider]);
+  const signOut = useCallback(
+    async (options?: any) => {
+      setError(null);
+      try {
+        await auth.signOut({
+          ...options,
+          provider,
+        });
+      } catch (err) {
+        setError(err as Error);
+        throw err;
+      }
+    },
+    [provider]
+  );
 
   return {
     isSupported,
     isConfigured,
     signIn,
     signOut,
-    error
+    error,
   };
 }
 
@@ -225,13 +235,13 @@ export function useAuthProvider(provider: string): UseAuthProviderReturn {
  * ```tsx
  * function Avatar() {
  *   const user = useUser();
- *   
+ *
  *   if (!user) return null;
- *   
+ *
  *   return (
- *     <img 
- *       src={user.photoURL || '/default-avatar.png'} 
- *       alt={user.displayName || 'User'} 
+ *     <img
+ *       src={user.photoURL || '/default-avatar.png'}
+ *       alt={user.displayName || 'User'}
  *     />
  *   );
  * }
@@ -248,11 +258,11 @@ export function useUser(): AuthUser | null {
  * ```tsx
  * function ProtectedRoute({ children }) {
  *   const isAuthenticated = useIsAuthenticated();
- *   
+ *
  *   if (!isAuthenticated) {
  *     return <Navigate to="/login" />;
  *   }
- *   
+ *
  *   return children;
  * }
  * ```

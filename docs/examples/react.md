@@ -42,7 +42,9 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [authState, setAuthState] = useState<AuthState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -68,15 +70,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await CapacitorAuthManager.initialize({
         providers: {
           google: {
-            webClientId: process.env.REACT_APP_GOOGLE_CLIENT_ID!
+            webClientId: process.env.REACT_APP_GOOGLE_CLIENT_ID!,
           },
           apple: {
-            clientId: process.env.REACT_APP_APPLE_CLIENT_ID!
+            clientId: process.env.REACT_APP_APPLE_CLIENT_ID!,
           },
           facebook: {
-            appId: process.env.REACT_APP_FACEBOOK_APP_ID!
-          }
-        }
+            appId: process.env.REACT_APP_FACEBOOK_APP_ID!,
+          },
+        },
       });
 
       // Get initial auth state
@@ -121,7 +123,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading,
     signIn,
     signOut,
-    error
+    error,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -134,11 +136,11 @@ Create `hooks/useCapacitorAuth.ts`:
 
 ```typescript
 import { useCallback, useEffect, useState } from 'react';
-import { 
-  CapacitorAuthManager, 
-  AuthState, 
+import {
+  CapacitorAuthManager,
+  AuthState,
   SignInOptions,
-  AuthResult 
+  AuthResult,
 } from 'capacitor-auth-manager';
 
 export const useCapacitorAuth = () => {
@@ -153,7 +155,7 @@ export const useCapacitorAuth = () => {
       try {
         const state = await CapacitorAuthManager.getCurrentUser();
         setAuthState(state);
-        
+
         listener = CapacitorAuthManager.addAuthStateListener(setAuthState);
       } catch (err) {
         setError(err as Error);
@@ -171,25 +173,28 @@ export const useCapacitorAuth = () => {
     };
   }, []);
 
-  const signIn = useCallback(async (options: SignInOptions): Promise<AuthResult> => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const result = await CapacitorAuthManager.signIn(options);
-      return result;
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const signIn = useCallback(
+    async (options: SignInOptions): Promise<AuthResult> => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const result = await CapacitorAuthManager.signIn(options);
+        return result;
+      } catch (err) {
+        setError(err as Error);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   const signOut = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       await CapacitorAuthManager.signOut();
     } catch (err) {
@@ -218,7 +223,7 @@ export const useCapacitorAuth = () => {
     error,
     signIn,
     signOut,
-    refreshToken
+    refreshToken,
   };
 };
 ```
@@ -237,9 +242,9 @@ interface ProtectedRouteProps {
   redirectTo?: string;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
-  redirectTo = '/login' 
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  redirectTo = '/login',
 }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -248,7 +253,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (!isAuthenticated) {
-    return <Navigate to={redirectTo} replace />;
+    return (
+      <Navigate
+        to={redirectTo}
+        replace
+      />
+    );
   }
 
   return <>{children}</>;
@@ -273,24 +283,30 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route 
-            path="/dashboard" 
+          <Route
+            path='/login'
+            element={<LoginPage />}
+          />
+          <Route
+            path='/dashboard'
             element={
               <ProtectedRoute>
                 <DashboardPage />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/profile" 
+          <Route
+            path='/profile'
             element={
               <ProtectedRoute>
                 <ProfilePage />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route path="/" element={<Navigate to="/dashboard" />} />
+          <Route
+            path='/'
+            element={<Navigate to='/dashboard' />}
+          />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
@@ -327,20 +343,16 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="login-page">
-      <div className="login-container">
+    <div className='login-page'>
+      <div className='login-container'>
         <h1>Welcome Back</h1>
         <p>Sign in to continue</p>
 
-        {error && (
-          <div className="error-message">
-            {error.message}
-          </div>
-        )}
+        {error && <div className='error-message'>{error.message}</div>}
 
-        <div className="auth-buttons">
+        <div className='auth-buttons'>
           <button
-            className="auth-button google"
+            className='auth-button google'
             onClick={() => handleSignIn('google')}
             disabled={isLoading}
           >
@@ -348,14 +360,17 @@ export const LoginPage: React.FC = () => {
               <span>Signing in...</span>
             ) : (
               <>
-                <img src="/google-icon.svg" alt="Google" />
+                <img
+                  src='/google-icon.svg'
+                  alt='Google'
+                />
                 <span>Continue with Google</span>
               </>
             )}
           </button>
 
           <button
-            className="auth-button apple"
+            className='auth-button apple'
             onClick={() => handleSignIn('apple')}
             disabled={isLoading}
           >
@@ -363,14 +378,17 @@ export const LoginPage: React.FC = () => {
               <span>Signing in...</span>
             ) : (
               <>
-                <img src="/apple-icon.svg" alt="Apple" />
+                <img
+                  src='/apple-icon.svg'
+                  alt='Apple'
+                />
                 <span>Continue with Apple</span>
               </>
             )}
           </button>
 
           <button
-            className="auth-button facebook"
+            className='auth-button facebook'
             onClick={() => handleSignIn('facebook')}
             disabled={isLoading}
           >
@@ -378,14 +396,17 @@ export const LoginPage: React.FC = () => {
               <span>Signing in...</span>
             ) : (
               <>
-                <img src="/facebook-icon.svg" alt="Facebook" />
+                <img
+                  src='/facebook-icon.svg'
+                  alt='Facebook'
+                />
                 <span>Continue with Facebook</span>
               </>
             )}
           </button>
 
           <button
-            className="auth-button microsoft"
+            className='auth-button microsoft'
             onClick={() => handleSignIn('microsoft')}
             disabled={isLoading}
           >
@@ -393,19 +414,22 @@ export const LoginPage: React.FC = () => {
               <span>Signing in...</span>
             ) : (
               <>
-                <img src="/microsoft-icon.svg" alt="Microsoft" />
+                <img
+                  src='/microsoft-icon.svg'
+                  alt='Microsoft'
+                />
                 <span>Continue with Microsoft</span>
               </>
             )}
           </button>
         </div>
 
-        <div className="divider">
+        <div className='divider'>
           <span>or</span>
         </div>
 
         <button
-          className="auth-button email"
+          className='auth-button email'
           onClick={() => navigate('/login/email')}
           disabled={isLoading}
         >
@@ -477,23 +501,23 @@ export const ProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="profile-page">
-      <div className="profile-container">
-        <div className="profile-header">
+    <div className='profile-page'>
+      <div className='profile-container'>
+        <div className='profile-header'>
           {user.photoURL && (
-            <img 
-              src={user.photoURL} 
-              alt={user.displayName || 'Profile'} 
-              className="profile-avatar"
+            <img
+              src={user.photoURL}
+              alt={user.displayName || 'Profile'}
+              className='profile-avatar'
             />
           )}
           <h1>{user.displayName || 'User'}</h1>
           <p>{user.email}</p>
         </div>
 
-        <div className="profile-section">
+        <div className='profile-section'>
           <h2>Account Information</h2>
-          <div className="info-grid">
+          <div className='info-grid'>
             <div>
               <label>User ID:</label>
               <span>{user.uid}</span>
@@ -508,44 +532,54 @@ export const ProfilePage: React.FC = () => {
             </div>
             <div>
               <label>Created:</label>
-              <span>{new Date(user.metadata.creationTime).toLocaleDateString()}</span>
+              <span>
+                {new Date(user.metadata.creationTime).toLocaleDateString()}
+              </span>
             </div>
           </div>
         </div>
 
-        <div className="profile-section">
+        <div className='profile-section'>
           <h2>Linked Accounts</h2>
-          <div className="linked-accounts">
-            {['google', 'apple', 'facebook', 'microsoft', 'github'].map(provider => {
-              const isLinked = linkedProviders.includes(provider);
-              return (
-                <div key={provider} className="provider-row">
-                  <span className="provider-name">{provider}</span>
-                  {isLinked ? (
-                    <button
-                      onClick={() => handleUnlinkProvider(provider)}
-                      className="unlink-button"
-                      disabled={linkedProviders.length === 1}
-                    >
-                      Unlink
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleLinkProvider(provider)}
-                      className="link-button"
-                      disabled={linking === provider}
-                    >
-                      {linking === provider ? 'Linking...' : 'Link'}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+          <div className='linked-accounts'>
+            {['google', 'apple', 'facebook', 'microsoft', 'github'].map(
+              (provider) => {
+                const isLinked = linkedProviders.includes(provider);
+                return (
+                  <div
+                    key={provider}
+                    className='provider-row'
+                  >
+                    <span className='provider-name'>{provider}</span>
+                    {isLinked ? (
+                      <button
+                        onClick={() => handleUnlinkProvider(provider)}
+                        className='unlink-button'
+                        disabled={linkedProviders.length === 1}
+                      >
+                        Unlink
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleLinkProvider(provider)}
+                        className='link-button'
+                        disabled={linking === provider}
+                      >
+                        {linking === provider ? 'Linking...' : 'Link'}
+                      </button>
+                    )}
+                  </div>
+                );
+              }
+            )}
           </div>
         </div>
 
-        <div className="profile-actions">
-          <button onClick={handleSignOut} className="sign-out-button">
+        <div className='profile-actions'>
+          <button
+            onClick={handleSignOut}
+            className='sign-out-button'
+          >
             Sign Out
           </button>
         </div>
@@ -573,13 +607,13 @@ export const useAuthToken = () => {
 
     const checkToken = async () => {
       const authState = await CapacitorAuthManager.getCurrentUser();
-      
+
       if (authState.isAuthenticated && authState.accessToken) {
         setToken(authState.accessToken);
-        
+
         const expired = await CapacitorAuthManager.isTokenExpired();
         setIsExpired(expired);
-        
+
         if (expired) {
           try {
             await CapacitorAuthManager.refreshToken();
@@ -594,7 +628,7 @@ export const useAuthToken = () => {
     };
 
     checkToken();
-    
+
     // Check token every 5 minutes
     interval = setInterval(checkToken, 5 * 60 * 1000);
 
@@ -619,61 +653,76 @@ interface RequestOptions extends RequestInit {
 export const useAuthenticatedApi = () => {
   const { token } = useAuthToken();
 
-  const request = useCallback(async (url: string, options: RequestOptions = {}) => {
-    const { authenticated = true, headers = {}, ...restOptions } = options;
+  const request = useCallback(
+    async (url: string, options: RequestOptions = {}) => {
+      const { authenticated = true, headers = {}, ...restOptions } = options;
 
-    const finalHeaders = {
-      'Content-Type': 'application/json',
-      ...headers
-    };
+      const finalHeaders = {
+        'Content-Type': 'application/json',
+        ...headers,
+      };
 
-    if (authenticated && token) {
-      finalHeaders['Authorization'] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(url, {
-      ...restOptions,
-      headers: finalHeaders
-    });
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        // Token might be expired, trigger refresh
-        await CapacitorAuthManager.refreshToken();
-        
-        // Retry request with new token
-        const newState = await CapacitorAuthManager.getCurrentUser();
-        if (newState.accessToken) {
-          finalHeaders['Authorization'] = `Bearer ${newState.accessToken}`;
-          return fetch(url, { ...restOptions, headers: finalHeaders });
-        }
+      if (authenticated && token) {
+        finalHeaders['Authorization'] = `Bearer ${token}`;
       }
-      
-      throw new Error(`API Error: ${response.status}`);
-    }
 
-    return response;
-  }, [token]);
+      const response = await fetch(url, {
+        ...restOptions,
+        headers: finalHeaders,
+      });
 
-  const get = useCallback((url: string, options?: RequestOptions) => 
-    request(url, { ...options, method: 'GET' }), [request]);
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Token might be expired, trigger refresh
+          await CapacitorAuthManager.refreshToken();
 
-  const post = useCallback((url: string, data: any, options?: RequestOptions) => 
-    request(url, { 
-      ...options, 
-      method: 'POST', 
-      body: JSON.stringify(data) 
-    }), [request]);
+          // Retry request with new token
+          const newState = await CapacitorAuthManager.getCurrentUser();
+          if (newState.accessToken) {
+            finalHeaders['Authorization'] = `Bearer ${newState.accessToken}`;
+            return fetch(url, { ...restOptions, headers: finalHeaders });
+          }
+        }
 
-  const put = useCallback((url: string, data: any, options?: RequestOptions) => 
-    request(url, { 
-      ...options, 
-      method: 'PUT', 
-      body: JSON.stringify(data) 
-    }), [request]);
+        throw new Error(`API Error: ${response.status}`);
+      }
 
-  const del = useCallback((url: string, options?: RequestOptions) => 
-    request(url, { ...options, method: 'DELETE' }), [request]);
+      return response;
+    },
+    [token]
+  );
+
+  const get = useCallback(
+    (url: string, options?: RequestOptions) =>
+      request(url, { ...options, method: 'GET' }),
+    [request]
+  );
+
+  const post = useCallback(
+    (url: string, data: any, options?: RequestOptions) =>
+      request(url, {
+        ...options,
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    [request]
+  );
+
+  const put = useCallback(
+    (url: string, data: any, options?: RequestOptions) =>
+      request(url, {
+        ...options,
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    [request]
+  );
+
+  const del = useCallback(
+    (url: string, options?: RequestOptions) =>
+      request(url, { ...options, method: 'DELETE' }),
+    [request]
+  );
 
   return { get, post, put, delete: del };
 };
@@ -706,9 +755,10 @@ export const BiometricAuth: React.FC = () => {
   }, []);
 
   const checkBiometric = async () => {
-    const available = await CapacitorAuthManager.isProviderAvailable('biometric');
+    const available =
+      await CapacitorAuthManager.isProviderAvailable('biometric');
     setBiometricAvailable(available);
-    
+
     if (available) {
       // Get biometric type (fingerprint, face, etc.)
       const config = await CapacitorAuthManager.getProviderConfig('biometric');
@@ -721,14 +771,14 @@ export const BiometricAuth: React.FC = () => {
       const result = await CapacitorAuthManager.signIn({
         provider: 'biometric',
         customParameters: {
-          reason: 'Authenticate to access your account'
-        }
+          reason: 'Authenticate to access your account',
+        },
       });
-      
+
       console.log('Biometric auth successful:', result);
     } catch (error) {
       console.error('Biometric auth failed:', error);
-      
+
       if (error.code === 'auth/biometric-not-enrolled') {
         alert('Please enroll biometric authentication in your device settings');
       }
@@ -740,8 +790,11 @@ export const BiometricAuth: React.FC = () => {
   }
 
   return (
-    <button onClick={handleBiometricAuth} className="biometric-button">
-      {biometricType === 'face' ? '👤' : '👆'} 
+    <button
+      onClick={handleBiometricAuth}
+      className='biometric-button'
+    >
+      {biometricType === 'face' ? '👤' : '👆'}
       Use {biometricType} Authentication
     </button>
   );
@@ -761,10 +814,10 @@ export const setupMockAuth = () => {
     // Override methods for testing
     CapacitorAuthManager.signIn = async (options) => {
       console.log('Mock sign in:', options);
-      
+
       // Simulate delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       return {
         user: {
           uid: 'mock-user-id',
@@ -777,17 +830,17 @@ export const setupMockAuth = () => {
           isAnonymous: false,
           metadata: {
             creationTime: new Date().toISOString(),
-            lastSignInTime: new Date().toISOString()
+            lastSignInTime: new Date().toISOString(),
           },
-          providerData: []
+          providerData: [],
         },
         credential: {
           providerId: options.provider,
-          signInMethod: options.provider
+          signInMethod: options.provider,
         },
         accessToken: 'mock-access-token',
         idToken: 'mock-id-token',
-        expiresAt: Date.now() + 3600000
+        expiresAt: Date.now() + 3600000,
       };
     };
   }
@@ -807,9 +860,7 @@ import { AuthProvider } from '../contexts/AuthContext';
 const renderWithAuth = (component: React.ReactElement) => {
   return render(
     <BrowserRouter>
-      <AuthProvider>
-        {component}
-      </AuthProvider>
+      <AuthProvider>{component}</AuthProvider>
     </BrowserRouter>
   );
 };
@@ -817,7 +868,7 @@ const renderWithAuth = (component: React.ReactElement) => {
 describe('LoginPage', () => {
   it('renders sign in buttons', () => {
     const { getByText } = renderWithAuth(<LoginPage />);
-    
+
     expect(getByText('Continue with Google')).toBeInTheDocument();
     expect(getByText('Continue with Apple')).toBeInTheDocument();
     expect(getByText('Continue with Facebook')).toBeInTheDocument();
@@ -825,10 +876,10 @@ describe('LoginPage', () => {
 
   it('handles sign in click', async () => {
     const { getByText } = renderWithAuth(<LoginPage />);
-    
+
     const googleButton = getByText('Continue with Google');
     fireEvent.click(googleButton);
-    
+
     await waitFor(() => {
       expect(googleButton).toBeDisabled();
     });
@@ -848,7 +899,9 @@ export const lazyLoadProvider = async (provider: string) => {
       await import(/* webpackChunkName: "google-auth" */ './providers/google');
       break;
     case 'facebook':
-      await import(/* webpackChunkName: "facebook-auth" */ './providers/facebook');
+      await import(
+        /* webpackChunkName: "facebook-auth" */ './providers/facebook'
+      );
       break;
     // Add other providers
   }
@@ -869,26 +922,26 @@ import { useAuth } from '../contexts/AuthContext';
 
 export const UserProfile: React.FC = () => {
   const { user } = useAuth();
-  
+
   const userInitials = useMemo(() => {
     if (!user?.displayName) return '?';
-    
+
     return user.displayName
       .split(' ')
-      .map(n => n[0])
+      .map((n) => n[0])
       .join('')
       .toUpperCase();
   }, [user?.displayName]);
-  
+
   const memberSince = useMemo(() => {
     if (!user?.metadata.creationTime) return null;
-    
+
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
-      month: 'long'
+      month: 'long',
     }).format(new Date(user.metadata.creationTime));
   }, [user?.metadata.creationTime]);
-  
+
   // Rest of component
 };
 ```

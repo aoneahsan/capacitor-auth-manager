@@ -5,7 +5,7 @@ export class EventEmitter<T = unknown> {
   private listeners: Set<EventListener<T>> = new Set();
 
   emit(data: T): void {
-    this.listeners.forEach(listener => {
+    this.listeners.forEach((listener) => {
       try {
         listener(data);
       } catch (error) {
@@ -16,7 +16,7 @@ export class EventEmitter<T = unknown> {
 
   subscribe(listener: EventListener<T>): UnsubscribeFn {
     this.listeners.add(listener);
-    
+
     return () => {
       this.listeners.delete(listener);
     };

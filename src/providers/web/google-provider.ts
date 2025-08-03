@@ -9,7 +9,12 @@ import {
   AuthErrorCode,
   AuthUser,
 } from '../../definitions';
-import { OAuthProvider, OAuthConfig, OAuthTokenResponse, OAuthUserInfo } from '../oauth-provider';
+import {
+  OAuthProvider,
+  OAuthConfig,
+  OAuthTokenResponse,
+  OAuthUserInfo,
+} from '../oauth-provider';
 import { BaseProviderConfig } from '../base-provider';
 import { AuthError } from '../../utils/auth-error';
 
@@ -44,19 +49,60 @@ interface GoogleSignInConfig {
 interface GoogleAccounts {
   id: {
     initialize: (config: GoogleSignInConfig) => void;
-    prompt: (callback?: (notification: { isNotDisplayed(): boolean; isSkippedMoment(): boolean; isDismissedMoment(): boolean; getMomentType(): string; getNotDisplayedReason(): string; getSkippedReason(): string; getDismissedReason(): string }) => void) => void;
-    renderButton: (parent: HTMLElement, options: { theme?: string; size?: string; type?: string; shape?: string; text?: string; logo_alignment?: string; width?: number; locale?: string }) => void;
+    prompt: (
+      callback?: (notification: {
+        isNotDisplayed(): boolean;
+        isSkippedMoment(): boolean;
+        isDismissedMoment(): boolean;
+        getMomentType(): string;
+        getNotDisplayedReason(): string;
+        getSkippedReason(): string;
+        getDismissedReason(): string;
+      }) => void
+    ) => void;
+    renderButton: (
+      parent: HTMLElement,
+      options: {
+        theme?: string;
+        size?: string;
+        type?: string;
+        shape?: string;
+        text?: string;
+        logo_alignment?: string;
+        width?: number;
+        locale?: string;
+      }
+    ) => void;
     disableAutoSelect: () => void;
-    storeCredential: (credential: { id: string; password: string }, callback?: () => void) => void;
+    storeCredential: (
+      credential: { id: string; password: string },
+      callback?: () => void
+    ) => void;
     cancel: () => void;
-    revoke: (hint: string, callback?: (response: { successful: boolean; error?: string }) => void) => void;
+    revoke: (
+      hint: string,
+      callback?: (response: { successful: boolean; error?: string }) => void
+    ) => void;
   };
   oauth2: {
-    initTokenClient: (config: { client_id: string; scope: string; callback?: (response: unknown) => void }) => { requestAccessToken: () => void };
+    initTokenClient: (config: {
+      client_id: string;
+      scope: string;
+      callback?: (response: unknown) => void;
+    }) => { requestAccessToken: () => void };
     initCodeClient: (config: GoogleSignInConfig) => { requestCode: () => void };
-    hasGrantedAllScopes: (tokenResponse: unknown, ...scopes: string[]) => boolean;
-    hasGrantedAnyScope: (tokenResponse: unknown, ...scopes: string[]) => boolean;
-    revoke: (accessToken: string, callback?: (response: { successful: boolean; error?: string }) => void) => void;
+    hasGrantedAllScopes: (
+      tokenResponse: unknown,
+      ...scopes: string[]
+    ) => boolean;
+    hasGrantedAnyScope: (
+      tokenResponse: unknown,
+      ...scopes: string[]
+    ) => boolean;
+    revoke: (
+      accessToken: string,
+      callback?: (response: { successful: boolean; error?: string }) => void
+    ) => void;
   };
 }
 
@@ -84,7 +130,7 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
 
   protected getOAuthConfig(): OAuthConfig {
     const options = this.options as GoogleAuthOptions;
-    
+
     return {
       clientId: options.clientId,
       clientSecret: options.clientSecret,
@@ -112,7 +158,7 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
     }
 
     this.initPromise = this._initialize();
-    
+
     try {
       await this.initPromise;
     } finally {
@@ -157,18 +203,23 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
     return new Promise((resolve, reject) => {
       try {
         const googleOptions = this.options as GoogleAuthOptions;
-        
+
         // Configure sign-in options
         const signInConfig: GoogleSignInConfig = {
           client_id: googleOptions.clientId,
-          scope: (options?.options?.scopes || googleOptions.scopes || ['openid', 'email', 'profile']).join(' '),
+          scope: (
+            options?.options?.scopes ||
+            googleOptions.scopes || ['openid', 'email', 'profile']
+          ).join(' '),
           callback: async (response: GoogleCredentialResponse) => {
             if (response.error) {
-              reject(new AuthError(
-                this.mapGoogleError(response.error),
-                response.error_description || response.error,
-                this.provider
-              ));
+              reject(
+                new AuthError(
+                  this.mapGoogleError(response.error),
+                  response.error_description || response.error,
+                  this.provider
+                )
+              );
               return;
             }
 
@@ -187,16 +238,18 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
               );
 
               // Get user info
-              const userInfo = await this.getUserInfo(tokenResponse.access_token);
-              
+              const userInfo = await this.getUserInfo(
+                tokenResponse.access_token
+              );
+
               // Create AuthUser and AuthCredential
               const user = this.createAuthUser(userInfo, tokenResponse);
               const credential = this.createOAuthCredential(tokenResponse);
-              
+
               // Save user and credential
               await this.setCurrentUser(user);
               await this.saveCredential(credential);
-              
+
               resolve(this.createAuthResult(user, credential, false));
             } catch (error) {
               reject(AuthError.fromError(error, this.provider));
@@ -206,7 +259,8 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
 
         // Add login hint if provided
         if (options?.options?.loginHint || googleOptions.loginHint) {
-          signInConfig.login_hint = options?.options?.loginHint || googleOptions.loginHint;
+          signInConfig.login_hint =
+            options?.options?.loginHint || googleOptions.loginHint;
         }
 
         // Add hosted domain if provided
@@ -218,8 +272,9 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
         if (!window.google?.accounts?.oauth2) {
           throw new Error('Google Identity Services not loaded');
         }
-        const client = window.google.accounts.oauth2.initCodeClient(signInConfig);
-        
+        const client =
+          window.google.accounts.oauth2.initCodeClient(signInConfig);
+
         // Request authorization code
         client.requestCode();
       } catch (error) {
@@ -281,7 +336,9 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
     await this.signOut();
   }
 
-  protected async openAuthorizationUrl(_url: string): Promise<{ code?: string; state?: string; error?: string }> {
+  protected async openAuthorizationUrl(
+    _url: string
+  ): Promise<{ code?: string; state?: string; error?: string }> {
     // This method is not used in Google Identity Services flow
     throw new AuthError(
       AuthErrorCode.OPERATION_NOT_ALLOWED,
@@ -290,7 +347,9 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
     );
   }
 
-  protected async parseUserFromTokenResponse(response: OAuthTokenResponse): Promise<OAuthUserInfo> {
+  protected async parseUserFromTokenResponse(
+    response: OAuthTokenResponse
+  ): Promise<OAuthUserInfo> {
     // Get user info from the userinfo endpoint
     if (response.access_token) {
       return this.getUserInfo(response.access_token);
@@ -305,11 +364,14 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
 
   private async getUserInfo(accessToken: string): Promise<OAuthUserInfo> {
     try {
-      const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      const response = await fetch(
+        'https://www.googleapis.com/oauth2/v3/userinfo',
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new AuthError(
@@ -319,7 +381,7 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
         );
       }
 
-      return await response.json() as OAuthUserInfo;
+      return (await response.json()) as OAuthUserInfo;
     } catch (error) {
       if (error instanceof AuthError) {
         throw error;
@@ -343,7 +405,7 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
       script.src = 'https://accounts.google.com/gsi/client';
       script.async = true;
       script.defer = true;
-      
+
       script.onload = () => {
         if (window.google?.accounts?.oauth2) {
           resolve();
@@ -351,31 +413,34 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
           reject(new Error('Google Identity Services failed to load'));
         }
       };
-      
+
       script.onerror = () => {
         reject(new Error('Failed to load Google Identity Services'));
       };
-      
+
       document.head.appendChild(script);
     });
   }
 
   private mapGoogleError(error: string): AuthErrorCode {
     const errorMap: Record<string, AuthErrorCode> = {
-      'access_denied': AuthErrorCode.ACCESS_DENIED,
-      'unauthorized_client': AuthErrorCode.APP_NOT_AUTHORIZED,
-      'invalid_request': AuthErrorCode.INVALID_REQUEST,
-      'invalid_scope': AuthErrorCode.INVALID_SCOPE,
-      'server_error': AuthErrorCode.SERVER_ERROR,
-      'temporarily_unavailable': AuthErrorCode.TEMPORARILY_UNAVAILABLE,
-      'popup_closed_by_user': AuthErrorCode.POPUP_CLOSED_BY_USER,
-      'popup_blocked': AuthErrorCode.POPUP_BLOCKED,
+      access_denied: AuthErrorCode.ACCESS_DENIED,
+      unauthorized_client: AuthErrorCode.APP_NOT_AUTHORIZED,
+      invalid_request: AuthErrorCode.INVALID_REQUEST,
+      invalid_scope: AuthErrorCode.INVALID_SCOPE,
+      server_error: AuthErrorCode.SERVER_ERROR,
+      temporarily_unavailable: AuthErrorCode.TEMPORARILY_UNAVAILABLE,
+      popup_closed_by_user: AuthErrorCode.POPUP_CLOSED_BY_USER,
+      popup_blocked: AuthErrorCode.POPUP_BLOCKED,
     };
 
     return errorMap[error] || AuthErrorCode.INTERNAL_ERROR;
   }
 
-  protected createAuthUser(userInfo: OAuthUserInfo, tokenResponse: OAuthTokenResponse): AuthUser {
+  protected createAuthUser(
+    userInfo: OAuthUserInfo,
+    tokenResponse: OAuthTokenResponse
+  ): AuthUser {
     return {
       uid: userInfo.sub || '',
       email: userInfo.email || null,
@@ -385,14 +450,16 @@ export class GoogleAuthProviderWeb extends OAuthProvider {
       phoneNumber: null,
       isAnonymous: false,
       tenantId: null,
-      providerData: [{
-        providerId: AuthProvider.GOOGLE,
-        uid: userInfo.sub || '',
-        displayName: userInfo.name || null,
-        email: userInfo.email || null,
-        phoneNumber: null,
-        photoURL: userInfo.picture || null,
-      }],
+      providerData: [
+        {
+          providerId: AuthProvider.GOOGLE,
+          uid: userInfo.sub || '',
+          displayName: userInfo.name || null,
+          email: userInfo.email || null,
+          phoneNumber: null,
+          photoURL: userInfo.picture || null,
+        },
+      ],
       metadata: {
         creationTime: new Date().toISOString(),
         lastSignInTime: new Date().toISOString(),

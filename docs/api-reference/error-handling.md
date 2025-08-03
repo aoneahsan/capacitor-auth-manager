@@ -21,18 +21,23 @@ interface AuthError {
 ### Error Categories
 
 #### 1. Authentication Errors
+
 Errors related to the authentication process itself.
 
 #### 2. Network Errors
+
 Connection and communication issues.
 
 #### 3. Configuration Errors
+
 Incorrect setup or configuration issues.
 
 #### 4. Token Errors
+
 Issues with token management and validation.
 
 #### 5. Provider Errors
+
 Provider-specific errors and limitations.
 
 ## Common Error Codes
@@ -40,6 +45,7 @@ Provider-specific errors and limitations.
 ### Authentication Errors
 
 #### `auth/user-cancelled`
+
 User cancelled the authentication flow.
 
 ```typescript
@@ -54,6 +60,7 @@ try {
 ```
 
 #### `auth/invalid-credential`
+
 Invalid or expired authentication credential.
 
 ```typescript
@@ -69,6 +76,7 @@ try {
 ```
 
 #### `auth/account-exists-with-different-credential`
+
 Account already exists with different authentication provider.
 
 ```typescript
@@ -86,6 +94,7 @@ try {
 ### Network Errors
 
 #### `auth/network-error`
+
 Network connection issues.
 
 ```typescript
@@ -95,12 +104,15 @@ try {
   if (error.code === 'auth/network-error') {
     console.error('Network error occurred');
     // Show retry option
-    showRetryDialog('Network error. Please check your connection and try again.');
+    showRetryDialog(
+      'Network error. Please check your connection and try again.'
+    );
   }
 }
 ```
 
 #### `auth/timeout`
+
 Request timeout.
 
 ```typescript
@@ -110,7 +122,7 @@ try {
   if (error.code === 'auth/timeout') {
     console.error('Request timeout');
     // Implement retry logic
-    await retryWithBackoff(() => 
+    await retryWithBackoff(() =>
       CapacitorAuthManager.signIn({ provider: 'microsoft' })
     );
   }
@@ -120,6 +132,7 @@ try {
 ### Configuration Errors
 
 #### `auth/provider-not-configured`
+
 Authentication provider not properly configured.
 
 ```typescript
@@ -135,12 +148,13 @@ try {
 ```
 
 #### `auth/invalid-configuration`
+
 Invalid configuration parameters.
 
 ```typescript
 try {
   await CapacitorAuthManager.initialize({
-    providers: [{ provider: 'google', options: {} }]
+    providers: [{ provider: 'google', options: {} }],
   });
 } catch (error) {
   if (error.code === 'auth/invalid-configuration') {
@@ -154,6 +168,7 @@ try {
 ### Token Errors
 
 #### `auth/token-expired`
+
 Authentication token has expired.
 
 ```typescript
@@ -175,6 +190,7 @@ try {
 ```
 
 #### `auth/invalid-token`
+
 Token is invalid or malformed.
 
 ```typescript
@@ -193,6 +209,7 @@ try {
 ### Provider-Specific Errors
 
 #### `auth/provider-not-available`
+
 Provider not available on current platform.
 
 ```typescript
@@ -208,6 +225,7 @@ try {
 ```
 
 #### `auth/provider-disabled`
+
 Provider is disabled or not properly set up.
 
 ```typescript
@@ -234,7 +252,7 @@ async function handleSignIn(provider: string) {
     return result;
   } catch (error) {
     console.error('Sign in failed:', error);
-    
+
     // Handle specific errors
     switch (error.code) {
       case 'auth/user-cancelled':
@@ -249,7 +267,7 @@ async function handleSignIn(provider: string) {
       default:
         showError('Sign in failed. Please try again.');
     }
-    
+
     throw error;
   }
 }
@@ -265,23 +283,27 @@ async function handleSignInWithRetry(provider: string, maxRetries = 3) {
       return result;
     } catch (error) {
       console.error(`Sign in attempt ${attempt} failed:`, error);
-      
+
       // Don't retry user-cancelled or configuration errors
-      if (error.code === 'auth/user-cancelled' || 
-          error.code === 'auth/provider-not-configured') {
+      if (
+        error.code === 'auth/user-cancelled' ||
+        error.code === 'auth/provider-not-configured'
+      ) {
         throw error;
       }
-      
+
       // Retry network errors and timeouts
-      if (error.code === 'auth/network-error' || 
-          error.code === 'auth/timeout') {
+      if (
+        error.code === 'auth/network-error' ||
+        error.code === 'auth/timeout'
+      ) {
         if (attempt < maxRetries) {
           console.log(`Retrying in ${attempt * 1000}ms...`);
-          await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+          await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
           continue;
         }
       }
-      
+
       throw error;
     }
   }
@@ -293,27 +315,27 @@ async function handleSignInWithRetry(provider: string, maxRetries = 3) {
 ```typescript
 class AuthErrorHandler {
   private static instance: AuthErrorHandler;
-  
+
   public static getInstance(): AuthErrorHandler {
     if (!AuthErrorHandler.instance) {
       AuthErrorHandler.instance = new AuthErrorHandler();
     }
     return AuthErrorHandler.instance;
   }
-  
+
   public handleError(error: AuthError, context?: string): void {
     console.error(`Auth error in ${context || 'unknown context'}:`, error);
-    
+
     // Log error for analytics
     this.logError(error, context);
-    
+
     // Show appropriate user message
     this.showUserMessage(error);
-    
+
     // Take automatic actions if needed
     this.handleAutoActions(error);
   }
-  
+
   private logError(error: AuthError, context?: string): void {
     // Send to error tracking service
     // analytics.track('auth_error', {
@@ -323,28 +345,35 @@ class AuthErrorHandler {
     //   context
     // });
   }
-  
+
   private showUserMessage(error: AuthError): void {
     const userMessages = {
       'auth/user-cancelled': null, // Don't show message
-      'auth/network-error': 'Please check your internet connection and try again.',
+      'auth/network-error':
+        'Please check your internet connection and try again.',
       'auth/invalid-credential': 'Authentication failed. Please try again.',
-      'auth/account-exists-with-different-credential': 'An account with this email already exists. Please use a different sign-in method.',
+      'auth/account-exists-with-different-credential':
+        'An account with this email already exists. Please use a different sign-in method.',
       'auth/token-expired': 'Your session has expired. Please sign in again.',
-      'auth/provider-not-available': 'This sign-in method is not available on your device.',
+      'auth/provider-not-available':
+        'This sign-in method is not available on your device.',
       'auth/provider-disabled': 'This sign-in method is currently unavailable.',
       'auth/timeout': 'Sign-in is taking too long. Please try again.',
-      'auth/invalid-configuration': 'There is a configuration issue. Please contact support.',
-      'auth/provider-not-configured': 'This sign-in method is not configured. Please contact support.'
+      'auth/invalid-configuration':
+        'There is a configuration issue. Please contact support.',
+      'auth/provider-not-configured':
+        'This sign-in method is not configured. Please contact support.',
     };
-    
-    const message = userMessages[error.code] || 'An unexpected error occurred. Please try again.';
-    
+
+    const message =
+      userMessages[error.code] ||
+      'An unexpected error occurred. Please try again.';
+
     if (message) {
       this.showToast(message);
     }
   }
-  
+
   private handleAutoActions(error: AuthError): void {
     switch (error.code) {
       case 'auth/token-expired':
@@ -358,7 +387,7 @@ class AuthErrorHandler {
         break;
     }
   }
-  
+
   private async attemptTokenRefresh(): Promise<void> {
     try {
       await CapacitorAuthManager.refreshToken();
@@ -368,21 +397,23 @@ class AuthErrorHandler {
       this.redirectToLogin();
     }
   }
-  
+
   private async clearAuthData(): Promise<void> {
     await CapacitorAuthManager.signOut();
   }
-  
+
   private redirectToLogin(): void {
     // Redirect to login page
     window.location.href = '/login';
   }
-  
+
   private hideProviderOption(provider: string): void {
     // Hide provider button in UI
-    document.getElementById(`${provider}-login-btn`)?.style.setProperty('display', 'none');
+    document
+      .getElementById(`${provider}-login-btn`)
+      ?.style.setProperty('display', 'none');
   }
-  
+
   private showToast(message: string): void {
     // Show toast notification
     console.log('Toast:', message);
@@ -426,7 +457,7 @@ class AuthErrorBoundary extends React.Component<
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Auth error caught by boundary:', error, errorInfo);
-    
+
     // Log to error tracking service
     // logErrorToService(error, errorInfo);
   }
@@ -471,7 +502,7 @@ export function useAuthError(): UseAuthErrorReturn {
 
   const handleError = useCallback((error: AuthError) => {
     setError(error);
-    
+
     // Auto-clear certain errors
     if (error.code === 'auth/user-cancelled') {
       setTimeout(() => setError(null), 100);
@@ -524,12 +555,18 @@ function LoginComponent() {
 ```vue
 <template>
   <div>
-    <div v-if="error" class="error-message">
+    <div
+      v-if="error"
+      class="error-message"
+    >
       {{ error.message }}
       <button @click="clearError">Dismiss</button>
     </div>
-    
-    <button @click="signIn('google')" :disabled="loading">
+
+    <button
+      @click="signIn('google')"
+      :disabled="loading"
+    >
       Sign in with Google
     </button>
   </div>
@@ -546,7 +583,7 @@ const signIn = async (provider) => {
   try {
     loading.value = true;
     error.value = null;
-    
+
     await CapacitorAuthManager.signIn({ provider });
   } catch (err) {
     error.value = err;
@@ -572,28 +609,29 @@ export const mockAuthErrors = {
   userCancelled: {
     code: 'auth/user-cancelled',
     message: 'User cancelled the authentication flow',
-    provider: 'google'
+    provider: 'google',
   },
   networkError: {
     code: 'auth/network-error',
     message: 'Network connection failed',
-    provider: 'facebook'
+    provider: 'facebook',
   },
   invalidCredential: {
     code: 'auth/invalid-credential',
     message: 'Invalid authentication credential',
-    provider: 'apple'
-  }
+    provider: 'apple',
+  },
 };
 
 // Test error handling
 describe('Auth Error Handling', () => {
   it('should handle user cancellation gracefully', async () => {
-    jest.spyOn(CapacitorAuthManager, 'signIn')
+    jest
+      .spyOn(CapacitorAuthManager, 'signIn')
       .mockRejectedValue(mockAuthErrors.userCancelled);
-    
+
     const { handleError } = useAuthError();
-    
+
     try {
       await CapacitorAuthManager.signIn({ provider: 'google' });
     } catch (error) {
@@ -607,6 +645,7 @@ describe('Auth Error Handling', () => {
 ## Best Practices
 
 ### 1. Always Handle Errors
+
 ```typescript
 // Good
 try {
@@ -620,11 +659,12 @@ CapacitorAuthManager.signIn({ provider: 'google' }); // Unhandled promise
 ```
 
 ### 2. Provide Meaningful Error Messages
+
 ```typescript
 // Good
 const userFriendlyMessage = {
   'auth/network-error': 'Please check your internet connection',
-  'auth/invalid-credential': 'Authentication failed, please try again'
+  'auth/invalid-credential': 'Authentication failed, please try again',
 };
 
 // Bad
@@ -632,6 +672,7 @@ showError(error.message); // Raw technical error message
 ```
 
 ### 3. Implement Retry Logic for Appropriate Errors
+
 ```typescript
 // Good - retry network errors
 if (error.code === 'auth/network-error') {
@@ -645,13 +686,14 @@ if (error.code === 'auth/user-cancelled') {
 ```
 
 ### 4. Log Errors for Debugging
+
 ```typescript
 // Good
 console.error('Auth error:', {
   code: error.code,
   message: error.message,
   provider: error.provider,
-  timestamp: new Date().toISOString()
+  timestamp: new Date().toISOString(),
 });
 
 // Consider using error tracking service
@@ -659,6 +701,7 @@ console.error('Auth error:', {
 ```
 
 ### 5. Handle Platform-Specific Errors
+
 ```typescript
 // Good
 if (error.code === 'auth/provider-not-available') {
@@ -674,6 +717,7 @@ if (error.code === 'auth/provider-not-available') {
 ## Common Pitfalls
 
 ### 1. Not Handling User Cancellation
+
 ```typescript
 // Bad - shows error for user cancellation
 catch (error) {
@@ -689,6 +733,7 @@ catch (error) {
 ```
 
 ### 2. Infinite Retry Loops
+
 ```typescript
 // Bad - could retry forever
 catch (error) {
@@ -705,6 +750,7 @@ catch (error) {
 ```
 
 ### 3. Not Clearing Errors
+
 ```typescript
 // Bad - error persists
 const [error, setError] = useState(null);

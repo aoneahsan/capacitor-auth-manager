@@ -1,21 +1,21 @@
 import { Injectable } from '@angular/core';
-import { 
-  CanActivate, 
-  CanActivateChild, 
+import {
+  CanActivate,
+  CanActivateChild,
   CanLoad,
-  Router, 
+  Router,
   UrlTree,
   ActivatedRouteSnapshot,
   RouterStateSnapshot,
   Route,
-  UrlSegment
+  UrlSegment,
 } from '@angular/router';
 import { Observable } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthGuard implements CanActivate, CanActivateChild, CanLoad {
   constructor(
@@ -37,25 +37,22 @@ export class AuthGuard implements CanActivate, CanActivateChild, CanLoad {
     return this.checkAuth(state.url);
   }
 
-  canLoad(
-    route: Route,
-    segments: UrlSegment[]
-  ): Observable<boolean | UrlTree> {
-    const url = segments.map(segment => segment.path).join('/');
+  canLoad(route: Route, segments: UrlSegment[]): Observable<boolean | UrlTree> {
+    const url = segments.map((segment) => segment.path).join('/');
     return this.checkAuth(url);
   }
 
   private checkAuth(url: string): Observable<boolean | UrlTree> {
     return this.authService.isAuthenticated$.pipe(
       take(1),
-      map(isAuthenticated => {
+      map((isAuthenticated) => {
         if (isAuthenticated) {
           return true;
         }
 
         // Redirect to login page
         return this.router.createUrlTree(['/login'], {
-          queryParams: { returnUrl: url }
+          queryParams: { returnUrl: url },
         });
       })
     );
@@ -63,7 +60,7 @@ export class AuthGuard implements CanActivate, CanActivateChild, CanLoad {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class NoAuthGuard implements CanActivate {
   constructor(
@@ -74,7 +71,7 @@ export class NoAuthGuard implements CanActivate {
   canActivate(): Observable<boolean | UrlTree> {
     return this.authService.isAuthenticated$.pipe(
       take(1),
-      map(isAuthenticated => {
+      map((isAuthenticated) => {
         if (!isAuthenticated) {
           return true;
         }

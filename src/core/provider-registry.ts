@@ -2,7 +2,9 @@ import type { AuthProviderInterface, ProviderManifest } from './types';
 import { PlatformDetector } from './platform';
 
 export interface ProviderLoader {
-  (): Promise<{ default: new (config: any) => AuthProviderInterface } | { default: any }>;
+  (): Promise<
+    { default: new (config: any) => AuthProviderInterface } | { default: any }
+  >;
 }
 
 export class ProviderRegistry {
@@ -42,8 +44,8 @@ To use Google authentication, you need to:
       configSchema: {
         clientId: { type: 'string', required: true },
         scopes: { type: 'array', items: 'string' },
-        hostedDomain: { type: 'string' }
-      }
+        hostedDomain: { type: 'string' },
+      },
     });
 
     this.registerManifest({
@@ -72,8 +74,8 @@ To use Apple authentication:
       configSchema: {
         clientId: { type: 'string', required: true },
         redirectUri: { type: 'string', required: true },
-        scopes: { type: 'array', items: 'string' }
-      }
+        scopes: { type: 'array', items: 'string' },
+      },
     });
 
     this.registerManifest({
@@ -108,8 +110,8 @@ To use Firebase authentication:
       configSchema: {
         apiKey: { type: 'string', required: true },
         authDomain: { type: 'string', required: true },
-        projectId: { type: 'string', required: true }
-      }
+        projectId: { type: 'string', required: true },
+      },
     });
 
     this.registerManifest({
@@ -144,8 +146,8 @@ To use Microsoft authentication:
         clientId: { type: 'string', required: true },
         authority: { type: 'string' },
         redirectUri: { type: 'string' },
-        scopes: { type: 'array', items: 'string' }
-      }
+        scopes: { type: 'array', items: 'string' },
+      },
     });
 
     this.registerManifest({
@@ -178,8 +180,8 @@ To use Facebook authentication:
       configSchema: {
         appId: { type: 'string', required: true },
         version: { type: 'string' },
-        scopes: { type: 'array', items: 'string' }
-      }
+        scopes: { type: 'array', items: 'string' },
+      },
     });
 
     this.registerManifest({
@@ -209,8 +211,8 @@ Note: You'll need a backend service to exchange the authorization code for an ac
       configSchema: {
         clientId: { type: 'string', required: true },
         redirectUri: { type: 'string' },
-        scopes: { type: 'array', items: 'string' }
-      }
+        scopes: { type: 'array', items: 'string' },
+      },
     });
 
     // Register all new provider manifests
@@ -239,8 +241,8 @@ To use Email Magic Link authentication:
       configSchema: {
         sendLinkUrl: { type: 'string', required: true },
         verifyUrl: { type: 'string' },
-        redirectUrl: { type: 'string' }
-      }
+        redirectUrl: { type: 'string' },
+      },
     });
 
     this.registerManifest({
@@ -270,8 +272,8 @@ To use SMS authentication:
         sendCodeUrl: { type: 'string', required: true },
         verifyCodeUrl: { type: 'string', required: true },
         countryCode: { type: 'string' },
-        codeLength: { type: 'number' }
-      }
+        codeLength: { type: 'number' },
+      },
     });
 
     this.registerManifest({
@@ -299,8 +301,8 @@ To use Email/Password authentication:
       platforms: ['web', 'ios', 'android'],
       configSchema: {
         apiUrl: { type: 'string', required: true },
-        passwordRequirements: { type: 'object' }
-      }
+        passwordRequirements: { type: 'object' },
+      },
     });
 
     this.registerManifest({
@@ -330,21 +332,61 @@ Note: Users must first authenticate with another method before enabling biometri
       configSchema: {
         reason: { type: 'string' },
         title: { type: 'string' },
-        subtitle: { type: 'string' }
-      }
+        subtitle: { type: 'string' },
+      },
     });
 
     // Register provider loaders
-    this.registerLoader('google', () => import('../providers/web/google-provider').then(m => ({ default: m.GoogleAuthProviderWeb })));
-    this.registerLoader('apple', () => import('../providers/web/apple-provider').then(m => ({ default: m.AppleAuthProviderWeb })));
-    this.registerLoader('microsoft', () => import('../providers/web/microsoft-provider').then(m => ({ default: m.MicrosoftAuthProviderWeb })));
-    this.registerLoader('facebook', () => import('../providers/web/facebook-provider').then(m => ({ default: m.FacebookAuthProviderWeb })));
-    this.registerLoader('github', () => import('../providers/web/github-provider').then(m => ({ default: m.GitHubAuthProviderWeb })));
-    this.registerLoader('firebase', () => import('../providers/web/firebase-provider').then(m => ({ default: m.FirebaseAuthProviderWeb })));
-    this.registerLoader('magic-link', () => import('../providers/web/magic-link-provider').then(m => ({ default: m.MagicLinkProvider })));
-    this.registerLoader('sms', () => import('../providers/web/sms-provider').then(m => ({ default: m.SMSProvider })));
-    this.registerLoader('email-password', () => import('../providers/web/email-password-provider').then(m => ({ default: m.EmailPasswordProvider })));
-    this.registerLoader('biometric', () => import('../providers/web/biometric-provider').then(m => ({ default: m.BiometricProvider })));
+    this.registerLoader('google', () =>
+      import('../providers/web/google-provider').then((m) => ({
+        default: m.GoogleAuthProviderWeb,
+      }))
+    );
+    this.registerLoader('apple', () =>
+      import('../providers/web/apple-provider').then((m) => ({
+        default: m.AppleAuthProviderWeb,
+      }))
+    );
+    this.registerLoader('microsoft', () =>
+      import('../providers/web/microsoft-provider').then((m) => ({
+        default: m.MicrosoftAuthProviderWeb,
+      }))
+    );
+    this.registerLoader('facebook', () =>
+      import('../providers/web/facebook-provider').then((m) => ({
+        default: m.FacebookAuthProviderWeb,
+      }))
+    );
+    this.registerLoader('github', () =>
+      import('../providers/web/github-provider').then((m) => ({
+        default: m.GitHubAuthProviderWeb,
+      }))
+    );
+    this.registerLoader('firebase', () =>
+      import('../providers/web/firebase-provider').then((m) => ({
+        default: m.FirebaseAuthProviderWeb,
+      }))
+    );
+    this.registerLoader('magic-link', () =>
+      import('../providers/web/magic-link-provider').then((m) => ({
+        default: m.MagicLinkProvider,
+      }))
+    );
+    this.registerLoader('sms', () =>
+      import('../providers/web/sms-provider').then((m) => ({
+        default: m.SMSProvider,
+      }))
+    );
+    this.registerLoader('email-password', () =>
+      import('../providers/web/email-password-provider').then((m) => ({
+        default: m.EmailPasswordProvider,
+      }))
+    );
+    this.registerLoader('biometric', () =>
+      import('../providers/web/biometric-provider').then((m) => ({
+        default: m.BiometricProvider,
+      }))
+    );
   }
 
   static registerManifest(manifest: ProviderManifest): void {
@@ -359,7 +401,10 @@ Note: Users must first authenticate with another method before enabling biometri
     return this.manifests.get(name);
   }
 
-  static async getProvider(name: string, config?: any): Promise<AuthProviderInterface> {
+  static async getProvider(
+    name: string,
+    config?: any
+  ): Promise<AuthProviderInterface> {
     // Check if already loaded
     const existing = this.providers.get(name);
     if (existing) {
@@ -383,7 +428,9 @@ Note: Users must first authenticate with another method before enabling biometri
     if (manifest?.platforms) {
       const platform = PlatformDetector.getPlatform();
       if (!manifest.platforms.includes(platform.platform as any)) {
-        throw new Error(`Provider '${name}' is not supported on ${platform.platform}`);
+        throw new Error(
+          `Provider '${name}' is not supported on ${platform.platform}`
+        );
       }
     }
 
@@ -391,10 +438,10 @@ Note: Users must first authenticate with another method before enabling biometri
       // Load the provider
       const module = await loader();
       const ProviderClass = module.default;
-      
+
       // Create instance
       const provider = new ProviderClass(config);
-      
+
       // Initialize if needed
       if (provider.initialize) {
         await provider.initialize(config);
@@ -402,18 +449,21 @@ Note: Users must first authenticate with another method before enabling biometri
 
       // Cache the provider
       this.providers.set(name, provider);
-      
+
       return provider;
     } catch (error: any) {
       // Check if it's a missing dependency error
-      if (error.message?.includes('Cannot find module') || error.message?.includes('Failed to resolve module')) {
+      if (
+        error.message?.includes('Cannot find module') ||
+        error.message?.includes('Failed to resolve module')
+      ) {
         const manifest = this.manifests.get(name);
         if (manifest?.packageName) {
           throw new Error(
             `Missing dependency for ${manifest.displayName} provider.\n\n` +
-            `Install the required package:\n` +
-            `npm install ${manifest.packageName}\n\n` +
-            `Then try again.`
+              `Install the required package:\n` +
+              `npm install ${manifest.packageName}\n\n` +
+              `Then try again.`
           );
         }
       }
@@ -447,7 +497,10 @@ Note: Users must first authenticate with another method before enabling biometri
     const supported: string[] = [];
 
     for (const [name, manifest] of this.manifests) {
-      if (!manifest.platforms || manifest.platforms.includes(platform.platform as any)) {
+      if (
+        !manifest.platforms ||
+        manifest.platforms.includes(platform.platform as any)
+      ) {
         supported.push(name);
       }
     }

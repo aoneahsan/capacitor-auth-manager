@@ -12,36 +12,57 @@ import { AuthUser } from 'capacitor-auth-manager';
   template: `
     <nav class="navbar">
       <div class="navbar-content">
-        <a routerLink="/" class="navbar-brand">
+        <a
+          routerLink="/"
+          class="navbar-brand"
+        >
           Auth Manager Angular Demo
         </a>
         <div class="navbar-nav">
-          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+          <a
+            routerLink="/"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+          >
             Home
           </a>
           <ng-container *ngIf="isAuthenticated$ | async; else loginLink">
-            <a routerLink="/profile" routerLinkActive="active">
+            <a
+              routerLink="/profile"
+              routerLinkActive="active"
+            >
               Profile
             </a>
-            <span>Hello, {{ (user$ | async)?.displayName || (user$ | async)?.email || 'User' }}</span>
-            <button (click)="signOut()" class="btn btn-danger">
+            <span
+              >Hello,
+              {{
+                (user$ | async)?.displayName || (user$ | async)?.email || 'User'
+              }}</span
+            >
+            <button
+              (click)="signOut()"
+              class="btn btn-danger"
+            >
               Sign Out
             </button>
           </ng-container>
           <ng-template #loginLink>
-            <a routerLink="/login" class="btn btn-primary">
+            <a
+              routerLink="/login"
+              class="btn btn-primary"
+            >
               Sign In
             </a>
           </ng-template>
         </div>
       </div>
     </nav>
-    
+
     <main class="container">
       <router-outlet></router-outlet>
     </main>
   `,
-  styles: []
+  styles: [],
 })
 export class AppComponent implements OnDestroy {
   isAuthenticated$ = this.authService.isAuthenticated$;
@@ -52,7 +73,7 @@ export class AppComponent implements OnDestroy {
 
   signOut(): void {
     this.subscription = this.authService.signOut().subscribe({
-      error: (error) => console.error('Sign out error:', error)
+      error: (error) => console.error('Sign out error:', error),
     });
   }
 

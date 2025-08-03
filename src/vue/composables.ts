@@ -35,9 +35,9 @@ interface UseAuthProviderReturn {
  * ```vue
  * <script setup>
  * import { useAuth } from 'capacitor-auth-manager/vue';
- * 
+ *
  * const { user, signIn, signOut, isLoading } = useAuth();
- * 
+ *
  * async function handleGoogleSignIn() {
  *   try {
  *     await signIn('google');
@@ -46,7 +46,7 @@ interface UseAuthProviderReturn {
  *   }
  * }
  * </script>
- * 
+ *
  * <template>
  *   <div v-if="isLoading">Loading...</div>
  *   <div v-else-if="user">
@@ -123,7 +123,7 @@ export function useAuth(): UseAuthReturn {
  * ```vue
  * <script setup>
  * import { useAuthState } from 'capacitor-auth-manager/vue';
- * 
+ *
  * const { user, isAuthenticated } = useAuthState();
  * </script>
  * ```
@@ -153,7 +153,7 @@ export function useAuthState(): UseAuthStateReturn {
  * ```vue
  * <script setup>
  * import { useUser } from 'capacitor-auth-manager/vue';
- * 
+ *
  * const user = useUser();
  * </script>
  * ```
@@ -169,7 +169,7 @@ export function useUser(): ComputedRef<AuthUser | null> {
  * ```vue
  * <script setup>
  * import { useAuthProvider } from 'capacitor-auth-manager/vue';
- * 
+ *
  * const google = useAuthProvider('google');
  * const github = useAuthProvider('github');
  * </script>
@@ -184,7 +184,7 @@ export function useAuthProvider(provider: string): UseAuthProviderReturn {
   const checkProvider = async () => {
     try {
       isSupported.value = await auth.isProviderSupported(provider);
-      
+
       // Check if configured
       const config = (auth as any).config?.providers?.[provider];
       isConfigured.value = !!config;
@@ -232,9 +232,9 @@ export function useAuthProvider(provider: string): UseAuthProviderReturn {
  * ```vue
  * <script setup>
  * import { useAuthConfig } from 'capacitor-auth-manager/vue';
- * 
+ *
  * const { configure, isInitialized } = useAuthConfig();
- * 
+ *
  * // Configure on mount
  * configure({
  *   providers: {

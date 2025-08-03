@@ -24,22 +24,24 @@ await CapacitorAuthManager.initialize({
     google: {
       webClientId: 'YOUR_GOOGLE_WEB_CLIENT_ID',
       offlineAccess: true,
-      scopes: ['profile', 'email']
+      scopes: ['profile', 'email'],
     },
     apple: {
       clientId: 'YOUR_APPLE_CLIENT_ID',
-      redirectURI: 'YOUR_REDIRECT_URI'
-    }
+      redirectURI: 'YOUR_REDIRECT_URI',
+    },
   },
   persistence: 'local', // 'local' | 'session' | 'none'
-  debug: true // Enable debug logging
+  debug: true, // Enable debug logging
 });
 ```
 
 **Parameters:**
+
 - `config: AuthConfig` - Configuration object for authentication providers
 
 **Returns:**
+
 - `Promise<void>` - Resolves when initialization is complete
 
 ## Authentication Methods
@@ -53,18 +55,20 @@ const result = await CapacitorAuthManager.signIn({
   provider: 'google',
   scopes: ['additional.scope'],
   customParameters: {
-    prompt: 'select_account'
-  }
+    prompt: 'select_account',
+  },
 });
 ```
 
 **Parameters:**
+
 - `options: SignInOptions` - Sign in configuration
   - `provider: string` - Authentication provider name
   - `scopes?: string[]` - Additional OAuth scopes
   - `customParameters?: Record<string, any>` - Provider-specific parameters
 
 **Returns:**
+
 - `Promise<AuthResult>` - Authentication result with user info and tokens
 
 ### `signOut(): Promise<void>`
@@ -76,6 +80,7 @@ await CapacitorAuthManager.signOut();
 ```
 
 **Returns:**
+
 - `Promise<void>` - Resolves when sign out is complete
 
 ### `silentSignIn(options: SilentSignInOptions): Promise<AuthResult>`
@@ -85,7 +90,7 @@ Attempts to sign in without user interaction.
 ```typescript
 try {
   const result = await CapacitorAuthManager.silentSignIn({
-    provider: 'google'
+    provider: 'google',
   });
 } catch (error) {
   // Silent sign in failed, show sign in UI
@@ -93,10 +98,12 @@ try {
 ```
 
 **Parameters:**
+
 - `options: SilentSignInOptions` - Silent sign in configuration
   - `provider: string` - Authentication provider name
 
 **Returns:**
+
 - `Promise<AuthResult>` - Authentication result if successful
 
 ### `linkProvider(options: LinkProviderOptions): Promise<AuthResult>`
@@ -105,15 +112,17 @@ Links an additional authentication provider to the current user.
 
 ```typescript
 const result = await CapacitorAuthManager.linkProvider({
-  provider: 'facebook'
+  provider: 'facebook',
 });
 ```
 
 **Parameters:**
+
 - `options: LinkProviderOptions` - Provider linking configuration
   - `provider: string` - Provider to link
 
 **Returns:**
+
 - `Promise<AuthResult>` - Updated authentication result
 
 ### `unlinkProvider(options: UnlinkProviderOptions): Promise<void>`
@@ -122,15 +131,17 @@ Unlinks an authentication provider from the current user.
 
 ```typescript
 await CapacitorAuthManager.unlinkProvider({
-  provider: 'facebook'
+  provider: 'facebook',
 });
 ```
 
 **Parameters:**
+
 - `options: UnlinkProviderOptions` - Provider unlinking configuration
   - `provider: string` - Provider to unlink
 
 **Returns:**
+
 - `Promise<void>` - Resolves when unlink is complete
 
 ## State Management
@@ -149,6 +160,7 @@ if (authState.isAuthenticated) {
 ```
 
 **Returns:**
+
 - `Promise<AuthState>` - Current authentication state
 
 ### `addAuthStateListener(callback: AuthStateListener): PluginListenerHandle`
@@ -158,7 +170,7 @@ Adds a listener for authentication state changes.
 ```typescript
 const listener = CapacitorAuthManager.addAuthStateListener((state) => {
   console.log('Auth state changed:', state);
-  
+
   if (state.isAuthenticated) {
     // User signed in
   } else {
@@ -171,9 +183,11 @@ listener.remove();
 ```
 
 **Parameters:**
+
 - `callback: AuthStateListener` - Function called on auth state changes
 
 **Returns:**
+
 - `PluginListenerHandle` - Handle to remove the listener
 
 ### `isAuthenticated(): Promise<boolean>`
@@ -185,6 +199,7 @@ const isAuth = await CapacitorAuthManager.isAuthenticated();
 ```
 
 **Returns:**
+
 - `Promise<boolean>` - True if user is authenticated
 
 ## Token Management
@@ -198,6 +213,7 @@ const token = await CapacitorAuthManager.getAccessToken();
 ```
 
 **Returns:**
+
 - `Promise<string | null>` - Access token or null if not authenticated
 
 ### `getIdToken(): Promise<string | null>`
@@ -209,6 +225,7 @@ const idToken = await CapacitorAuthManager.getIdToken();
 ```
 
 **Returns:**
+
 - `Promise<string | null>` - ID token or null if not available
 
 ### `refreshToken(): Promise<TokenRefreshResult>`
@@ -225,6 +242,7 @@ try {
 ```
 
 **Returns:**
+
 - `Promise<TokenRefreshResult>` - New tokens
 
 ### `isTokenExpired(): Promise<boolean>`
@@ -236,6 +254,7 @@ const isExpired = await CapacitorAuthManager.isTokenExpired();
 ```
 
 **Returns:**
+
 - `Promise<boolean>` - True if token is expired
 
 ## Provider Management
@@ -250,6 +269,7 @@ const providers = await CapacitorAuthManager.getSupportedProviders();
 ```
 
 **Returns:**
+
 - `Promise<string[]>` - Array of provider names
 
 ### `isProviderAvailable(provider: string): Promise<boolean>`
@@ -261,9 +281,11 @@ const isAvailable = await CapacitorAuthManager.isProviderAvailable('apple');
 ```
 
 **Parameters:**
+
 - `provider: string` - Provider name to check
 
 **Returns:**
+
 - `Promise<boolean>` - True if provider is available
 
 ### `getProviderConfig(provider: string): Promise<ProviderConfig | null>`
@@ -275,9 +297,11 @@ const config = await CapacitorAuthManager.getProviderConfig('google');
 ```
 
 **Parameters:**
+
 - `provider: string` - Provider name
 
 **Returns:**
+
 - `Promise<ProviderConfig | null>` - Provider configuration or null
 
 ## Utility Methods
@@ -291,6 +315,7 @@ const isAvailable = await CapacitorAuthManager.isAvailable();
 ```
 
 **Returns:**
+
 - `Promise<boolean>` - True if plugin is available
 
 ### `clearAuthData(): Promise<void>`
@@ -302,6 +327,7 @@ await CapacitorAuthManager.clearAuthData();
 ```
 
 **Returns:**
+
 - `Promise<void>` - Resolves when data is cleared
 
 ### `setLogLevel(level: LogLevel): Promise<void>`
@@ -313,9 +339,11 @@ await CapacitorAuthManager.setLogLevel('debug'); // 'none' | 'error' | 'warn' | 
 ```
 
 **Parameters:**
+
 - `level: LogLevel` - Logging level
 
 **Returns:**
+
 - `Promise<void>` - Resolves when level is set
 
 ## Interfaces
@@ -429,7 +457,7 @@ interface ProviderConfig {
   // Common fields
   enabled?: boolean;
   scopes?: string[];
-  
+
   // Provider-specific fields
   clientId?: string;
   webClientId?: string;
@@ -456,14 +484,17 @@ Common error codes returned by the plugin:
 ## Platform-Specific Notes
 
 ### iOS
+
 - Apple Sign In is only available on iOS 13+
 - Some providers require additional configuration in Info.plist
 
 ### Android
+
 - Google Sign In requires SHA-1 fingerprint configuration
 - Some providers require additional manifest configuration
 
 ### Web
+
 - Provider SDKs must be loaded in the HTML
 - Popup blockers may interfere with OAuth flows
 

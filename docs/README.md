@@ -19,12 +19,14 @@ Capacitor Auth Manager is an open-source authentication plugin created by [Ahsan
 ## Documentation Structure
 
 ### 📚 Getting Started
+
 - [Installation](./getting-started/installation.md) - How to install and configure the plugin
 - [Quick Start](./getting-started/quick-start.md) - Get up and running in minutes
 - [Configuration](./getting-started/configuration.md) - Configure authentication providers
 - [Platform Setup](./getting-started/platform-setup.md) - Platform-specific setup guides
 
 ### 🔧 API Reference
+
 - [Core API](./api-reference/core-api.md) - Main plugin methods and properties
 - [Auth State](./api-reference/auth-state.md) - Understanding authentication state
 - [User Object](./api-reference/user-object.md) - User data structure
@@ -32,6 +34,7 @@ Capacitor Auth Manager is an open-source authentication plugin created by [Ahsan
 - [Events](./api-reference/events.md) - Authentication events and listeners
 
 ### 🏢 Authentication Providers
+
 - [Google Auth](./providers/google.md) - Google Sign-In implementation
 - [Apple Auth](./providers/apple.md) - Sign in with Apple
 - [Microsoft Auth](./providers/microsoft.md) - Microsoft identity platform
@@ -47,6 +50,7 @@ Capacitor Auth Manager is an open-source authentication plugin created by [Ahsan
 - [LinkedIn Auth](./providers/linkedin.md) - LinkedIn OAuth
 
 ### 📖 Guides
+
 - [Best Practices](./guides/best-practices.md) - Authentication best practices
 - [Security](./guides/security.md) - Security considerations
 - [State Management](./guides/state-management.md) - Managing auth state in your app
@@ -56,6 +60,7 @@ Capacitor Auth Manager is an open-source authentication plugin created by [Ahsan
 - [Custom Providers](./guides/custom-providers.md) - Adding custom auth providers
 
 ### 💡 Examples
+
 - [React Example](./examples/react.md) - Complete React implementation
 - [Angular Example](./examples/angular.md) - Angular integration guide
 - [Vue Example](./examples/vue.md) - Vue.js implementation
@@ -64,6 +69,7 @@ Capacitor Auth Manager is an open-source authentication plugin created by [Ahsan
 - [Ionic](./examples/ionic.md) - Ionic Framework integration
 
 ### 🔄 Migration
+
 - [Migration Guide](./migration/migration-guide.md) - Migrating from other auth solutions
 - [Breaking Changes](./migration/breaking-changes.md) - Version upgrade notes
 - [Troubleshooting](./migration/troubleshooting.md) - Common issues and solutions

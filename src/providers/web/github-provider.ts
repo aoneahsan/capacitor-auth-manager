@@ -1,5 +1,9 @@
 import { BaseAuthProvider } from '../base-provider';
-import { AuthResult, AuthErrorCode, GitHubAuthOptions } from '../../definitions';
+import {
+  AuthResult,
+  AuthErrorCode,
+  GitHubAuthOptions,
+} from '../../definitions';
 import { AuthError } from '../../utils/auth-error';
 import type { SignInOptions, SignOutOptions } from '../../definitions';
 
@@ -8,11 +12,14 @@ export class GitHubAuthProviderWeb extends BaseAuthProvider {
   private redirectUri: string = '';
   private scopes: string[] = [];
   private authWindow: Window | null = null;
-  private authPromise: { resolve: (value: AuthResult) => void; reject: (reason: AuthError) => void } | null = null;
+  private authPromise: {
+    resolve: (value: AuthResult) => void;
+    reject: (reason: AuthError) => void;
+  } | null = null;
 
   async initialize(): Promise<void> {
     const options = this.options as GitHubAuthOptions;
-    
+
     if (!options.clientId) {
       throw new AuthError(
         AuthErrorCode.MISSING_CONFIG,
@@ -22,7 +29,8 @@ export class GitHubAuthProviderWeb extends BaseAuthProvider {
     }
 
     this.clientId = options.clientId;
-    this.redirectUri = options.redirectUri || window.location.origin + '/auth/github/callback';
+    this.redirectUri =
+      options.redirectUri || window.location.origin + '/auth/github/callback';
     this.scopes = options.scopes || ['read:user', 'user:email'];
 
     // Set up message listener for OAuth callback
@@ -58,11 +66,13 @@ export class GitHubAuthProviderWeb extends BaseAuthProvider {
 
       if (!this.authWindow) {
         this.authPromise = null;
-        reject(new AuthError(
-          AuthErrorCode.POPUP_BLOCKED,
-          'Popup window was blocked. Please allow popups for this site.',
-          this.provider
-        ));
+        reject(
+          new AuthError(
+            AuthErrorCode.POPUP_BLOCKED,
+            'Popup window was blocked. Please allow popups for this site.',
+            this.provider
+          )
+        );
         return;
       }
 
@@ -72,11 +82,13 @@ export class GitHubAuthProviderWeb extends BaseAuthProvider {
           clearInterval(checkInterval);
           if (this.authPromise) {
             this.authPromise = null;
-            reject(new AuthError(
-              AuthErrorCode.USER_CANCELLED,
-              'User closed the authentication window',
-              this.provider
-            ));
+            reject(
+              new AuthError(
+                AuthErrorCode.USER_CANCELLED,
+                'User closed the authentication window',
+                this.provider
+              )
+            );
           }
         }
       }, 1000);
@@ -93,7 +105,9 @@ export class GitHubAuthProviderWeb extends BaseAuthProvider {
       if (options?.revokeToken) {
         // GitHub requires using their API to revoke tokens
         // This would need to be done server-side for security
-        this.logger.warn('Token revocation should be handled server-side for GitHub');
+        this.logger.warn(
+          'Token revocation should be handled server-side for GitHub'
+        );
       }
 
       if (options?.redirectUrl) {
@@ -113,7 +127,7 @@ export class GitHubAuthProviderWeb extends BaseAuthProvider {
 
     // GitHub access tokens don't expire, but we can validate the current session
     const credential = await this.loadCredential();
-    
+
     if (!credential?.accessToken) {
       throw new AuthError(
         AuthErrorCode.NO_AUTH_SESSION,
@@ -125,10 +139,13 @@ export class GitHubAuthProviderWeb extends BaseAuthProvider {
     try {
       // Validate token by fetching user data
       const userData = await this.fetchUserData(credential.accessToken);
-      const user = await this.createUserFromGitHubData(userData, credential.accessToken);
-      
+      const user = await this.createUserFromGitHubData(
+        userData,
+        credential.accessToken
+      );
+
       await this.setCurrentUser(user);
-      
+
       return this.createAuthResult(user, credential, false);
     } catch (error) {
       // Token is invalid, need to re-authenticate
@@ -154,7 +171,9 @@ export class GitHubAuthProviderWeb extends BaseAuthProvider {
   async revokeAccess(_token?: string): Promise<void> {
     // GitHub token revocation requires server-side implementation
     // for security reasons (needs client secret)
-    this.logger.warn('GitHub token revocation should be implemented server-side');
+    this.logger.warn(
+      'GitHub token revocation should be implemented server-side'
+    );
     await this.signOut({ revokeToken: true });
   }
 
@@ -171,7 +190,9 @@ export class GitHubAuthProviderWeb extends BaseAuthProvider {
   }
 
   private generateState(): string {
-    return btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))));
+    return btoa(
+      String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32)))
+    );
   }
 
   private async handleAuthMessage(event: MessageEvent): Promise<void> {
@@ -216,11 +237,14 @@ export class GitHubAuthProviderWeb extends BaseAuthProvider {
 
       // Exchange code for token (this should be done server-side in production)
       const tokenData = await this.exchangeCodeForToken(event.data.code);
-      
+
       // Get user data
       const userData = await this.fetchUserData(tokenData.access_token);
-      const user = await this.createUserFromGitHubData(userData, tokenData.access_token);
-      
+      const user = await this.createUserFromGitHubData(
+        userData,
+        tokenData.access_token
+      );
+
       await this.setCurrentUser(user);
 
       const credential = {
@@ -229,7 +253,9 @@ export class GitHubAuthProviderWeb extends BaseAuthProvider {
         accessToken: tokenData.access_token,
         idToken: undefined,
         refreshToken: tokenData.refresh_token,
-        expiresAt: tokenData.expires_in ? Date.now() + (tokenData.expires_in * 1000) : undefined,
+        expiresAt: tokenData.expires_in
+          ? Date.now() + tokenData.expires_in * 1000
+          : undefined,
         tokenType: tokenData.token_type || 'bearer',
         scope: tokenData.scope || this.scopes.join(' '),
       };
@@ -255,8 +281,8 @@ export class GitHubAuthProviderWeb extends BaseAuthProvider {
   private async fetchUserData(accessToken: string): Promise<any> {
     const response = await fetch('https://api.github.com/user', {
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Accept': 'application/vnd.github.v3+json',
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/vnd.github.v3+json',
       },
     });
 
@@ -274,8 +300,8 @@ export class GitHubAuthProviderWeb extends BaseAuthProvider {
   private async fetchUserEmails(accessToken: string): Promise<any[]> {
     const response = await fetch('https://api.github.com/user/emails', {
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Accept': 'application/vnd.github.v3+json',
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/vnd.github.v3+json',
       },
     });
 
@@ -286,10 +312,13 @@ export class GitHubAuthProviderWeb extends BaseAuthProvider {
     return await response.json();
   }
 
-  private async createUserFromGitHubData(userData: any, accessToken: string): Promise<any> {
+  private async createUserFromGitHubData(
+    userData: any,
+    accessToken: string
+  ): Promise<any> {
     // Get primary email
     const emails = await this.fetchUserEmails(accessToken);
-    const primaryEmail = emails.find(e => e.primary) || emails[0];
+    const primaryEmail = emails.find((e) => e.primary) || emails[0];
 
     return {
       uid: userData.id.toString(),
@@ -300,16 +329,20 @@ export class GitHubAuthProviderWeb extends BaseAuthProvider {
       phoneNumber: null,
       isAnonymous: false,
       tenantId: null,
-      providerData: [{
-        providerId: this.provider,
-        uid: userData.id.toString(),
-        displayName: userData.name || userData.login,
-        email: primaryEmail?.email || userData.email || null,
-        phoneNumber: null,
-        photoURL: userData.avatar_url || null,
-      }],
+      providerData: [
+        {
+          providerId: this.provider,
+          uid: userData.id.toString(),
+          displayName: userData.name || userData.login,
+          email: primaryEmail?.email || userData.email || null,
+          phoneNumber: null,
+          photoURL: userData.avatar_url || null,
+        },
+      ],
       metadata: {
-        creationTime: userData.created_at ? new Date(userData.created_at).toISOString() : undefined,
+        creationTime: userData.created_at
+          ? new Date(userData.created_at).toISOString()
+          : undefined,
         lastSignInTime: new Date().toISOString(),
       },
       customClaims: {

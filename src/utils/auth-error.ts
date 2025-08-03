@@ -1,11 +1,20 @@
-import { AuthError as IAuthError, AuthErrorCode, AuthProvider } from '../definitions';
+import {
+  AuthError as IAuthError,
+  AuthErrorCode,
+  AuthProvider,
+} from '../definitions';
 
 export class AuthError extends Error implements IAuthError {
   code: string;
   details?: Record<string, unknown>;
   provider?: AuthProvider;
 
-  constructor(code: string, message: string, provider?: AuthProvider, details?: Record<string, unknown>) {
+  constructor(
+    code: string,
+    message: string,
+    provider?: AuthProvider,
+    details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'AuthError';
     this.code = code;
@@ -25,15 +34,21 @@ export class AuthError extends Error implements IAuthError {
 
     let code = AuthErrorCode.INTERNAL_ERROR;
     let message = 'An unknown error occurred';
-    let details: Record<string, unknown> | undefined = error as Record<string, unknown>;
+    let details: Record<string, unknown> | undefined = error as Record<
+      string,
+      unknown
+    >;
 
     if (error instanceof Error) {
       message = error.message;
-      
+
       // Try to map common error patterns to specific error codes
       if (error.message.includes('network')) {
         code = AuthErrorCode.NETWORK_ERROR;
-      } else if (error.message.includes('cancelled') || error.message.includes('canceled')) {
+      } else if (
+        error.message.includes('cancelled') ||
+        error.message.includes('canceled')
+      ) {
         code = AuthErrorCode.USER_CANCELLED;
       } else if (error.message.includes('timeout')) {
         code = AuthErrorCode.NETWORK_ERROR;
@@ -44,7 +59,9 @@ export class AuthError extends Error implements IAuthError {
     const errorObj = error as { code?: string };
     if (errorObj?.code) {
       // Check if the code is a valid AuthErrorCode
-      if (Object.values(AuthErrorCode).includes(errorObj.code as AuthErrorCode)) {
+      if (
+        Object.values(AuthErrorCode).includes(errorObj.code as AuthErrorCode)
+      ) {
         code = errorObj.code as AuthErrorCode;
       }
     }
@@ -64,8 +81,11 @@ export class AuthError extends Error implements IAuthError {
 }
 
 export function isAuthError(error: unknown): error is AuthError {
-  return error instanceof AuthError || 
-    (typeof error === 'object' && error !== null && 
-     (error as { name?: string }).name === 'AuthError' && 
-     (error as { code?: string }).code !== undefined);
+  return (
+    error instanceof AuthError ||
+    (typeof error === 'object' &&
+      error !== null &&
+      (error as { name?: string }).name === 'AuthError' &&
+      (error as { code?: string }).code !== undefined)
+  );
 }

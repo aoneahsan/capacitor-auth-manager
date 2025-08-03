@@ -14,17 +14,21 @@ This example demonstrates how to use the capacitor-auth-manager package with Vue
 ## Setup
 
 1. Install dependencies:
+
    ```bash
    yarn install
    ```
 
 2. Configure environment variables:
+
    ```bash
    cp .env.example .env
    ```
+
    Then edit `.env` with your provider credentials.
 
 3. Start the development server:
+
    ```bash
    yarn dev
    ```
@@ -51,15 +55,15 @@ src/
 Auth is configured once in `main.ts`:
 
 ```typescript
-import { auth } from 'capacitor-auth-manager'
+import { auth } from 'capacitor-auth-manager';
 
 auth.configure({
   providers: {
     google: { clientId: 'your-client-id' },
-    github: { clientId: 'your-client-id' }
+    github: { clientId: 'your-client-id' },
   },
-  persistence: 'local'
-})
+  persistence: 'local',
+});
 ```
 
 ### Using Composables
@@ -68,27 +72,25 @@ The package provides Vue 3 composables that return reactive refs:
 
 ```vue
 <script setup lang="ts">
-import { useAuth, useUser, useToken } from 'capacitor-auth-manager/vue'
+import { useAuth, useUser, useToken } from 'capacitor-auth-manager/vue';
 
 // Main composable with everything
-const { user, isAuthenticated, signIn, signOut } = useAuth()
+const { user, isAuthenticated, signIn, signOut } = useAuth();
 
 // Just the user (reactive ref)
-const user = useUser()
+const user = useUser();
 
 // Token management
-const { token, refreshToken } = useToken()
+const { token, refreshToken } = useToken();
 
 // Sign in
 const handleSignIn = async () => {
-  await signIn('google')
-}
+  await signIn('google');
+};
 </script>
 
 <template>
-  <div v-if="isAuthenticated">
-    Welcome, {{ user.displayName }}!
-  </div>
+  <div v-if="isAuthenticated">Welcome, {{ user.displayName }}!</div>
 </template>
 ```
 
@@ -98,29 +100,32 @@ Protect routes using Vue Router guards:
 
 ```typescript
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = auth.getAuthState().isAuthenticated
-  
+  const isAuthenticated = auth.getAuthState().isAuthenticated;
+
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next('/login')
+    next('/login');
   } else {
-    next()
+    next();
   }
-})
+});
 ```
 
 ## Authentication Methods
 
 ### Social Login
+
 - Google
-- GitHub  
+- GitHub
 - Facebook
 - Microsoft
 
 ### Email/Password
+
 - Sign up with email/password
 - Sign in with email/password
 
 ### Magic Link
+
 - Passwordless email authentication
 
 ## Reactive State
@@ -129,7 +134,7 @@ All composables return Vue refs that automatically update:
 
 ```vue
 <script setup>
-const { isAuthenticated, user } = useAuth()
+const { isAuthenticated, user } = useAuth();
 // These are reactive refs - UI updates automatically
 </script>
 ```
@@ -140,10 +145,10 @@ Unlike traditional Vue auth libraries, no Vue plugin installation needed:
 
 ```typescript
 // ❌ No need for this!
-app.use(AuthPlugin)
+app.use(AuthPlugin);
 
 // ✅ Just import and use!
-import { useAuth } from 'capacitor-auth-manager/vue'
+import { useAuth } from 'capacitor-auth-manager/vue';
 ```
 
 ## Environment Variables

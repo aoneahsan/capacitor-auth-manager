@@ -16,17 +16,21 @@ This example demonstrates how to use the capacitor-auth-manager package with Rea
 ## Setup
 
 1. Install dependencies:
+
    ```bash
    yarn install
    ```
 
 2. Configure environment variables:
+
    ```bash
    cp .env.example .env
    ```
+
    Then edit `.env` with your provider credentials.
 
 3. Start the development server:
+
    ```bash
    yarn dev
    ```
@@ -56,15 +60,15 @@ src/
 Auth is configured once in `main.tsx`:
 
 ```typescript
-import { auth } from 'capacitor-auth-manager'
+import { auth } from 'capacitor-auth-manager';
 
 auth.configure({
   providers: {
     google: { clientId: 'your-client-id' },
-    github: { clientId: 'your-client-id' }
+    github: { clientId: 'your-client-id' },
   },
-  persistence: 'local'
-})
+  persistence: 'local',
+});
 ```
 
 ### Using Hooks
@@ -72,22 +76,22 @@ auth.configure({
 The package provides several React hooks:
 
 ```typescript
-import { useAuth, useUser, useToken } from 'capacitor-auth-manager/react'
+import { useAuth, useUser, useToken } from 'capacitor-auth-manager/react';
 
 function MyComponent() {
   // Main hook with everything
-  const { user, isAuthenticated, signIn, signOut } = useAuth()
-  
+  const { user, isAuthenticated, signIn, signOut } = useAuth();
+
   // Just the user
-  const user = useUser()
-  
+  const user = useUser();
+
   // Token management
-  const { token, refreshToken } = useToken()
-  
+  const { token, refreshToken } = useToken();
+
   // Sign in
   const handleSignIn = async () => {
-    await signIn('google')
-  }
+    await signIn('google');
+  };
 }
 ```
 
@@ -96,11 +100,11 @@ function MyComponent() {
 ```typescript
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth()
-  
+
   if (!isAuthenticated) {
     return <Navigate to="/login" />
   }
-  
+
   return children
 }
 ```
@@ -108,16 +112,19 @@ function ProtectedRoute({ children }) {
 ## Authentication Methods
 
 ### Social Login
+
 - Google
-- GitHub  
+- GitHub
 - Facebook
 - Microsoft
 
 ### Email/Password
+
 - Sign up with email/password
 - Sign in with email/password
 
 ### Magic Link
+
 - Send sign-in link to email
 - Passwordless authentication
 

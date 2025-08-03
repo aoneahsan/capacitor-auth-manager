@@ -1,7 +1,7 @@
 <template>
   <div class="card">
     <h1>User Profile</h1>
-    
+
     <div class="user-info">
       <h3>User Information</h3>
       <pre>{{ JSON.stringify(user, null, 2) }}</pre>
@@ -12,10 +12,15 @@
       <pre>{{ JSON.stringify(authState, null, 2) }}</pre>
     </div>
 
-    <div v-if="token" class="user-info">
+    <div
+      v-if="token"
+      class="user-info"
+    >
       <h3>Token Information</h3>
       <p><strong>Token:</strong> {{ token.substring(0, 20) }}...</p>
-      <p v-if="expiresAt"><strong>Expires:</strong> {{ new Date(expiresAt).toLocaleString() }}</p>
+      <p v-if="expiresAt">
+        <strong>Expires:</strong> {{ new Date(expiresAt).toLocaleString() }}
+      </p>
     </div>
 
     <h3>Vue Composables Demo</h3>
@@ -28,37 +33,44 @@
     </ul>
 
     <h3>Reactive State</h3>
-    <p>All composables return reactive refs that automatically update when auth state changes:</p>
+    <p>
+      All composables return reactive refs that automatically update when auth
+      state changes:
+    </p>
     <pre>{{ reactiveDemo }}</pre>
 
-    <button @click="handleSignOut" class="btn btn-danger" style="margin-top: 2rem">
+    <button
+      @click="handleSignOut"
+      class="btn btn-danger"
+      style="margin-top: 2rem"
+    >
       Sign Out
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuth, useAuthState, useToken } from 'capacitor-auth-manager/vue'
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuth, useAuthState, useToken } from 'capacitor-auth-manager/vue';
 
-const router = useRouter()
-const { user, signOut } = useAuth()
-const authState = useAuthState()
-const { token, expiresAt } = useToken()
+const router = useRouter();
+const { user, signOut } = useAuth();
+const authState = useAuthState();
+const { token, expiresAt } = useToken();
 
 const reactiveDemo = computed(() => ({
   isAuthenticated: authState.value.isAuthenticated,
   userEmail: user.value?.email,
-  hasToken: !!token.value
-}))
+  hasToken: !!token.value,
+}));
 
 const handleSignOut = async () => {
   try {
-    await signOut()
-    router.push('/')
+    await signOut();
+    router.push('/');
   } catch (error) {
-    console.error('Sign out error:', error)
+    console.error('Sign out error:', error);
   }
-}
+};
 </script>

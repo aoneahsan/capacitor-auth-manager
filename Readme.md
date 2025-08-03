@@ -43,13 +43,13 @@ import { auth } from 'capacitor-auth-manager';
 auth.configure({
   providers: {
     google: {
-      clientId: 'YOUR_GOOGLE_CLIENT_ID'
+      clientId: 'YOUR_GOOGLE_CLIENT_ID',
     },
     apple: {
       clientId: 'YOUR_APPLE_CLIENT_ID',
-      redirectUri: 'YOUR_REDIRECT_URI'
-    }
-  }
+      redirectUri: 'YOUR_REDIRECT_URI',
+    },
+  },
 });
 
 // Sign in
@@ -85,11 +85,7 @@ function LoginButton() {
     );
   }
 
-  return (
-    <button onClick={() => signIn('google')}>
-      Sign In with Google
-    </button>
-  );
+  return <button onClick={() => signIn('google')}>Sign In with Google</button>;
 }
 ```
 
@@ -110,7 +106,10 @@ const { user, signIn, signOut, isLoading } = useAuth();
     <p>Welcome, {{ user.displayName }}!</p>
     <button @click="signOut">Sign Out</button>
   </div>
-  <button v-else @click="signIn('google')">
+  <button
+    v-else
+    @click="signIn('google')"
+  >
     Sign In with Google
   </button>
 </template>
@@ -130,10 +129,13 @@ import { AuthService } from 'capacitor-auth-manager/angular';
       <p>Welcome, {{ user.displayName }}!</p>
       <button (click)="signOut()">Sign Out</button>
     </div>
-    <button *ngIf="!(authService.user$ | async)" (click)="signIn('google')">
+    <button
+      *ngIf="!(authService.user$ | async)"
+      (click)="signIn('google')"
+    >
       Sign In with Google
     </button>
-  `
+  `,
 })
 export class LoginComponent {
   constructor(public authService: AuthService) {}
@@ -150,21 +152,21 @@ export class LoginComponent {
 
 ## Supported Providers
 
-| Provider | Web | iOS | Android | Status |
-|----------|-----|-----|---------|--------|
-| Google | ✅ | ✅ | ✅ | ✅ Implemented |
-| Apple | ✅ | ✅ | ❌ | ✅ Implemented |
-| Microsoft | ✅ | ✅ | ✅ | ✅ Implemented |
-| Facebook | ✅ | ✅ | ✅ | ✅ Implemented |
-| GitHub | ✅ | ❌ | ❌ | ✅ Implemented |
-| Firebase | ✅ | ✅ | ✅ | ✅ Implemented |
-| Email Magic Link | ✅ | ✅ | ✅ | ✅ Implemented |
-| SMS | ✅ | ✅ | ✅ | ✅ Implemented |
-| Email/Password | ✅ | ✅ | ✅ | ✅ Implemented |
-| Biometric | ❌ | ✅ | ✅ | ✅ Implemented |
-| Slack | ✅ | ❌ | ❌ | 🔄 Coming Soon |
-| LinkedIn | ✅ | ❌ | ❌ | 🔄 Coming Soon |
-| Username/Password | ✅ | ✅ | ✅ | 🔄 Coming Soon |
+| Provider          | Web | iOS | Android | Status         |
+| ----------------- | --- | --- | ------- | -------------- |
+| Google            | ✅  | ✅  | ✅      | ✅ Implemented |
+| Apple             | ✅  | ✅  | ❌      | ✅ Implemented |
+| Microsoft         | ✅  | ✅  | ✅      | ✅ Implemented |
+| Facebook          | ✅  | ✅  | ✅      | ✅ Implemented |
+| GitHub            | ✅  | ❌  | ❌      | ✅ Implemented |
+| Firebase          | ✅  | ✅  | ✅      | ✅ Implemented |
+| Email Magic Link  | ✅  | ✅  | ✅      | ✅ Implemented |
+| SMS               | ✅  | ✅  | ✅      | ✅ Implemented |
+| Email/Password    | ✅  | ✅  | ✅      | ✅ Implemented |
+| Biometric         | ❌  | ✅  | ✅      | ✅ Implemented |
+| Slack             | ✅  | ❌  | ❌      | 🔄 Coming Soon |
+| LinkedIn          | ✅  | ❌  | ❌      | 🔄 Coming Soon |
+| Username/Password | ✅  | ✅  | ✅      | 🔄 Coming Soon |
 
 ## Configuration
 
@@ -178,57 +180,57 @@ auth.configure({
   providers: {
     google: {
       clientId: 'YOUR_CLIENT_ID',
-      scopes: ['email', 'profile']
+      scopes: ['email', 'profile'],
     },
     apple: {
       clientId: 'YOUR_SERVICE_ID',
-      redirectUri: 'https://your-app.com/auth/callback'
+      redirectUri: 'https://your-app.com/auth/callback',
     },
     microsoft: {
       clientId: 'YOUR_CLIENT_ID',
-      authority: 'https://login.microsoftonline.com/common'
+      authority: 'https://login.microsoftonline.com/common',
     },
     facebook: {
       appId: 'YOUR_APP_ID',
-      version: 'v18.0'
+      version: 'v18.0',
     },
     github: {
       clientId: 'YOUR_CLIENT_ID',
-      redirectUri: 'YOUR_REDIRECT_URI'
+      redirectUri: 'YOUR_REDIRECT_URI',
     },
     firebase: {
       apiKey: 'YOUR_API_KEY',
       authDomain: 'YOUR_AUTH_DOMAIN',
-      projectId: 'YOUR_PROJECT_ID'
+      projectId: 'YOUR_PROJECT_ID',
     },
     'magic-link': {
       sendLinkUrl: 'https://your-api.com/send-magic-link',
-      verifyUrl: 'https://your-api.com/verify-magic-link'
+      verifyUrl: 'https://your-api.com/verify-magic-link',
     },
     sms: {
       sendCodeUrl: 'https://your-api.com/sms/send',
-      verifyCodeUrl: 'https://your-api.com/sms/verify'
+      verifyCodeUrl: 'https://your-api.com/sms/verify',
     },
     'email-password': {
       apiUrl: 'https://your-api.com',
       passwordRequirements: {
         minLength: 8,
         requireUppercase: true,
-        requireNumbers: true
-      }
+        requireNumbers: true,
+      },
     },
     biometric: {
       reason: 'Authenticate to access your account',
-      title: 'Authentication Required'
-    }
+      title: 'Authentication Required',
+    },
   },
-  
+
   // Global options
   persistence: 'local', // 'local' | 'session' | 'memory'
   autoRefreshToken: true,
   tokenRefreshBuffer: 300000, // 5 minutes before expiry
   enableLogging: true,
-  logLevel: 'debug' // 'debug' | 'info' | 'warn' | 'error'
+  logLevel: 'debug', // 'debug' | 'info' | 'warn' | 'error'
 });
 ```
 
@@ -261,9 +263,11 @@ import { AuthModule } from 'capacitor-auth-manager/angular';
 // In your app module
 imports: [
   AuthModule.forRoot({
-    providers: { /* ... */ }
-  })
-]
+    providers: {
+      /* ... */
+    },
+  }),
+];
 ```
 
 ## Advanced Usage
@@ -285,9 +289,9 @@ await auth.signIn('magic-link', { email: 'user@example.com' });
 const result = await auth.signIn('sms', { phoneNumber: '+1234567890' });
 
 // Verify SMS code
-await auth.signIn('sms', { 
+await auth.signIn('sms', {
   phoneNumber: '+1234567890',
-  code: '123456'
+  code: '123456',
 });
 ```
 
@@ -298,13 +302,13 @@ await auth.signIn('sms', {
 await auth.signUp({
   email: 'user@example.com',
   password: 'secure-password',
-  displayName: 'John Doe'
+  displayName: 'John Doe',
 });
 
 // Sign in
 await auth.signIn('email-password', {
   email: 'user@example.com',
-  password: 'secure-password'
+  password: 'secure-password',
 });
 
 // Update password
@@ -326,7 +330,7 @@ if (available) {
   // Store credentials after initial sign in
   const result = await auth.signIn('google');
   await biometric.storeUserCredentials(result.user, result.credential);
-  
+
   // Later: authenticate with biometrics
   await auth.signIn('biometric');
 }
@@ -340,12 +344,12 @@ await auth.signIn('google');
 
 // With scopes
 await auth.signIn('google', {
-  scopes: ['https://www.googleapis.com/auth/calendar']
+  scopes: ['https://www.googleapis.com/auth/calendar'],
 });
 
 // With login hint
 await auth.signIn('google', {
-  loginHint: 'user@example.com'
+  loginHint: 'user@example.com',
 });
 ```
 
@@ -379,24 +383,28 @@ Check out the [examples](./examples) directory for complete applications:
 ## Migration from v1.x
 
 ### Before (v1.x)
+
 ```typescript
 // Required Capacitor
 import { CapacitorAuthManager } from 'capacitor-auth-manager';
 
 await CapacitorAuthManager.initialize({
-  providers: [/* ... */]
+  providers: [
+    /* ... */
+  ],
 });
 
 await CapacitorAuthManager.signIn({ provider: AuthProvider.GOOGLE });
 ```
 
 ### After (v2.0)
+
 ```typescript
 // Works without Capacitor
 import { auth } from 'capacitor-auth-manager';
 
 auth.configure({
-  providers: { google: { clientId: '...' } }
+  providers: { google: { clientId: '...' } },
 });
 
 await auth.signIn('google');
@@ -415,28 +423,31 @@ await auth.signIn('google');
 Full TypeScript support with detailed types:
 
 ```typescript
-import type { 
-  AuthUser, 
-  AuthResult, 
+import type {
+  AuthUser,
+  AuthResult,
   SignInOptions,
   AuthState,
   AuthProvider,
-  AuthCredential
+  AuthCredential,
 } from 'capacitor-auth-manager';
 ```
 
 ## Platform Notes
 
 ### Web
+
 - All providers work without additional setup
 - Some providers (SMS, Magic Link, Email/Password) require backend services
 
 ### iOS
+
 - Requires Capacitor for native functionality
 - Biometric auth requires Face ID/Touch ID capability
 - Some providers need URL schemes configuration
 
 ### Android
+
 - Requires Capacitor for native functionality
 - Biometric auth requires fingerprint hardware
 - Configure `AndroidManifest.xml` for OAuth redirects

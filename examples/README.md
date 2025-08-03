@@ -5,31 +5,37 @@ This directory contains example applications demonstrating how to use the capaci
 ## Examples
 
 ### 1. Vanilla JavaScript
+
 - Basic HTML/JS implementation
 - Shows direct usage without any framework
 - Demonstrates all authentication methods
 
 ### 2. React
+
 - React 18+ with TypeScript
 - Uses React hooks (`useAuth`, `useAuthState`, etc.)
 - Demonstrates provider-less architecture
 
 ### 3. Vue 3
+
 - Vue 3 with Composition API
 - Uses Vue composables
 - Shows reactive auth state management
 
 ### 4. Angular
+
 - Angular 16+ with standalone components
 - Uses Angular service and guards
 - Demonstrates RxJS integration
 
 ### 5. Next.js
+
 - Server-side rendering considerations
 - API route integration
 - Protected pages example
 
 ### 6. Capacitor Mobile App
+
 - iOS and Android implementation
 - Native provider integration
 - Biometric authentication example

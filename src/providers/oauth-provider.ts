@@ -49,29 +49,33 @@ export interface OAuthConfig {
 
 export abstract class OAuthProvider extends BaseAuthProvider {
   protected abstract getOAuthConfig(): OAuthConfig;
-  protected abstract parseUserFromTokenResponse(response: OAuthTokenResponse): Promise<OAuthUserInfo>;
+  protected abstract parseUserFromTokenResponse(
+    response: OAuthTokenResponse
+  ): Promise<OAuthUserInfo>;
 
-  protected async performOAuthFlow(options?: SignInOptions): Promise<AuthResult> {
+  protected async performOAuthFlow(
+    options?: SignInOptions
+  ): Promise<AuthResult> {
     const config = this.getOAuthConfig();
-    
+
     try {
       // Generate state and nonce for security
       const state = this.generateSecureRandomString();
       const nonce = this.generateSecureRandomString();
-      
+
       // Store state and nonce for validation
       await this.storage.set(`${this.provider}_oauth_state`, state);
       await this.storage.set(`${this.provider}_oauth_nonce`, nonce);
-      
+
       // Build authorization URL
       const authUrl = this.buildAuthorizationUrl(config, state, nonce, options);
-      
+
       // Perform the OAuth flow (platform-specific implementation)
       const authResponse = await this.openAuthorizationUrl(authUrl);
-      
+
       // Validate response
       await this.validateOAuthResponse(authResponse, state, nonce);
-      
+
       // Exchange authorization code for tokens
       if (!authResponse.code) {
         throw new AuthError(
@@ -84,19 +88,23 @@ export abstract class OAuthProvider extends BaseAuthProvider {
         authResponse.code,
         config
       );
-      
+
       // Parse user information
       const userInfo = await this.parseUserFromTokenResponse(tokenResponse);
-      
+
       // Create AuthUser and AuthCredential
       const user = this.createAuthUser(userInfo, tokenResponse);
       const credential = this.createOAuthCredential(tokenResponse);
-      
+
       // Save user and credential
       await this.setCurrentUser(user);
       await this.saveCredential(credential);
-      
-      return this.createAuthResult(user, credential, userInfo.isNewUser || false);
+
+      return this.createAuthResult(
+        user,
+        credential,
+        userInfo.isNewUser || false
+      );
     } catch (error) {
       this.logger.error(`OAuth flow failed for ${this.provider}`, error);
       throw AuthError.fromError(error, this.provider);
@@ -121,37 +129,46 @@ export abstract class OAuthProvider extends BaseAuthProvider {
       nonce,
       ...config.additionalParams,
     });
-    
+
     // Add scopes
     const scopes = options?.options?.scopes || config.scopes || [];
     if (scopes.length > 0) {
       params.set('scope', scopes.join(' '));
     }
-    
+
     // Add custom parameters
     if (options?.options?.customParameters) {
-      Object.entries(options.options.customParameters).forEach(([key, value]) => {
-        params.set(key, value);
-      });
+      Object.entries(options.options.customParameters).forEach(
+        ([key, value]) => {
+          params.set(key, value);
+        }
+      );
     }
-    
+
     // Add login hint if provided
     if (options?.options?.loginHint) {
       params.set('login_hint', options.options.loginHint);
     }
-    
+
     // Add prompt if provided
     if (options?.options?.prompt) {
       params.set('prompt', options.options.prompt);
     }
-    
+
     return `${config.authorizationEndpoint}?${params.toString()}`;
   }
 
-  protected abstract openAuthorizationUrl(url: string): Promise<{ code?: string; state?: string; error?: string }>;
+  protected abstract openAuthorizationUrl(
+    url: string
+  ): Promise<{ code?: string; state?: string; error?: string }>;
 
   protected async validateOAuthResponse(
-    response: { code?: string; state?: string; error?: string; error_description?: string },
+    response: {
+      code?: string;
+      state?: string;
+      error?: string;
+      error_description?: string;
+    },
     expectedState: string,
     _expectedNonce: string
   ): Promise<void> {
@@ -162,7 +179,7 @@ export abstract class OAuthProvider extends BaseAuthProvider {
         this.provider
       );
     }
-    
+
     if (response.state !== expectedState) {
       throw new AuthError(
         AuthErrorCode.INVALID_STATE,
@@ -170,7 +187,7 @@ export abstract class OAuthProvider extends BaseAuthProvider {
         this.provider
       );
     }
-    
+
     // Nonce validation is done after ID token is received
   }
 
@@ -184,11 +201,11 @@ export abstract class OAuthProvider extends BaseAuthProvider {
       redirect_uri: config.redirectUri,
       client_id: config.clientId,
     });
-    
+
     if (config.clientSecret) {
       params.set('client_secret', config.clientSecret);
     }
-    
+
     try {
       const response = await fetch(config.tokenEndpoint, {
         method: 'POST',
@@ -197,11 +214,14 @@ export abstract class OAuthProvider extends BaseAuthProvider {
         },
         body: params.toString(),
       });
-      
-      const data = await response.json() as OAuthTokenResponse;
-      
+
+      const data = (await response.json()) as OAuthTokenResponse;
+
       if (!response.ok) {
-        const errorData = data as unknown as { error: string; error_description?: string };
+        const errorData = data as unknown as {
+          error: string;
+          error_description?: string;
+        };
         throw new AuthError(
           this.mapOAuthError(errorData.error),
           errorData.error_description || 'Token exchange failed',
@@ -209,7 +229,7 @@ export abstract class OAuthProvider extends BaseAuthProvider {
           errorData as Record<string, unknown>
         );
       }
-      
+
       return data;
     } catch (error) {
       if (error instanceof AuthError) {
@@ -226,7 +246,7 @@ export abstract class OAuthProvider extends BaseAuthProvider {
 
   async refreshToken(_options?: RefreshTokenOptions): Promise<AuthResult> {
     this.validateInitialized();
-    
+
     const credential = await this.loadCredential();
     if (!credential || !credential.refreshToken) {
       throw new AuthError(
@@ -235,20 +255,20 @@ export abstract class OAuthProvider extends BaseAuthProvider {
         this.provider
       );
     }
-    
+
     const config = this.getOAuthConfig();
-    
+
     try {
       const params = new URLSearchParams({
         grant_type: 'refresh_token',
         refresh_token: credential.refreshToken,
         client_id: config.clientId,
       });
-      
+
       if (config.clientSecret) {
         params.set('client_secret', config.clientSecret);
       }
-      
+
       const response = await fetch(config.tokenEndpoint, {
         method: 'POST',
         headers: {
@@ -256,11 +276,14 @@ export abstract class OAuthProvider extends BaseAuthProvider {
         },
         body: params.toString(),
       });
-      
-      const data = await response.json() as OAuthTokenResponse;
-      
+
+      const data = (await response.json()) as OAuthTokenResponse;
+
       if (!response.ok) {
-        const errorData = data as unknown as { error: string; error_description?: string };
+        const errorData = data as unknown as {
+          error: string;
+          error_description?: string;
+        };
         throw new AuthError(
           this.mapOAuthError(errorData.error),
           errorData.error_description || 'Token refresh failed',
@@ -268,17 +291,17 @@ export abstract class OAuthProvider extends BaseAuthProvider {
           errorData as Record<string, unknown>
         );
       }
-      
+
       // Update credential with new tokens
       const newCredential = this.createOAuthCredential(data);
       await this.saveCredential(newCredential);
-      
+
       // Update user if needed
       if (this.currentUser) {
         this.currentUser.refreshToken = newCredential.refreshToken;
         await this.setCurrentUser(this.currentUser);
       }
-      
+
       return this.createAuthResult(this.currentUser!, newCredential);
     } catch (error) {
       if (error instanceof AuthError) {
@@ -295,16 +318,16 @@ export abstract class OAuthProvider extends BaseAuthProvider {
 
   async revokeAccess(token?: string): Promise<void> {
     const config = this.getOAuthConfig();
-    
+
     if (!config.revokeEndpoint) {
       this.logger.warn(`Revoke endpoint not configured for ${this.provider}`);
       return;
     }
-    
+
     try {
       const credential = await this.loadCredential();
       const tokenToRevoke = token || credential?.accessToken;
-      
+
       if (!tokenToRevoke) {
         throw new AuthError(
           AuthErrorCode.INVALID_CREDENTIALS,
@@ -312,16 +335,16 @@ export abstract class OAuthProvider extends BaseAuthProvider {
           this.provider
         );
       }
-      
+
       const params = new URLSearchParams({
         token: tokenToRevoke,
         client_id: config.clientId,
       });
-      
+
       if (config.clientSecret) {
         params.set('client_secret', config.clientSecret);
       }
-      
+
       await fetch(config.revokeEndpoint, {
         method: 'POST',
         headers: {
@@ -329,7 +352,7 @@ export abstract class OAuthProvider extends BaseAuthProvider {
         },
         body: params.toString(),
       });
-      
+
       // Clear stored data regardless of response
       await this.clearStoredData();
       await this.setCurrentUser(null);
@@ -341,14 +364,16 @@ export abstract class OAuthProvider extends BaseAuthProvider {
     }
   }
 
-  protected createOAuthCredential(tokenResponse: OAuthTokenResponse): AuthCredential {
+  protected createOAuthCredential(
+    tokenResponse: OAuthTokenResponse
+  ): AuthCredential {
     return {
       providerId: this.provider,
       signInMethod: 'oauth',
       accessToken: tokenResponse.access_token,
       idToken: tokenResponse.id_token,
       refreshToken: tokenResponse.refresh_token,
-      expiresAt: tokenResponse.expires_in 
+      expiresAt: tokenResponse.expires_in
         ? this.calculateTokenExpiry(tokenResponse.expires_in)
         : undefined,
       tokenType: tokenResponse.token_type,
@@ -356,7 +381,10 @@ export abstract class OAuthProvider extends BaseAuthProvider {
     };
   }
 
-  protected createAuthUser(userInfo: OAuthUserInfo, tokenResponse: OAuthTokenResponse): AuthUser {
+  protected createAuthUser(
+    userInfo: OAuthUserInfo,
+    tokenResponse: OAuthTokenResponse
+  ): AuthUser {
     return {
       uid: userInfo.id || userInfo.sub || this.generateUniqueId(),
       email: userInfo.email || null,
@@ -366,14 +394,16 @@ export abstract class OAuthProvider extends BaseAuthProvider {
       phoneNumber: userInfo.phone_number || null,
       isAnonymous: false,
       tenantId: null,
-      providerData: [{
-        providerId: this.provider,
-        uid: userInfo.id || userInfo.sub || '',
-        displayName: userInfo.name || null,
-        email: userInfo.email || null,
-        phoneNumber: userInfo.phone_number || null,
-        photoURL: userInfo.picture || null,
-      }],
+      providerData: [
+        {
+          providerId: this.provider,
+          uid: userInfo.id || userInfo.sub || '',
+          displayName: userInfo.name || null,
+          email: userInfo.email || null,
+          phoneNumber: userInfo.phone_number || null,
+          photoURL: userInfo.picture || null,
+        },
+      ],
       metadata: {
         creationTime: new Date().toISOString(),
         lastSignInTime: new Date().toISOString(),
@@ -384,33 +414,34 @@ export abstract class OAuthProvider extends BaseAuthProvider {
 
   protected mapOAuthError(error: string): AuthErrorCode {
     const errorMap: Record<string, AuthErrorCode> = {
-      'invalid_request': AuthErrorCode.INVALID_REQUEST,
-      'unauthorized_client': AuthErrorCode.APP_NOT_AUTHORIZED,
-      'access_denied': AuthErrorCode.ACCESS_DENIED,
-      'unsupported_response_type': AuthErrorCode.UNSUPPORTED_GRANT_TYPE,
-      'invalid_scope': AuthErrorCode.INVALID_SCOPE,
-      'server_error': AuthErrorCode.SERVER_ERROR,
-      'temporarily_unavailable': AuthErrorCode.TEMPORARILY_UNAVAILABLE,
-      'invalid_grant': AuthErrorCode.INVALID_GRANT,
-      'invalid_client': AuthErrorCode.CLIENT_NOT_FOUND,
-      'interaction_required': AuthErrorCode.INTERACTION_REQUIRED,
-      'login_required': AuthErrorCode.LOGIN_REQUIRED,
-      'consent_required': AuthErrorCode.CONSENT_REQUIRED,
+      invalid_request: AuthErrorCode.INVALID_REQUEST,
+      unauthorized_client: AuthErrorCode.APP_NOT_AUTHORIZED,
+      access_denied: AuthErrorCode.ACCESS_DENIED,
+      unsupported_response_type: AuthErrorCode.UNSUPPORTED_GRANT_TYPE,
+      invalid_scope: AuthErrorCode.INVALID_SCOPE,
+      server_error: AuthErrorCode.SERVER_ERROR,
+      temporarily_unavailable: AuthErrorCode.TEMPORARILY_UNAVAILABLE,
+      invalid_grant: AuthErrorCode.INVALID_GRANT,
+      invalid_client: AuthErrorCode.CLIENT_NOT_FOUND,
+      interaction_required: AuthErrorCode.INTERACTION_REQUIRED,
+      login_required: AuthErrorCode.LOGIN_REQUIRED,
+      consent_required: AuthErrorCode.CONSENT_REQUIRED,
     };
-    
+
     return errorMap[error] || AuthErrorCode.INTERNAL_ERROR;
   }
 
   protected generateSecureRandomString(length = 32): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
     const randomValues = new Uint8Array(length);
     crypto.getRandomValues(randomValues);
-    
+
     for (let i = 0; i < length; i++) {
       result += chars[randomValues[i] % chars.length];
     }
-    
+
     return result;
   }
 }

@@ -11,9 +11,12 @@ export class WebStorage implements StorageInterface {
   private storage: Storage;
   private prefix: string;
 
-  constructor(persistence: AuthPersistence = AuthPersistence.LOCAL, prefix = 'cap_auth_') {
+  constructor(
+    persistence: AuthPersistence = AuthPersistence.LOCAL,
+    prefix = 'cap_auth_'
+  ) {
     this.prefix = prefix;
-    
+
     switch (persistence) {
       case AuthPersistence.SESSION:
         this.storage = window.sessionStorage;
@@ -49,7 +52,8 @@ export class WebStorage implements StorageInterface {
 
   async set(key: string, value: any): Promise<void> {
     try {
-      const stringValue = typeof value === 'string' ? value : JSON.stringify(value);
+      const stringValue =
+        typeof value === 'string' ? value : JSON.stringify(value);
       this.storage.setItem(this.prefix + key, stringValue);
     } catch (error) {
       console.error('Storage set error:', error);
@@ -74,8 +78,8 @@ export class WebStorage implements StorageInterface {
           keys.push(key);
         }
       }
-      
-      keys.forEach(key => this.storage.removeItem(key));
+
+      keys.forEach((key) => this.storage.removeItem(key));
     } catch (error) {
       console.error('Storage clear error:', error);
     }

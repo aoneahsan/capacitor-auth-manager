@@ -14,21 +14,21 @@ bootstrapApplication(AppComponent, {
       AuthModule.forRoot({
         providers: {
           google: {
-            clientId: 'your-google-client-id'
+            clientId: 'your-google-client-id',
           },
           github: {
-            clientId: 'your-github-client-id'
+            clientId: 'your-github-client-id',
           },
           facebook: {
-            appId: 'your-facebook-app-id'
+            appId: 'your-facebook-app-id',
           },
           microsoft: {
-            clientId: 'your-microsoft-client-id'
-          }
+            clientId: 'your-microsoft-client-id',
+          },
         },
         persistence: 'local',
-        enableLogging: true
+        enableLogging: true,
       })
-    )
-  ]
+    ),
+  ],
 });

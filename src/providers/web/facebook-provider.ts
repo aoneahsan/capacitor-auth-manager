@@ -1,5 +1,9 @@
 import { BaseAuthProvider } from '../base-provider';
-import { AuthResult, AuthErrorCode, FacebookAuthOptions } from '../../definitions';
+import {
+  AuthResult,
+  AuthErrorCode,
+  FacebookAuthOptions,
+} from '../../definitions';
 import { AuthError } from '../../utils/auth-error';
 import type { SignInOptions, SignOutOptions } from '../../definitions';
 
@@ -19,7 +23,7 @@ export class FacebookAuthProviderWeb extends BaseAuthProvider {
 
   async initialize(): Promise<void> {
     const options = this.options as FacebookAuthOptions;
-    
+
     if (!options.appId) {
       throw new AuthError(
         AuthErrorCode.MISSING_CONFIG,
@@ -31,15 +35,20 @@ export class FacebookAuthProviderWeb extends BaseAuthProvider {
     this.appId = options.appId;
     this.version = options.version || 'v18.0';
     this.scopes = options.scopes || ['email', 'public_profile'];
-    this.fields = options.fields || ['id', 'name', 'email', 'picture.type(large)'];
+    this.fields = options.fields || [
+      'id',
+      'name',
+      'email',
+      'picture.type(large)',
+    ];
 
     try {
       await this.loadFacebookSDK();
       await this.initializeFacebookSDK();
-      
+
       // Check login status
       await this.checkLoginStatus();
-      
+
       this.isInitialized = true;
       this.logger.info('Facebook auth provider initialized');
     } catch (error) {
@@ -73,7 +82,7 @@ export class FacebookAuthProviderWeb extends BaseAuthProvider {
       script.async = true;
       script.defer = true;
       script.onload = () => resolve();
-      
+
       document.head.appendChild(script);
     });
   }
@@ -118,28 +127,40 @@ export class FacebookAuthProviderWeb extends BaseAuthProvider {
     this.validateInitialized();
 
     return new Promise((resolve, reject) => {
-      window.FB.login(async (response: any) => {
-        if (response.authResponse) {
-          try {
-            const result = await this.handleAuthResponse(response.authResponse);
-            resolve(result);
-          } catch (error) {
-            reject(error);
+      window.FB.login(
+        async (response: any) => {
+          if (response.authResponse) {
+            try {
+              const result = await this.handleAuthResponse(
+                response.authResponse
+              );
+              resolve(result);
+            } catch (error) {
+              reject(error);
+            }
+          } else if (response.status === 'unknown') {
+            reject(
+              new AuthError(
+                AuthErrorCode.USER_CANCELLED,
+                'User cancelled the sign in',
+                this.provider
+              )
+            );
+          } else {
+            reject(
+              new AuthError(
+                AuthErrorCode.SIGN_IN_FAILED,
+                'Facebook sign in failed',
+                this.provider
+              )
+            );
           }
-        } else if (response.status === 'unknown') {
-          reject(new AuthError(
-            AuthErrorCode.USER_CANCELLED,
-            'User cancelled the sign in',
-            this.provider
-          ));
-        } else {
-          reject(new AuthError(
-            AuthErrorCode.SIGN_IN_FAILED,
-            'Facebook sign in failed',
-            this.provider
-          ));
+        },
+        {
+          scope: this.scopes.join(','),
+          auth_type: (this.options as FacebookAuthOptions).authType,
         }
-      }, { scope: this.scopes.join(','), auth_type: (this.options as FacebookAuthOptions).authType });
+      );
     });
   }
 
@@ -151,18 +172,20 @@ export class FacebookAuthProviderWeb extends BaseAuthProvider {
         try {
           await this.setCurrentUser(null);
           await this.clearStoredData();
-          
+
           if (options?.redirectUrl) {
             window.location.href = options.redirectUrl;
           }
-          
+
           resolve();
         } catch (error) {
-          reject(new AuthError(
-            AuthErrorCode.SIGN_OUT_FAILED,
-            `Facebook sign out failed: ${error}`,
-            this.provider
-          ));
+          reject(
+            new AuthError(
+              AuthErrorCode.SIGN_OUT_FAILED,
+              `Facebook sign out failed: ${error}`,
+              this.provider
+            )
+          );
         }
       });
     });
@@ -176,7 +199,10 @@ export class FacebookAuthProviderWeb extends BaseAuthProvider {
       window.FB.getLoginStatus(async (response: any) => {
         if (response.status === 'connected') {
           try {
-            const result = await this.handleAuthResponse(response.authResponse, true);
+            const result = await this.handleAuthResponse(
+              response.authResponse,
+              true
+            );
             resolve(result);
           } catch (error) {
             reject(error);
@@ -219,20 +245,25 @@ export class FacebookAuthProviderWeb extends BaseAuthProvider {
             reject(error);
           }
         } else {
-          reject(new AuthError(
-            AuthErrorCode.INTERNAL_ERROR,
-            'Failed to revoke Facebook access',
-            this.provider
-          ));
+          reject(
+            new AuthError(
+              AuthErrorCode.INTERNAL_ERROR,
+              'Failed to revoke Facebook access',
+              this.provider
+            )
+          );
         }
       });
     });
   }
 
-  private async handleAuthResponse(authResponse: any, isRefresh = false): Promise<AuthResult> {
+  private async handleAuthResponse(
+    authResponse: any,
+    isRefresh = false
+  ): Promise<AuthResult> {
     // Get user data
     const userData = await this.getUserData(authResponse.accessToken);
-    
+
     const user = {
       uid: authResponse.userID,
       email: userData.email || null,
@@ -242,14 +273,16 @@ export class FacebookAuthProviderWeb extends BaseAuthProvider {
       phoneNumber: null,
       isAnonymous: false,
       tenantId: null,
-      providerData: [{
-        providerId: this.provider,
-        uid: authResponse.userID,
-        displayName: userData.name || null,
-        email: userData.email || null,
-        phoneNumber: null,
-        photoURL: userData.picture?.data?.url || null,
-      }],
+      providerData: [
+        {
+          providerId: this.provider,
+          uid: authResponse.userID,
+          displayName: userData.name || null,
+          email: userData.email || null,
+          phoneNumber: null,
+          photoURL: userData.picture?.data?.url || null,
+        },
+      ],
       metadata: {
         creationTime: userData.created_time || undefined,
         lastSignInTime: new Date().toISOString(),
@@ -264,7 +297,9 @@ export class FacebookAuthProviderWeb extends BaseAuthProvider {
       accessToken: authResponse.accessToken,
       idToken: authResponse.signedRequest,
       refreshToken: undefined, // Facebook doesn't provide refresh tokens
-      expiresAt: authResponse.expiresIn ? Date.now() + (authResponse.expiresIn * 1000) : undefined,
+      expiresAt: authResponse.expiresIn
+        ? Date.now() + authResponse.expiresIn * 1000
+        : undefined,
       tokenType: 'bearer',
       scope: this.scopes.join(' '),
     };
@@ -285,11 +320,13 @@ export class FacebookAuthProviderWeb extends BaseAuthProvider {
         { fields: this.fields.join(','), access_token: accessToken },
         (response: any) => {
           if (response.error) {
-            reject(new AuthError(
-              AuthErrorCode.INTERNAL_ERROR,
-              `Failed to get user data: ${response.error.message}`,
-              this.provider
-            ));
+            reject(
+              new AuthError(
+                AuthErrorCode.INTERNAL_ERROR,
+                `Failed to get user data: ${response.error.message}`,
+                this.provider
+              )
+            );
           } else {
             resolve(response);
           }

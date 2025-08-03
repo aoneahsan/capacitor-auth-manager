@@ -14,21 +14,24 @@ This example demonstrates how to use the capacitor-auth-manager package with Ang
 ## Setup
 
 1. Install dependencies:
+
    ```bash
    yarn install
    ```
 
 2. Configure auth providers in `src/main.ts`:
+
    ```typescript
    AuthModule.forRoot({
      providers: {
        google: { clientId: 'your-google-client-id' },
-       github: { clientId: 'your-github-client-id' }
-     }
-   })
+       github: { clientId: 'your-github-client-id' },
+     },
+   });
    ```
 
 3. Start the development server:
+
    ```bash
    yarn start
    ```
@@ -65,12 +68,12 @@ bootstrapApplication(AppComponent, {
     importProvidersFrom(
       AuthModule.forRoot({
         providers: {
-          google: { clientId: 'your-client-id' }
+          google: { clientId: 'your-client-id' },
         },
-        persistence: 'local'
+        persistence: 'local',
       })
-    )
-  ]
+    ),
+  ],
 });
 ```
 
@@ -85,9 +88,9 @@ import { AuthService } from 'capacitor-auth-manager/angular';
 export class MyComponent {
   user$ = this.authService.user$;
   isAuthenticated$ = this.authService.isAuthenticated$;
-  
+
   constructor(private authService: AuthService) {}
-  
+
   signIn(provider: string) {
     this.authService.signIn(provider).subscribe({
       next: (result) => console.log('Signed in!', result),
@@ -106,24 +109,27 @@ const routes: Routes = [
   {
     path: 'profile',
     component: ProfileComponent,
-    canActivate: [AuthGuard]
-  }
+    canActivate: [AuthGuard],
+  },
 ];
 ```
 
 ## Authentication Methods
 
 ### Social Login
+
 - Google
-- GitHub  
+- GitHub
 - Facebook
 - Microsoft
 
 ### Email/Password
+
 - Sign up with email/password
 - Sign in with email/password
 
 ### Magic Link
+
 - Passwordless email authentication
 
 ## RxJS Observables
@@ -154,9 +160,9 @@ This example uses Angular's standalone components:
   selector: 'app-profile',
   standalone: true,
   imports: [CommonModule],
-  template: `...`
+  template: `...`,
 })
-export class ProfileComponent { }
+export class ProfileComponent {}
 ```
 
 No NgModules required!

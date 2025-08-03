@@ -4,8 +4,17 @@ import { AuthProviderInterface } from '../../core/types';
 
 // Using the capacitor-biometric-authentication package
 interface BiometricAuth {
-  checkBiometry(): Promise<{ isAvailable: boolean; biometryType: string; reason?: string }>;
-  authenticate(options?: { reason?: string; title?: string; subtitle?: string; fallbackTitle?: string }): Promise<void>;
+  checkBiometry(): Promise<{
+    isAvailable: boolean;
+    biometryType: string;
+    reason?: string;
+  }>;
+  authenticate(options?: {
+    reason?: string;
+    title?: string;
+    subtitle?: string;
+    fallbackTitle?: string;
+  }): Promise<void>;
 }
 
 export interface BiometricConfig {
@@ -39,10 +48,11 @@ export class BiometricProvider implements AuthProviderInterface {
       fallbackTitle: 'Use Passcode',
       requireRecentAuth: true,
       recentAuthTimeout: 5 * 60 * 1000, // 5 minutes
-      ...config
+      ...config,
     };
-    this.storageKey = config.storageKey || 'capacitor-auth-biometric-credentials';
-    
+    this.storageKey =
+      config.storageKey || 'capacitor-auth-biometric-credentials';
+
     // Try to load biometric plugin
     this.loadBiometricPlugin();
   }
@@ -50,7 +60,9 @@ export class BiometricProvider implements AuthProviderInterface {
   private async loadBiometricPlugin(): Promise<void> {
     try {
       // Dynamic import to avoid errors if plugin not installed
-      const { BiometricAuth } = await import('capacitor-biometric-authentication' as any);
+      const { BiometricAuth } = await import(
+        'capacitor-biometric-authentication' as any
+      );
       this.biometricAuth = BiometricAuth as any;
     } catch {
       console.warn('Biometric authentication plugin not available');
@@ -68,11 +80,12 @@ export class BiometricProvider implements AuthProviderInterface {
     try {
       // Check if biometry is available
       const checkResult = await this.biometricAuth.checkBiometry();
-      
+
       if (!checkResult.isAvailable) {
         throw new AuthError(
           'BIOMETRIC_NOT_AVAILABLE',
-          checkResult.reason || 'Biometric authentication is not available on this device'
+          checkResult.reason ||
+            'Biometric authentication is not available on this device'
         );
       }
 
@@ -101,7 +114,7 @@ export class BiometricProvider implements AuthProviderInterface {
         reason: this.config.reason,
         title: this.config.title,
         subtitle: this.config.subtitle,
-        fallbackTitle: this.config.fallbackTitle
+        fallbackTitle: this.config.fallbackTitle,
       });
 
       // Update last auth time
@@ -115,28 +128,43 @@ export class BiometricProvider implements AuthProviderInterface {
           providerId: this.name,
           signInMethod: 'biometric',
           accessToken: storedCredentials.accessToken,
-          refreshToken: storedCredentials.refreshToken
+          refreshToken: storedCredentials.refreshToken,
         },
         additionalUserInfo: {
           isNewUser: false,
           providerId: this.name,
           profile: {
-            biometryType: checkResult.biometryType
-          }
-        }
+            biometryType: checkResult.biometryType,
+          },
+        },
       };
     } catch (error: any) {
       if (error instanceof AuthError) throw error;
-      
+
       // Handle biometric errors
       if (error.code === 'userCancel' || error.message?.includes('cancel')) {
-        throw new AuthError('USER_CANCELLED', 'Authentication cancelled by user');
-      } else if (error.code === 'biometryLockout' || error.message?.includes('lockout')) {
-        throw new AuthError('BIOMETRY_LOCKOUT', 'Too many failed attempts. Biometry is locked.');
-      } else if (error.code === 'biometryNotEnrolled' || error.message?.includes('enrolled')) {
-        throw new AuthError('NOT_ENROLLED', 'No biometric credentials are enrolled');
+        throw new AuthError(
+          'USER_CANCELLED',
+          'Authentication cancelled by user'
+        );
+      } else if (
+        error.code === 'biometryLockout' ||
+        error.message?.includes('lockout')
+      ) {
+        throw new AuthError(
+          'BIOMETRY_LOCKOUT',
+          'Too many failed attempts. Biometry is locked.'
+        );
+      } else if (
+        error.code === 'biometryNotEnrolled' ||
+        error.message?.includes('enrolled')
+      ) {
+        throw new AuthError(
+          'NOT_ENROLLED',
+          'No biometric credentials are enrolled'
+        );
       }
-      
+
       throw new AuthError(
         'BIOMETRIC_ERROR',
         error.message || 'Biometric authentication failed'
@@ -165,9 +193,9 @@ export class BiometricProvider implements AuthProviderInterface {
       user,
       accessToken: credential?.accessToken,
       refreshToken: credential?.refreshToken,
-      lastAuthTime: Date.now()
+      lastAuthTime: Date.now(),
     };
-    
+
     await this.storeCredentials(credentials);
   }
 
@@ -182,7 +210,7 @@ export class BiometricProvider implements AuthProviderInterface {
       if (!this.biometricAuth) {
         return {
           available: false,
-          reason: 'Biometric authentication plugin not installed'
+          reason: 'Biometric authentication plugin not installed',
         };
       }
     }
@@ -192,12 +220,12 @@ export class BiometricProvider implements AuthProviderInterface {
       return {
         available: result.isAvailable,
         biometryType: result.biometryType,
-        reason: result.reason
+        reason: result.reason,
       };
     } catch {
       return {
         available: false,
-        reason: 'Failed to check biometry availability'
+        reason: 'Failed to check biometry availability',
       };
     }
   }
@@ -206,13 +234,13 @@ export class BiometricProvider implements AuthProviderInterface {
   async hasStoredCredentials(): Promise<boolean> {
     const stored = await this.getStoredCredentials();
     if (!stored) return false;
-    
+
     // Check if auth is still valid
     if (this.config.requireRecentAuth) {
       const timeSinceLastAuth = Date.now() - stored.lastAuthTime;
       return timeSinceLastAuth <= this.config.recentAuthTimeout!;
     }
-    
+
     return true;
   }
 
@@ -220,7 +248,7 @@ export class BiometricProvider implements AuthProviderInterface {
     try {
       const stored = localStorage.getItem(this.storageKey);
       if (!stored) return null;
-      
+
       const decrypted = await this.decrypt(stored);
       return JSON.parse(decrypted);
     } catch {
@@ -228,7 +256,9 @@ export class BiometricProvider implements AuthProviderInterface {
     }
   }
 
-  private async storeCredentials(credentials: StoredCredentials): Promise<void> {
+  private async storeCredentials(
+    credentials: StoredCredentials
+  ): Promise<void> {
     try {
       const encrypted = await this.encrypt(JSON.stringify(credentials));
       localStorage.setItem(this.storageKey, encrypted);
@@ -340,5 +370,5 @@ Platform Requirements:
 - Web: WebAuthn support (limited)
 
 Note: Users must first authenticate with another method before enabling biometric authentication.
-`
+`,
 };

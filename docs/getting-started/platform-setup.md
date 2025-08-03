@@ -5,6 +5,7 @@ This guide provides detailed setup instructions for each platform supported by C
 ## iOS Setup
 
 ### Prerequisites
+
 - Xcode 12.0 or later
 - iOS 13.0 or later
 - CocoaPods installed
@@ -23,7 +24,7 @@ Add URL schemes for OAuth providers to your `ios/App/App/Info.plist`:
             <string>YOUR_REVERSED_CLIENT_ID</string>
         </array>
     </dict>
-    
+
     <!-- Facebook Login -->
     <dict>
         <key>CFBundleURLSchemes</key>
@@ -31,7 +32,7 @@ Add URL schemes for OAuth providers to your `ios/App/App/Info.plist`:
             <string>fb{your-facebook-app-id}</string>
         </array>
     </dict>
-    
+
     <!-- Microsoft Auth -->
     <dict>
         <key>CFBundleURLSchemes</key>
@@ -39,7 +40,7 @@ Add URL schemes for OAuth providers to your `ios/App/App/Info.plist`:
             <string>msal{your-client-id}</string>
         </array>
     </dict>
-    
+
     <!-- Custom scheme for other providers -->
     <dict>
         <key>CFBundleURLSchemes</key>
@@ -117,6 +118,7 @@ Add the following to allow authentication redirects:
 ## Android Setup
 
 ### Prerequisites
+
 - Android Studio 4.0 or later
 - Android SDK 23 or later
 - Gradle 7.0 or later
@@ -142,16 +144,16 @@ Add to `android/app/build.gradle`:
 dependencies {
     // Google Play Services
     implementation 'com.google.android.gms:play-services-auth:20.7.0'
-    
+
     // Facebook SDK
     implementation 'com.facebook.android:facebook-login:16.3.0'
-    
+
     // Microsoft Authentication Library
     implementation 'com.microsoft.identity.client:msal:4.8.0'
-    
+
     // GitHub OAuth (if using custom implementation)
     implementation 'com.github.scribejava:scribejava-apis:8.3.1'
-    
+
     // Biometric authentication
     implementation 'androidx.biometric:biometric:1.2.0-alpha05'
 }
@@ -163,23 +165,23 @@ Add to `android/app/src/main/AndroidManifest.xml`:
 
 ```xml
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    
+
     <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.USE_FINGERPRINT" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
-    
+
     <application>
         <!-- Facebook App ID -->
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebook_app_id" />
-        
+
         <!-- Google Play Services -->
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
-        
+
         <!-- OAuth Redirect Activities -->
         <activity
             android:name="com.aoneahsan.capacitor_auth_manager.oauth.OAuthRedirectActivity"
@@ -189,12 +191,12 @@ Add to `android/app/src/main/AndroidManifest.xml`:
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                
+
                 <!-- Add your OAuth redirect schemes -->
                 <data android:scheme="your-app-scheme" />
             </intent-filter>
         </activity>
-        
+
         <!-- Microsoft Auth -->
         <activity
             android:name="com.microsoft.identity.client.BrowserTabActivity">
@@ -219,17 +221,17 @@ Add to `android/app/src/main/res/values/strings.xml`:
     <!-- Facebook -->
     <string name="facebook_app_id">YOUR_FACEBOOK_APP_ID</string>
     <string name="facebook_client_token">YOUR_FACEBOOK_CLIENT_TOKEN</string>
-    
+
     <!-- Google -->
     <string name="google_web_client_id">YOUR_GOOGLE_WEB_CLIENT_ID</string>
     <string name="google_android_client_id">YOUR_GOOGLE_ANDROID_CLIENT_ID</string>
-    
+
     <!-- Microsoft -->
     <string name="microsoft_client_id">YOUR_MICROSOFT_CLIENT_ID</string>
-    
+
     <!-- GitHub -->
     <string name="github_client_id">YOUR_GITHUB_CLIENT_ID</string>
-    
+
     <!-- Custom redirect URI -->
     <string name="auth_redirect_uri">your-app-scheme://auth</string>
 </resources>
@@ -272,12 +274,14 @@ keytool -list -v -keystore /path/to/your/release.keystore -alias your-alias
 ```
 
 Add the SHA-1 fingerprint to:
+
 - Google Cloud Console (OAuth 2.0 credentials)
 - Facebook Developer Console (Android app settings)
 
 ## Web Setup
 
 ### Prerequisites
+
 - Modern web browser (Chrome 70+, Firefox 65+, Safari 12+, Edge 79+)
 - HTTPS enabled (required for most OAuth providers)
 
@@ -288,23 +292,31 @@ Add to your `index.html`:
 ```html
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <!-- Google Sign-In -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    
+    <script
+      src="https://accounts.google.com/gsi/client"
+      async
+      defer
+    ></script>
+
     <!-- Facebook SDK -->
-    <script async defer crossorigin="anonymous" 
-            src="https://connect.facebook.net/en_US/sdk.js"></script>
-    
+    <script
+      async
+      defer
+      crossorigin="anonymous"
+      src="https://connect.facebook.net/en_US/sdk.js"
+    ></script>
+
     <!-- Microsoft Identity -->
     <script src="https://alcdn.msauth.net/browser/2.30.0/js/msal-browser.min.js"></script>
-    
+
     <!-- GitHub OAuth (if using custom implementation) -->
     <script src="https://unpkg.com/github-api@3.4.0/dist/GitHub.bundle.min.js"></script>
-</head>
-<body>
+  </head>
+  <body>
     <!-- Your app content -->
-</body>
+  </body>
 </html>
 ```
 
@@ -315,7 +327,9 @@ For production, ensure your site is served over HTTPS:
 ```javascript
 // Development only - not for production
 if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-    location.replace(`https:${location.href.substring(location.protocol.length)}`);
+  location.replace(
+    `https:${location.href.substring(location.protocol.length)}`
+  );
 }
 ```
 
@@ -326,10 +340,13 @@ Ensure your server allows requests from OAuth providers:
 ```javascript
 // Express.js example
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    next();
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+  );
+  next();
 });
 ```
 
@@ -338,7 +355,9 @@ app.use((req, res, next) => {
 Add to your HTML head:
 
 ```html
-<meta http-equiv="Content-Security-Policy" content="
+<meta
+  http-equiv="Content-Security-Policy"
+  content="
     default-src 'self';
     script-src 'self' 'unsafe-inline' 'unsafe-eval'
         https://accounts.google.com
@@ -357,12 +376,14 @@ Add to your HTML head:
     img-src 'self' data:
         https://graph.facebook.com
         https://avatars.githubusercontent.com;
-">
+"
+/>
 ```
 
 ## Environment Variables
 
 ### Development (.env.local)
+
 ```env
 REACT_APP_GOOGLE_CLIENT_ID=your-dev-google-client-id
 REACT_APP_APPLE_CLIENT_ID=your-dev-apple-client-id
@@ -372,6 +393,7 @@ REACT_APP_GITHUB_CLIENT_ID=your-dev-github-client-id
 ```
 
 ### Production (.env.production)
+
 ```env
 REACT_APP_GOOGLE_CLIENT_ID=your-prod-google-client-id
 REACT_APP_APPLE_CLIENT_ID=your-prod-apple-client-id
@@ -383,16 +405,19 @@ REACT_APP_GITHUB_CLIENT_ID=your-prod-github-client-id
 ## Testing Configuration
 
 ### iOS Simulator
+
 - Sign in may not work with Apple ID in simulator
 - Use physical device for full testing
 - Biometric authentication requires physical device
 
 ### Android Emulator
+
 - Ensure Google Play Services are installed
 - Use emulator with Google APIs
 - Some providers require physical device
 
 ### Web Development
+
 - Use localhost for development
 - Most providers support localhost for testing
 - Some features require HTTPS even in development

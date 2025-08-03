@@ -28,6 +28,7 @@ Before implementing Google authentication, you need:
 #### iOS Setup
 
 1. **Add URL Scheme** to `Info.plist`:
+
 ```xml
 <key>CFBundleURLTypes</key>
 <array>
@@ -49,6 +50,7 @@ Before implementing Google authentication, you need:
 #### Android Setup
 
 1. **Get SHA-1 Fingerprint**:
+
 ```bash
 # Debug keystore
 keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
@@ -64,6 +66,7 @@ keytool -list -v -keystore your-release-key.keystore -alias your-alias
    - Place in `android/app/`
 
 3. **Update `android/app/build.gradle`**:
+
 ```gradle
 apply plugin: 'com.google.gms.google-services'
 
@@ -75,8 +78,13 @@ dependencies {
 #### Web Setup
 
 Add Google Sign-In SDK to your HTML:
+
 ```html
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script
+  src="https://accounts.google.com/gsi/client"
+  async
+  defer
+></script>
 ```
 
 ### 3. Plugin Configuration
@@ -93,9 +101,9 @@ await CapacitorAuthManager.initialize({
       offlineAccess: true,
       scopes: ['profile', 'email'],
       hostedDomain: 'example.com', // Optional: Restrict to domain
-      forceCodeForRefreshToken: true // iOS only
-    }
-  }
+      forceCodeForRefreshToken: true, // iOS only
+    },
+  },
 });
 ```
 
@@ -107,24 +115,24 @@ await CapacitorAuthManager.initialize({
 async function signInWithGoogle() {
   try {
     const result = await CapacitorAuthManager.signIn({
-      provider: 'google'
+      provider: 'google',
     });
-    
+
     console.log('User:', result.user);
     console.log('Access Token:', result.accessToken);
     console.log('ID Token:', result.idToken);
-    
+
     // User is now signed in
     return result;
   } catch (error) {
     console.error('Google sign in error:', error);
-    
+
     if (error.code === 'auth/user-cancelled') {
       // User cancelled the sign in flow
     } else if (error.code === 'auth/network-error') {
       // Network error
     }
-    
+
     throw error;
   }
 }
@@ -138,9 +146,9 @@ Attempt to sign in without showing UI:
 async function trySilentSignIn() {
   try {
     const result = await CapacitorAuthManager.silentSignIn({
-      provider: 'google'
+      provider: 'google',
     });
-    
+
     console.log('Silent sign in successful');
     return result;
   } catch (error) {
@@ -159,10 +167,10 @@ async function requestCalendarAccess() {
       provider: 'google',
       scopes: [
         'https://www.googleapis.com/auth/calendar.readonly',
-        'https://www.googleapis.com/auth/calendar.events'
-      ]
+        'https://www.googleapis.com/auth/calendar.events',
+      ],
     });
-    
+
     // Now you can access Google Calendar API
     return result.accessToken;
   } catch (error) {
@@ -176,19 +184,19 @@ async function requestCalendarAccess() {
 ```typescript
 async function getUserProfile() {
   const authState = await CapacitorAuthManager.getCurrentUser();
-  
+
   if (authState.isAuthenticated && authState.provider === 'google') {
     const user = authState.user;
-    
+
     return {
       id: user.uid,
       email: user.email,
       name: user.displayName,
       picture: user.photoURL,
-      verified: user.emailVerified
+      verified: user.emailVerified,
     };
   }
-  
+
   return null;
 }
 ```
@@ -206,13 +214,14 @@ const idToken = authState.idToken;
 const response = await fetch('https://your-api.com/auth/google', {
   method: 'POST',
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   },
-  body: JSON.stringify({ idToken })
+  body: JSON.stringify({ idToken }),
 });
 ```
 
 Server-side verification (Node.js):
+
 ```javascript
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client(CLIENT_ID);
@@ -220,12 +229,12 @@ const client = new OAuth2Client(CLIENT_ID);
 async function verify(idToken) {
   const ticket = await client.verifyIdToken({
     idToken: idToken,
-    audience: CLIENT_ID
+    audience: CLIENT_ID,
   });
-  
+
   const payload = ticket.getPayload();
   const userid = payload['sub'];
-  
+
   return payload;
 }
 ```
@@ -241,9 +250,9 @@ await CapacitorAuthManager.initialize({
   providers: {
     google: {
       webClientId: 'YOUR_WEB_CLIENT_ID',
-      hostedDomain: 'company.com' // Only @company.com emails
-    }
-  }
+      hostedDomain: 'company.com', // Only @company.com emails
+    },
+  },
 });
 ```
 
@@ -257,9 +266,9 @@ await CapacitorAuthManager.initialize({
     google: {
       webClientId: 'YOUR_WEB_CLIENT_ID',
       offlineAccess: true,
-      forceCodeForRefreshToken: true // iOS only
-    }
-  }
+      forceCodeForRefreshToken: true, // iOS only
+    },
+  },
 });
 
 // After sign in, you'll receive a serverAuthCode
@@ -278,8 +287,8 @@ const result = await CapacitorAuthManager.signIn({
     prompt: 'select_account', // Force account selection
     login_hint: 'user@example.com', // Pre-fill email
     access_type: 'offline',
-    include_granted_scopes: true
-  }
+    include_granted_scopes: true,
+  },
 });
 ```
 
@@ -289,12 +298,15 @@ const result = await CapacitorAuthManager.signIn({
 
 ```typescript
 async function getGoogleUserInfo(accessToken: string) {
-  const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-    headers: {
-      'Authorization': `Bearer ${accessToken}`
+  const response = await fetch(
+    'https://www.googleapis.com/oauth2/v2/userinfo',
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     }
-  });
-  
+  );
+
   return response.json();
 }
 
@@ -310,7 +322,7 @@ if (authState.isAuthenticated && authState.accessToken) {
 ```typescript
 async function ensureValidToken() {
   const isExpired = await CapacitorAuthManager.isTokenExpired();
-  
+
   if (isExpired) {
     try {
       const result = await CapacitorAuthManager.refreshToken();
@@ -321,7 +333,7 @@ async function ensureValidToken() {
       await CapacitorAuthManager.signIn({ provider: 'google' });
     }
   }
-  
+
   const authState = await CapacitorAuthManager.getCurrentUser();
   return authState.accessToken;
 }
@@ -334,6 +346,7 @@ async function ensureValidToken() {
 **Cause**: SHA-1 fingerprint mismatch
 
 **Solution**:
+
 - Ensure correct SHA-1 is added in Google Cloud Console
 - Check both debug and release keystores
 - Verify package name matches exactly
@@ -343,6 +356,7 @@ async function ensureValidToken() {
 **Cause**: Wrong client ID or URL scheme
 
 **Solution**:
+
 - Use the iOS client ID from Google Cloud Console
 - Ensure URL scheme uses REVERSED client ID
 - Check bundle ID matches configuration
@@ -352,6 +366,7 @@ async function ensureValidToken() {
 **Cause**: Configuration mismatch
 
 **Solution**:
+
 - Verify `webClientId` is from Web OAuth client
 - Check all platform-specific configurations
 - Ensure Google Sign-In API is enabled
@@ -361,15 +376,16 @@ async function ensureValidToken() {
 **Cause**: Missing configuration
 
 **Solution**:
+
 ```typescript
 // Ensure you're requesting ID token
 await CapacitorAuthManager.initialize({
   providers: {
     google: {
       webClientId: 'YOUR_WEB_CLIENT_ID',
-      requestIdToken: true // Explicitly request ID token
-    }
-  }
+      requestIdToken: true, // Explicitly request ID token
+    },
+  },
 });
 ```
 
@@ -394,11 +410,13 @@ await CapacitorAuthManager.initialize({
 ### Debug Tips
 
 Enable debug logging:
+
 ```typescript
 await CapacitorAuthManager.setLogLevel('debug');
 ```
 
 Check provider availability:
+
 ```typescript
 const available = await CapacitorAuthManager.isProviderAvailable('google');
 console.log('Google provider available:', available);
@@ -410,14 +428,18 @@ console.log('Google provider available:', available);
 
 ```typescript
 // Old Cordova way
-window.plugins.googleplus.login({
-  webClientId: CLIENT_ID,
-  offline: true
-}, onSuccess, onError);
+window.plugins.googleplus.login(
+  {
+    webClientId: CLIENT_ID,
+    offline: true,
+  },
+  onSuccess,
+  onError
+);
 
 // New Capacitor Auth Manager way
 const result = await CapacitorAuthManager.signIn({
-  provider: 'google'
+  provider: 'google',
 });
 ```
 
@@ -430,7 +452,7 @@ const result = await firebase.auth().signInWithPopup(provider);
 
 // New Capacitor Auth Manager way
 const result = await CapacitorAuthManager.signIn({
-  provider: 'google'
+  provider: 'google',
 });
 ```
 

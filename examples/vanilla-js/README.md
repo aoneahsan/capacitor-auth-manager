@@ -14,6 +14,7 @@ This example demonstrates how to use the capacitor-auth-manager package with van
 ## Setup
 
 1. Install dependencies:
+
    ```bash
    # No dependencies needed for vanilla JS!
    # Just serve the HTML file
@@ -24,6 +25,7 @@ This example demonstrates how to use the capacitor-auth-manager package with van
    - Add your provider credentials
 
 3. Serve the HTML file:
+
    ```bash
    # Using Python
    python -m http.server 8000
@@ -57,9 +59,9 @@ It then configures the authentication providers and subscribes to auth state cha
 auth.configure({
   providers: {
     google: { clientId: 'your-client-id' },
-    github: { clientId: 'your-client-id' }
+    github: { clientId: 'your-client-id' },
     // ... other providers
-  }
+  },
 });
 
 // Subscribe to auth state
@@ -76,7 +78,7 @@ auth.onAuthStateChange((state) => {
 ## Supported Providers
 
 - Google
-- GitHub  
+- GitHub
 - Facebook
 - Microsoft
 - Apple

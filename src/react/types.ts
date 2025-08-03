@@ -1,4 +1,9 @@
-import type { AuthUser, AuthResult, SignInOptions, SignOutOptions } from '../definitions';
+import type {
+  AuthUser,
+  AuthResult,
+  SignInOptions,
+  SignOutOptions,
+} from '../definitions';
 
 export interface UseAuthReturn {
   user: AuthUser | null;

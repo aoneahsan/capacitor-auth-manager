@@ -18,7 +18,7 @@ const external = [
   '@angular/common',
   '@angular/router',
   'rxjs',
-  'rxjs/operators'
+  'rxjs/operators',
 ];
 
 // Base configuration
@@ -118,12 +118,12 @@ if (existsSync('dist/esm/angular/index.js')) {
       },
     ],
     external: [
-      ...baseConfig.external, 
+      ...baseConfig.external,
       '@angular/core',
       '@angular/common',
       '@angular/router',
       'rxjs',
-      'rxjs/operators'
+      'rxjs/operators',
     ],
   });
 }

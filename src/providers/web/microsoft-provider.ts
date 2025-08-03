@@ -1,5 +1,9 @@
 import { BaseAuthProvider } from '../base-provider';
-import { AuthResult, AuthErrorCode, MicrosoftAuthOptions } from '../../definitions';
+import {
+  AuthResult,
+  AuthErrorCode,
+  MicrosoftAuthOptions,
+} from '../../definitions';
 import { AuthError } from '../../utils/auth-error';
 import type { SignInOptions, SignOutOptions } from '../../definitions';
 
@@ -13,7 +17,7 @@ export class MicrosoftAuthProviderWeb extends BaseAuthProvider {
 
   async initialize(): Promise<void> {
     const options = this.options as MicrosoftAuthOptions;
-    
+
     if (!options.clientId) {
       throw new AuthError(
         AuthErrorCode.MISSING_CONFIG,
@@ -23,7 +27,8 @@ export class MicrosoftAuthProviderWeb extends BaseAuthProvider {
     }
 
     this.clientId = options.clientId;
-    this.authority = options.authority || 'https://login.microsoftonline.com/common';
+    this.authority =
+      options.authority || 'https://login.microsoftonline.com/common';
     this.redirectUri = options.redirectUri || window.location.origin;
     this.scopes = options.scopes || ['openid', 'profile', 'email'];
 
@@ -46,7 +51,8 @@ export class MicrosoftAuthProviderWeb extends BaseAuthProvider {
         navigateToLoginRequestUrl: true,
       },
       cache: {
-        cacheLocation: this.persistence === 'session' ? 'sessionStorage' : 'localStorage',
+        cacheLocation:
+          this.persistence === 'session' ? 'sessionStorage' : 'localStorage',
         storeAuthStateInCookie: false,
       },
       system: {
@@ -61,7 +67,7 @@ export class MicrosoftAuthProviderWeb extends BaseAuthProvider {
     try {
       this.msalInstance = new msal.PublicClientApplication(this.msalConfig);
       await this.msalInstance.initialize();
-      
+
       // Handle redirect response
       const response = await this.msalInstance.handleRedirectPromise();
       if (response && response.account) {
@@ -117,7 +123,7 @@ export class MicrosoftAuthProviderWeb extends BaseAuthProvider {
       return await this.handleAuthResponse(response);
     } catch (error: any) {
       this.logger.error('Microsoft sign in failed', error);
-      
+
       if (error.errorCode === 'user_cancelled') {
         throw new AuthError(
           AuthErrorCode.USER_CANCELLED,
@@ -125,7 +131,7 @@ export class MicrosoftAuthProviderWeb extends BaseAuthProvider {
           this.provider
         );
       }
-      
+
       throw new AuthError(
         AuthErrorCode.SIGN_IN_FAILED,
         `Microsoft sign in failed: ${error.message}`,
@@ -139,7 +145,7 @@ export class MicrosoftAuthProviderWeb extends BaseAuthProvider {
 
     try {
       const account = this.msalInstance.getAllAccounts()[0];
-      
+
       if (account) {
         const logoutRequest = {
           account,
@@ -186,16 +192,17 @@ export class MicrosoftAuthProviderWeb extends BaseAuthProvider {
         forceRefresh: true,
       };
 
-      const response = await this.msalInstance.acquireTokenSilent(silentRequest);
+      const response =
+        await this.msalInstance.acquireTokenSilent(silentRequest);
       return await this.handleAuthResponse(response);
     } catch (error: any) {
       this.logger.error('Token refresh failed', error);
-      
+
       if (error.errorCode === 'interaction_required') {
         // Need user interaction, trigger sign in
         return await this.signIn();
       }
-      
+
       throw new AuthError(
         AuthErrorCode.TOKEN_REFRESH_FAILED,
         `Token refresh failed: ${error.message}`,
@@ -250,7 +257,7 @@ export class MicrosoftAuthProviderWeb extends BaseAuthProvider {
 
   private createUserFromMSALAccount(account: any): any {
     const idTokenClaims = account.idTokenClaims || {};
-    
+
     return {
       uid: account.localAccountId || account.homeAccountId,
       email: idTokenClaims.email || account.username,
@@ -260,16 +267,20 @@ export class MicrosoftAuthProviderWeb extends BaseAuthProvider {
       phoneNumber: idTokenClaims.phone_number || null,
       isAnonymous: false,
       tenantId: account.tenantId,
-      providerData: [{
-        providerId: this.provider,
-        uid: account.localAccountId,
-        displayName: account.name,
-        email: account.username,
-        phoneNumber: null,
-        photoURL: idTokenClaims.picture || null,
-      }],
+      providerData: [
+        {
+          providerId: this.provider,
+          uid: account.localAccountId,
+          displayName: account.name,
+          email: account.username,
+          phoneNumber: null,
+          photoURL: idTokenClaims.picture || null,
+        },
+      ],
       metadata: {
-        creationTime: idTokenClaims.iat ? new Date(idTokenClaims.iat * 1000).toISOString() : undefined,
+        creationTime: idTokenClaims.iat
+          ? new Date(idTokenClaims.iat * 1000).toISOString()
+          : undefined,
         lastSignInTime: new Date().toISOString(),
       },
       customClaims: idTokenClaims,

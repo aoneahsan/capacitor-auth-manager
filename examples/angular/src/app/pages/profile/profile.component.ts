@@ -11,7 +11,7 @@ import { AuthService } from 'capacitor-auth-manager/angular';
   template: `
     <div class="card">
       <h1>User Profile</h1>
-      
+
       <div class="user-info">
         <h3>User Information</h3>
         <pre>{{ user$ | async | json }}</pre>
@@ -22,16 +22,25 @@ import { AuthService } from 'capacitor-auth-manager/angular';
         <pre>{{ authState$ | async | json }}</pre>
       </div>
 
-      <div *ngIf="tokenInfo$ | async as tokenInfo" class="user-info">
+      <div
+        *ngIf="tokenInfo$ | async as tokenInfo"
+        class="user-info"
+      >
         <h3>Token Information</h3>
-        <p><strong>Token:</strong> {{ tokenInfo.token?.substring(0, 20) }}...</p>
-        <p *ngIf="tokenInfo.expiresAt"><strong>Expires:</strong> {{ tokenInfo.expiresAt | date:'medium' }}</p>
+        <p>
+          <strong>Token:</strong> {{ tokenInfo.token?.substring(0, 20) }}...
+        </p>
+        <p *ngIf="tokenInfo.expiresAt">
+          <strong>Expires:</strong> {{ tokenInfo.expiresAt | date: 'medium' }}
+        </p>
       </div>
 
       <h3>Angular Service Demo</h3>
       <p>This page demonstrates the Angular service features:</p>
       <ul>
-        <li><code>AuthService</code> - Injectable service with RxJS observables</li>
+        <li>
+          <code>AuthService</code> - Injectable service with RxJS observables
+        </li>
         <li><code>user$</code> - Observable of current user</li>
         <li><code>isAuthenticated$</code> - Observable of auth state</li>
         <li><code>authState$</code> - Full auth state observable</li>
@@ -39,29 +48,35 @@ import { AuthService } from 'capacitor-auth-manager/angular';
       </ul>
 
       <h3>Observable State</h3>
-      <p>All service properties are RxJS observables that automatically update:</p>
+      <p>
+        All service properties are RxJS observables that automatically update:
+      </p>
       <div class="user-info">
         <pre>{{ observableDemo$ | async | json }}</pre>
       </div>
 
-      <button (click)="signOut()" class="btn btn-danger" style="margin-top: 2rem">
+      <button
+        (click)="signOut()"
+        class="btn btn-danger"
+        style="margin-top: 2rem"
+      >
         Sign Out
       </button>
     </div>
   `,
-  styles: []
+  styles: [],
 })
 export class ProfileComponent implements OnDestroy {
   user$ = this.authService.user$;
   authState$ = this.authService.authState$;
   tokenInfo$ = this.authService.getToken();
   observableDemo$ = this.authService.isAuthenticated$.pipe(
-    map(isAuthenticated => ({
+    map((isAuthenticated) => ({
       isAuthenticated,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     }))
   );
-  
+
   private subscription?: Subscription;
 
   constructor(
@@ -74,7 +89,7 @@ export class ProfileComponent implements OnDestroy {
       next: () => {
         this.router.navigate(['/']);
       },
-      error: (error) => console.error('Sign out error:', error)
+      error: (error) => console.error('Sign out error:', error),
     });
   }
 

@@ -72,7 +72,7 @@ export abstract class BaseAuthProvider implements AuthProviderInterface {
 
   protected async setCurrentUser(user: AuthUser | null): Promise<void> {
     this.currentUser = user;
-    
+
     // Persist user to storage
     const storageKey = `${this.provider}_current_user`;
     if (user) {
@@ -80,7 +80,7 @@ export abstract class BaseAuthProvider implements AuthProviderInterface {
     } else {
       await this.storage.remove(storageKey);
     }
-    
+
     // Emit auth state change
     this.authStateEmitter.emit(user);
   }
@@ -89,10 +89,12 @@ export abstract class BaseAuthProvider implements AuthProviderInterface {
     try {
       const storageKey = `${this.provider}_current_user`;
       const userData = await this.storage.get(storageKey);
-      
+
       if (userData) {
         this.currentUser = userData;
-        this.logger.debug(`Loaded user from storage for provider ${this.provider}`);
+        this.logger.debug(
+          `Loaded user from storage for provider ${this.provider}`
+        );
       }
     } catch (error) {
       this.logger.error('Failed to load user from storage', error);
@@ -108,21 +110,21 @@ export abstract class BaseAuthProvider implements AuthProviderInterface {
     try {
       const storageKey = `${this.provider}_credential`;
       const credentialData = await this.storage.get(storageKey);
-      
+
       if (credentialData) {
         return credentialData;
       }
     } catch (error) {
       this.logger.error('Failed to load credential from storage', error);
     }
-    
+
     return null;
   }
 
   protected async clearStoredData(): Promise<void> {
     const userKey = `${this.provider}_current_user`;
     const credentialKey = `${this.provider}_credential`;
-    
+
     await Promise.all([
       this.storage.remove(userKey),
       this.storage.remove(credentialKey),
@@ -170,7 +172,7 @@ export abstract class BaseAuthProvider implements AuthProviderInterface {
       // Default to 1 hour
       expiresIn = 3600;
     }
-    return Date.now() + (expiresIn * 1000);
+    return Date.now() + expiresIn * 1000;
   }
 
   dispose(): void {

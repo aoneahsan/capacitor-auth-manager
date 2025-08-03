@@ -10,39 +10,52 @@ import { AuthService } from 'capacitor-auth-manager/angular';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="card" style="max-width: 400px; margin: 0 auto">
+    <div
+      class="card"
+      style="max-width: 400px; margin: 0 auto"
+    >
       <h1>Sign In</h1>
-      
-      <div *ngIf="error" class="error-message">{{ error }}</div>
-      <div *ngIf="message" [class]="message.includes('Failed') ? 'error-message' : 'success-message'">
+
+      <div
+        *ngIf="error"
+        class="error-message"
+      >
+        {{ error }}
+      </div>
+      <div
+        *ngIf="message"
+        [class]="
+          message.includes('Failed') ? 'error-message' : 'success-message'
+        "
+      >
         {{ message }}
       </div>
 
       <div style="margin-bottom: 2rem">
         <h3>Social Login</h3>
-        <button 
-          (click)="signInWithProvider('google')" 
+        <button
+          (click)="signInWithProvider('google')"
           class="btn btn-primary btn-social"
           [disabled]="isLoading"
         >
           Sign in with Google
         </button>
-        <button 
-          (click)="signInWithProvider('github')" 
+        <button
+          (click)="signInWithProvider('github')"
           class="btn btn-primary btn-social"
           [disabled]="isLoading"
         >
           Sign in with GitHub
         </button>
-        <button 
-          (click)="signInWithProvider('facebook')" 
+        <button
+          (click)="signInWithProvider('facebook')"
           class="btn btn-primary btn-social"
           [disabled]="isLoading"
         >
           Sign in with Facebook
         </button>
-        <button 
-          (click)="signInWithProvider('microsoft')" 
+        <button
+          (click)="signInWithProvider('microsoft')"
           class="btn btn-primary btn-social"
           [disabled]="isLoading"
         >
@@ -54,9 +67,13 @@ import { AuthService } from 'capacitor-auth-manager/angular';
 
       <form (ngSubmit)="handleEmailAuth()">
         <h3>{{ isSignUp ? 'Create Account' : 'Email & Password' }}</h3>
-        
+
         <div class="form-group">
-          <label for="email" class="form-label">Email</label>
+          <label
+            for="email"
+            class="form-label"
+            >Email</label
+          >
           <input
             id="email"
             [(ngModel)]="email"
@@ -70,7 +87,11 @@ import { AuthService } from 'capacitor-auth-manager/angular';
         </div>
 
         <div class="form-group">
-          <label for="password" class="form-label">Password</label>
+          <label
+            for="password"
+            class="form-label"
+            >Password</label
+          >
           <input
             id="password"
             [(ngModel)]="password"
@@ -83,19 +104,21 @@ import { AuthService } from 'capacitor-auth-manager/angular';
           />
         </div>
 
-        <button 
-          type="submit" 
-          class="btn btn-primary" 
+        <button
+          type="submit"
+          class="btn btn-primary"
           style="width: 100%"
           [disabled]="isLoading"
         >
-          {{ isLoading ? 'Loading...' : (isSignUp ? 'Create Account' : 'Sign In') }}
+          {{
+            isLoading ? 'Loading...' : isSignUp ? 'Create Account' : 'Sign In'
+          }}
         </button>
 
         <p style="text-align: center; margin-top: 1rem">
           {{ isSignUp ? 'Already have an account?' : "Don't have an account?" }}
           {{ ' ' }}
-          <button 
+          <button
             type="button"
             (click)="isSignUp = !isSignUp"
             style="background: none; border: none; color: #1976d2; cursor: pointer; text-decoration: underline"
@@ -111,8 +134,8 @@ import { AuthService } from 'capacitor-auth-manager/angular';
       <div>
         <h3>Magic Link</h3>
         <p>Get a sign-in link sent to your email</p>
-        <button 
-          (click)="sendMagicLink()" 
+        <button
+          (click)="sendMagicLink()"
           class="btn btn-primary"
           style="width: 100%"
           [disabled]="isLoading || !email"
@@ -122,7 +145,7 @@ import { AuthService } from 'capacitor-auth-manager/angular';
       </div>
     </div>
   `,
-  styles: []
+  styles: [],
 })
 export class LoginComponent implements OnDestroy {
   email = '';
@@ -142,7 +165,7 @@ export class LoginComponent implements OnDestroy {
     this.isLoading = true;
     this.message = '';
     this.error = '';
-    
+
     const sub = this.authService.signIn(provider).subscribe({
       next: () => {
         this.router.navigate(['/profile']);
@@ -151,9 +174,9 @@ export class LoginComponent implements OnDestroy {
         console.error(`${provider} sign in error:`, err);
         this.error = `Failed to sign in with ${provider}`;
         this.isLoading = false;
-      }
+      },
     });
-    
+
     this.subscriptions.push(sub);
   }
 
@@ -161,11 +184,14 @@ export class LoginComponent implements OnDestroy {
     this.isLoading = true;
     this.message = '';
     this.error = '';
-    
-    const authMethod = this.isSignUp 
+
+    const authMethod = this.isSignUp
       ? this.authService.signUp({ email: this.email, password: this.password })
-      : this.authService.signIn('email-password', { email: this.email, password: this.password });
-    
+      : this.authService.signIn('email-password', {
+          email: this.email,
+          password: this.password,
+        });
+
     const sub = authMethod.subscribe({
       next: () => {
         if (this.isSignUp) {
@@ -178,11 +204,13 @@ export class LoginComponent implements OnDestroy {
       },
       error: (err) => {
         console.error('Email auth error:', err);
-        this.error = this.isSignUp ? 'Failed to create account' : 'Failed to sign in';
+        this.error = this.isSignUp
+          ? 'Failed to create account'
+          : 'Failed to sign in';
         this.isLoading = false;
-      }
+      },
     });
-    
+
     this.subscriptions.push(sub);
   }
 
@@ -191,27 +219,29 @@ export class LoginComponent implements OnDestroy {
       this.error = 'Please enter your email address';
       return;
     }
-    
+
     this.isLoading = true;
     this.message = '';
     this.error = '';
-    
-    const sub = this.authService.signIn('magic-link', { email: this.email }).subscribe({
-      next: () => {
-        this.message = 'Magic link sent! Check your email.';
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('Magic link error:', err);
-        this.error = 'Failed to send magic link';
-        this.isLoading = false;
-      }
-    });
-    
+
+    const sub = this.authService
+      .signIn('magic-link', { email: this.email })
+      .subscribe({
+        next: () => {
+          this.message = 'Magic link sent! Check your email.';
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.error('Magic link error:', err);
+          this.error = 'Failed to send magic link';
+          this.isLoading = false;
+        },
+      });
+
     this.subscriptions.push(sub);
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
   }
 }

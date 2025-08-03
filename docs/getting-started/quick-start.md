@@ -13,9 +13,9 @@ import { CapacitorAuthManager } from 'capacitor-auth-manager';
 await CapacitorAuthManager.initialize({
   providers: {
     google: {
-      webClientId: 'YOUR_GOOGLE_WEB_CLIENT_ID'
-    }
-  }
+      webClientId: 'YOUR_GOOGLE_WEB_CLIENT_ID',
+    },
+  },
 });
 ```
 
@@ -25,7 +25,7 @@ await CapacitorAuthManager.initialize({
 // Subscribe to auth state changes
 const authStateListener = CapacitorAuthManager.addAuthStateListener((state) => {
   console.log('Auth state changed:', state);
-  
+
   if (state.isAuthenticated) {
     console.log('User signed in:', state.user);
   } else {
@@ -42,10 +42,10 @@ const authStateListener = CapacitorAuthManager.addAuthStateListener((state) => {
 ```typescript
 async function signInWithGoogle() {
   try {
-    const result = await CapacitorAuthManager.signIn({ 
-      provider: 'google' 
+    const result = await CapacitorAuthManager.signIn({
+      provider: 'google',
     });
-    
+
     console.log('Sign in successful:', result.user);
     // User is now authenticated
   } catch (error) {
@@ -59,7 +59,7 @@ async function signInWithGoogle() {
 ```typescript
 async function getCurrentUser() {
   const authState = await CapacitorAuthManager.getCurrentUser();
-  
+
   if (authState.isAuthenticated) {
     console.log('Current user:', authState.user);
     return authState.user;
@@ -100,7 +100,7 @@ function App() {
   useEffect(() => {
     // Initialize auth manager
     initializeAuth();
-    
+
     // Set up auth state listener
     const listener = CapacitorAuthManager.addAuthStateListener((state) => {
       setUser(state.isAuthenticated ? state.user : null);
@@ -114,12 +114,12 @@ function App() {
     await CapacitorAuthManager.initialize({
       providers: {
         google: {
-          webClientId: 'YOUR_GOOGLE_WEB_CLIENT_ID'
+          webClientId: 'YOUR_GOOGLE_WEB_CLIENT_ID',
         },
         apple: {
-          clientId: 'YOUR_APPLE_CLIENT_ID'
-        }
-      }
+          clientId: 'YOUR_APPLE_CLIENT_ID',
+        },
+      },
     });
 
     // Check current auth state
@@ -156,12 +156,17 @@ function App() {
   }
 
   return (
-    <div className="app">
+    <div className='app'>
       {user ? (
         <div>
           <h1>Welcome, {user.displayName}!</h1>
           <p>Email: {user.email}</p>
-          {user.photoURL && <img src={user.photoURL} alt="Profile" />}
+          {user.photoURL && (
+            <img
+              src={user.photoURL}
+              alt='Profile'
+            />
+          )}
           <button onClick={handleSignOut}>Sign Out</button>
         </div>
       ) : (
@@ -188,14 +193,18 @@ export default App;
 <template>
   <div id="app">
     <div v-if="loading">Loading...</div>
-    
+
     <div v-else-if="user">
       <h1>Welcome, {{ user.displayName }}!</h1>
       <p>Email: {{ user.email }}</p>
-      <img v-if="user.photoURL" :src="user.photoURL" alt="Profile" />
+      <img
+        v-if="user.photoURL"
+        :src="user.photoURL"
+        alt="Profile"
+      />
       <button @click="signOut">Sign Out</button>
     </div>
-    
+
     <div v-else>
       <h1>Sign In</h1>
       <button @click="signIn('google')">Sign in with Google</button>
@@ -211,39 +220,39 @@ export default {
   data() {
     return {
       user: null,
-      loading: true
+      loading: true,
     };
   },
-  
+
   async mounted() {
     await this.initializeAuth();
-    
+
     // Listen to auth state changes
     this.authListener = CapacitorAuthManager.addAuthStateListener((state) => {
       this.user = state.isAuthenticated ? state.user : null;
     });
   },
-  
+
   beforeUnmount() {
     if (this.authListener) {
       this.authListener.remove();
     }
   },
-  
+
   methods: {
     async initializeAuth() {
       await CapacitorAuthManager.initialize({
         providers: {
           google: { webClientId: 'YOUR_GOOGLE_WEB_CLIENT_ID' },
-          apple: { clientId: 'YOUR_APPLE_CLIENT_ID' }
-        }
+          apple: { clientId: 'YOUR_APPLE_CLIENT_ID' },
+        },
       });
-      
+
       const state = await CapacitorAuthManager.getCurrentUser();
       this.user = state.isAuthenticated ? state.user : null;
       this.loading = false;
     },
-    
+
     async signIn(provider) {
       try {
         this.loading = true;
@@ -255,7 +264,7 @@ export default {
         this.loading = false;
       }
     },
-    
+
     async signOut() {
       try {
         this.loading = true;
@@ -265,8 +274,8 @@ export default {
       } finally {
         this.loading = false;
       }
-    }
-  }
+    },
+  },
 };
 </script>
 ```
@@ -282,8 +291,8 @@ await CapacitorAuthManager.initialize({
     google: { webClientId: 'YOUR_GOOGLE_CLIENT_ID' },
     facebook: { appId: 'YOUR_FACEBOOK_APP_ID' },
     apple: { clientId: 'YOUR_APPLE_CLIENT_ID' },
-    microsoft: { clientId: 'YOUR_MICROSOFT_CLIENT_ID' }
-  }
+    microsoft: { clientId: 'YOUR_MICROSOFT_CLIENT_ID' },
+  },
 });
 
 // Sign in with different providers
@@ -297,7 +306,7 @@ await CapacitorAuthManager.signIn({ provider: 'microsoft' });
 // Request additional scopes
 const result = await CapacitorAuthManager.signIn({
   provider: 'google',
-  scopes: ['https://www.googleapis.com/auth/calendar.readonly']
+  scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
 });
 ```
 
@@ -307,7 +316,7 @@ const result = await CapacitorAuthManager.signIn({
 // Try to sign in silently (without user interaction)
 try {
   const result = await CapacitorAuthManager.silentSignIn({
-    provider: 'google'
+    provider: 'google',
   });
   console.log('Silent sign in successful:', result.user);
 } catch (error) {
@@ -323,12 +332,12 @@ try {
 const authState = await CapacitorAuthManager.getCurrentUser();
 if (authState.isAuthenticated) {
   const accessToken = authState.accessToken;
-  
+
   // Use token for API calls
   const response = await fetch('https://api.example.com/user', {
     headers: {
-      'Authorization': `Bearer ${accessToken}`
-    }
+      Authorization: `Bearer ${accessToken}`,
+    },
   });
 }
 

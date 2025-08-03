@@ -22,30 +22,34 @@ interface MagicLinkOptions extends SignInOptions {
 export class MagicLinkProvider implements AuthProviderInterface {
   name = 'magic-link';
   private config: MagicLinkConfig;
-  private pendingVerification: Map<string, { email: string; expires: number }> = new Map();
+  private pendingVerification: Map<string, { email: string; expires: number }> =
+    new Map();
 
   constructor(config: MagicLinkConfig) {
     // Initialize with config
     this.config = config;
-    
+
     // Check for magic link callback on initialization
     this.checkForMagicLinkCallback();
   }
 
   async signIn(options?: MagicLinkOptions): Promise<AuthResult> {
     if (!options?.email) {
-      throw new AuthError('EMAIL_REQUIRED', 'Email is required for magic link authentication');
+      throw new AuthError(
+        'EMAIL_REQUIRED',
+        'Email is required for magic link authentication'
+      );
     }
 
     try {
       // Send magic link to email
       const token = this.generateToken();
       const magicLink = this.generateMagicLink(token);
-      
+
       // Store pending verification
       this.pendingVerification.set(token, {
         email: options.email,
-        expires: Date.now() + 15 * 60 * 1000 // 15 minutes
+        expires: Date.now() + 15 * 60 * 1000, // 15 minutes
       });
 
       // Send email via backend API
@@ -58,8 +62,8 @@ export class MagicLinkProvider implements AuthProviderInterface {
           email: options.email,
           magicLink,
           clientId: this.config.clientId,
-          template: this.config.emailTemplate
-        })
+          template: this.config.emailTemplate,
+        }),
       });
 
       if (!response.ok) {
@@ -76,8 +80,8 @@ export class MagicLinkProvider implements AuthProviderInterface {
         providerData: [],
         metadata: {
           creationTime: new Date().toISOString(),
-          lastSignInTime: new Date().toISOString()
-        }
+          lastSignInTime: new Date().toISOString(),
+        },
       };
 
       return {
@@ -85,7 +89,7 @@ export class MagicLinkProvider implements AuthProviderInterface {
         credential: {
           providerId: this.name,
           signInMethod: 'magic-link',
-          accessToken: token
+          accessToken: token,
         },
         additionalUserInfo: {
           isNewUser: false,
@@ -93,9 +97,9 @@ export class MagicLinkProvider implements AuthProviderInterface {
           profile: {
             email: options.email,
             message: 'Magic link sent. Check your email to complete sign in.',
-            pending: true
-          }
-        }
+            pending: true,
+          },
+        },
       };
     } catch (error: any) {
       throw new AuthError(
@@ -107,7 +111,7 @@ export class MagicLinkProvider implements AuthProviderInterface {
 
   async verifyMagicLink(token: string): Promise<AuthResult> {
     const pending = this.pendingVerification.get(token);
-    
+
     if (!pending) {
       throw new AuthError('INVALID_TOKEN', 'Invalid or expired magic link');
     }
@@ -128,16 +132,19 @@ export class MagicLinkProvider implements AuthProviderInterface {
           body: JSON.stringify({
             token,
             email: pending.email,
-            clientId: this.config.clientId
-          })
+            clientId: this.config.clientId,
+          }),
         });
 
         if (!response.ok) {
-          throw new AuthError('VERIFICATION_FAILED', 'Failed to verify magic link');
+          throw new AuthError(
+            'VERIFICATION_FAILED',
+            'Failed to verify magic link'
+          );
         }
 
         const data = await response.json();
-        
+
         // Create user from verified data
         const user: AuthUser = {
           uid: data.uid || this.generateUid(pending.email),
@@ -145,18 +152,20 @@ export class MagicLinkProvider implements AuthProviderInterface {
           displayName: data.displayName || pending.email.split('@')[0],
           photoURL: data.photoURL || null,
           emailVerified: true,
-          providerData: [{
-            providerId: this.name,
-            uid: data.uid || pending.email,
-            displayName: data.displayName || pending.email.split('@')[0],
-            email: pending.email,
-            phoneNumber: null,
-            photoURL: data.photoURL || null
-          }],
+          providerData: [
+            {
+              providerId: this.name,
+              uid: data.uid || pending.email,
+              displayName: data.displayName || pending.email.split('@')[0],
+              email: pending.email,
+              phoneNumber: null,
+              photoURL: data.photoURL || null,
+            },
+          ],
           metadata: {
             creationTime: data.createdAt || new Date().toISOString(),
-            lastSignInTime: new Date().toISOString()
-          }
+            lastSignInTime: new Date().toISOString(),
+          },
         };
 
         // Clean up pending verification
@@ -168,12 +177,12 @@ export class MagicLinkProvider implements AuthProviderInterface {
             providerId: this.name,
             signInMethod: 'magic-link',
             accessToken: data.accessToken || token,
-            expiresAt: data.expiresAt
+            expiresAt: data.expiresAt,
           },
           additionalUserInfo: {
             isNewUser: data.isNewUser || false,
-            providerId: this.name
-          }
+            providerId: this.name,
+          },
         };
       } else {
         // Simple verification without backend
@@ -183,18 +192,20 @@ export class MagicLinkProvider implements AuthProviderInterface {
           displayName: pending.email.split('@')[0],
           photoURL: null,
           emailVerified: true,
-          providerData: [{
-            providerId: this.name,
-            uid: pending.email,
-            displayName: pending.email.split('@')[0],
-            email: pending.email,
-            phoneNumber: null,
-            photoURL: null
-          }],
+          providerData: [
+            {
+              providerId: this.name,
+              uid: pending.email,
+              displayName: pending.email.split('@')[0],
+              email: pending.email,
+              phoneNumber: null,
+              photoURL: null,
+            },
+          ],
           metadata: {
             creationTime: new Date().toISOString(),
-            lastSignInTime: new Date().toISOString()
-          }
+            lastSignInTime: new Date().toISOString(),
+          },
         };
 
         // Clean up pending verification
@@ -205,12 +216,12 @@ export class MagicLinkProvider implements AuthProviderInterface {
           credential: {
             providerId: this.name,
             signInMethod: 'magic-link',
-            accessToken: token
+            accessToken: token,
           },
           additionalUserInfo: {
             isNewUser: true,
-            providerId: this.name
-          }
+            providerId: this.name,
+          },
         };
       }
     } catch (error: any) {
@@ -241,7 +252,9 @@ export class MagicLinkProvider implements AuthProviderInterface {
   private generateToken(): string {
     const array = new Uint8Array(32);
     crypto.getRandomValues(array);
-    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join(
+      ''
+    );
   }
 
   private generateMagicLink(token: string): string {
@@ -266,11 +279,12 @@ export class MagicLinkProvider implements AuthProviderInterface {
     if (token && provider === 'magic-link') {
       // Store token for later verification
       sessionStorage.setItem('magic-link-token', token);
-      
+
       // Clean up URL
       urlParams.delete('token');
       urlParams.delete('provider');
-      const newUrl = window.location.pathname + 
+      const newUrl =
+        window.location.pathname +
         (urlParams.toString() ? '?' + urlParams.toString() : '');
       window.history.replaceState({}, document.title, newUrl);
     }
@@ -357,5 +371,5 @@ To use Email Magic Link authentication:
    \`\`\`
 
 Note: This provider requires a backend service to send emails.
-`
+`,
 };

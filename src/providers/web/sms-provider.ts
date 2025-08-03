@@ -1,4 +1,9 @@
-import { AuthResult, AuthUser, SignInOptions, RefreshTokenOptions } from '../../definitions';
+import {
+  AuthResult,
+  AuthUser,
+  SignInOptions,
+  RefreshTokenOptions,
+} from '../../definitions';
 import { AuthError } from '../../utils/auth-error';
 import { AuthProviderInterface } from '../../core/types';
 
@@ -36,13 +41,16 @@ export class SMSProvider implements AuthProviderInterface {
       countryCode: '+1',
       codeLength: 6,
       resendDelay: 60000, // 1 minute
-      ...config
+      ...config,
     };
   }
 
   async signIn(options?: SMSOptions): Promise<AuthResult> {
     if (!options?.phoneNumber) {
-      throw new AuthError('PHONE_REQUIRED', 'Phone number is required for SMS authentication');
+      throw new AuthError(
+        'PHONE_REQUIRED',
+        'Phone number is required for SMS authentication'
+      );
     }
 
     // If code is provided, verify it
@@ -58,13 +66,15 @@ export class SMSProvider implements AuthProviderInterface {
     try {
       // Format phone number
       const formattedPhone = this.formatPhoneNumber(phoneNumber);
-      
+
       // Check if we can resend
       const existing = this.pendingVerifications.get(formattedPhone);
       if (existing && existing.lastResent) {
         const timeSinceLastResend = Date.now() - existing.lastResent;
         if (timeSinceLastResend < this.config.resendDelay!) {
-          const waitTime = Math.ceil((this.config.resendDelay! - timeSinceLastResend) / 1000);
+          const waitTime = Math.ceil(
+            (this.config.resendDelay! - timeSinceLastResend) / 1000
+          );
           throw new AuthError(
             'RESEND_DELAY',
             `Please wait ${waitTime} seconds before requesting a new code`
@@ -81,13 +91,16 @@ export class SMSProvider implements AuthProviderInterface {
         body: JSON.stringify({
           phoneNumber: formattedPhone,
           clientId: this.config.clientId,
-          codeLength: this.config.codeLength
-        })
+          codeLength: this.config.codeLength,
+        }),
       });
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({}));
-        throw new AuthError('SEND_CODE_FAILED', error.message || 'Failed to send SMS code');
+        throw new AuthError(
+          'SEND_CODE_FAILED',
+          error.message || 'Failed to send SMS code'
+        );
       }
 
       const data = await response.json();
@@ -98,7 +111,7 @@ export class SMSProvider implements AuthProviderInterface {
         sessionId: data.sessionId,
         expires: Date.now() + 10 * 60 * 1000, // 10 minutes
         attempts: 0,
-        lastResent: Date.now()
+        lastResent: Date.now(),
       });
 
       // Return partial auth result for pending state
@@ -113,8 +126,8 @@ export class SMSProvider implements AuthProviderInterface {
         providerData: [],
         metadata: {
           creationTime: new Date().toISOString(),
-          lastSignInTime: new Date().toISOString()
-        }
+          lastSignInTime: new Date().toISOString(),
+        },
       };
 
       return {
@@ -122,7 +135,7 @@ export class SMSProvider implements AuthProviderInterface {
         credential: {
           providerId: this.name,
           signInMethod: 'sms',
-          accessToken: data.sessionId
+          accessToken: data.sessionId,
         },
         additionalUserInfo: {
           isNewUser: false,
@@ -131,9 +144,9 @@ export class SMSProvider implements AuthProviderInterface {
             phoneNumber: formattedPhone,
             sessionId: data.sessionId,
             message: `SMS code sent to ${this.maskPhoneNumber(formattedPhone)}`,
-            pending: true
-          }
-        }
+            pending: true,
+          },
+        },
       };
     } catch (error: any) {
       if (error instanceof AuthError) throw error;
@@ -144,12 +157,18 @@ export class SMSProvider implements AuthProviderInterface {
     }
   }
 
-  private async verifyCode(phoneNumber: string, code: string): Promise<AuthResult> {
+  private async verifyCode(
+    phoneNumber: string,
+    code: string
+  ): Promise<AuthResult> {
     const formattedPhone = this.formatPhoneNumber(phoneNumber);
     const pending = this.pendingVerifications.get(formattedPhone);
 
     if (!pending) {
-      throw new AuthError('NO_PENDING_VERIFICATION', 'No pending SMS verification found');
+      throw new AuthError(
+        'NO_PENDING_VERIFICATION',
+        'No pending SMS verification found'
+      );
     }
 
     if (Date.now() > pending.expires) {
@@ -176,8 +195,8 @@ export class SMSProvider implements AuthProviderInterface {
           phoneNumber: formattedPhone,
           code,
           sessionId: pending.sessionId,
-          clientId: this.config.clientId
-        })
+          clientId: this.config.clientId,
+        }),
       });
 
       if (!response.ok) {
@@ -185,7 +204,10 @@ export class SMSProvider implements AuthProviderInterface {
         if (response.status === 401) {
           throw new AuthError('INVALID_CODE', 'Invalid SMS code');
         }
-        throw new AuthError('VERIFICATION_FAILED', error.message || 'Failed to verify SMS code');
+        throw new AuthError(
+          'VERIFICATION_FAILED',
+          error.message || 'Failed to verify SMS code'
+        );
       }
 
       const data = await response.json();
@@ -198,18 +220,20 @@ export class SMSProvider implements AuthProviderInterface {
         photoURL: data.photoURL || null,
         phoneNumber: formattedPhone,
         emailVerified: false,
-        providerData: [{
-          providerId: this.name,
-          uid: data.uid || phoneNumber,
-          displayName: phoneNumber,
-          email: null,
-          phoneNumber: phoneNumber,
-          photoURL: null
-        }],
+        providerData: [
+          {
+            providerId: this.name,
+            uid: data.uid || phoneNumber,
+            displayName: phoneNumber,
+            email: null,
+            phoneNumber: phoneNumber,
+            photoURL: null,
+          },
+        ],
         metadata: {
           creationTime: data.createdAt || new Date().toISOString(),
-          lastSignInTime: new Date().toISOString()
-        }
+          lastSignInTime: new Date().toISOString(),
+        },
       };
 
       // Clean up pending verification
@@ -222,12 +246,12 @@ export class SMSProvider implements AuthProviderInterface {
           signInMethod: 'sms',
           accessToken: data.accessToken,
           refreshToken: data.refreshToken,
-          expiresAt: data.expiresAt
+          expiresAt: data.expiresAt,
         },
         additionalUserInfo: {
           isNewUser: data.isNewUser || false,
-          providerId: this.name
-        }
+          providerId: this.name,
+        },
       };
     } catch (error: any) {
       if (error instanceof AuthError) throw error;
@@ -259,7 +283,7 @@ export class SMSProvider implements AuthProviderInterface {
   private formatPhoneNumber(phoneNumber: string): string {
     // Remove all non-numeric characters
     let cleaned = phoneNumber.replace(/\D/g, '');
-    
+
     // Add country code if not present
     if (!phoneNumber.startsWith('+')) {
       if (cleaned.length === 10) {
@@ -268,7 +292,7 @@ export class SMSProvider implements AuthProviderInterface {
       }
       cleaned = this.config.countryCode!.replace('+', '') + cleaned;
     }
-    
+
     return '+' + cleaned;
   }
 
@@ -289,10 +313,13 @@ export class SMSProvider implements AuthProviderInterface {
   }
 
   // Public method to check if can resend
-  canResendCode(phoneNumber: string): { canResend: boolean; waitTime?: number } {
+  canResendCode(phoneNumber: string): {
+    canResend: boolean;
+    waitTime?: number;
+  } {
     const formattedPhone = this.formatPhoneNumber(phoneNumber);
     const pending = this.pendingVerifications.get(formattedPhone);
-    
+
     if (!pending || !pending.lastResent) {
       return { canResend: true };
     }
@@ -301,7 +328,9 @@ export class SMSProvider implements AuthProviderInterface {
     if (timeSinceLastResend < this.config.resendDelay!) {
       return {
         canResend: false,
-        waitTime: Math.ceil((this.config.resendDelay! - timeSinceLastResend) / 1000)
+        waitTime: Math.ceil(
+          (this.config.resendDelay! - timeSinceLastResend) / 1000
+        ),
       };
     }
 
@@ -381,5 +410,5 @@ To use SMS authentication:
 
 Note: This provider requires a backend service to send SMS messages.
 You'll need to integrate with an SMS service like Twilio, AWS SNS, etc.
-`
+`,
 };

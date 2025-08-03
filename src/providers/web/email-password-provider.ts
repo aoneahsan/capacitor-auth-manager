@@ -1,4 +1,10 @@
-import { AuthResult, AuthUser, SignInOptions, SignUpOptions, RefreshTokenOptions } from '../../definitions';
+import {
+  AuthResult,
+  AuthUser,
+  SignInOptions,
+  SignUpOptions,
+  RefreshTokenOptions,
+} from '../../definitions';
 import { AuthError } from '../../utils/auth-error';
 import { AuthProviderInterface } from '../../core/types';
 
@@ -43,15 +49,18 @@ export class EmailPasswordProvider implements AuthProviderInterface {
         requireUppercase: true,
         requireLowercase: true,
         requireNumbers: true,
-        requireSpecialChars: false
+        requireSpecialChars: false,
       },
-      ...config
+      ...config,
     };
   }
 
   async signIn(options?: EmailPasswordSignInOptions): Promise<AuthResult> {
     if (!options?.email || !options?.password) {
-      throw new AuthError('CREDENTIALS_REQUIRED', 'Email and password are required');
+      throw new AuthError(
+        'CREDENTIALS_REQUIRED',
+        'Email and password are required'
+      );
     }
 
     try {
@@ -63,16 +72,22 @@ export class EmailPasswordProvider implements AuthProviderInterface {
         body: JSON.stringify({
           email: options.email,
           password: options.password,
-          clientId: this.config.clientId
-        })
+          clientId: this.config.clientId,
+        }),
       });
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({}));
         if (response.status === 401) {
-          throw new AuthError('INVALID_CREDENTIALS', 'Invalid email or password');
+          throw new AuthError(
+            'INVALID_CREDENTIALS',
+            'Invalid email or password'
+          );
         }
-        throw new AuthError('SIGN_IN_FAILED', error.message || 'Failed to sign in');
+        throw new AuthError(
+          'SIGN_IN_FAILED',
+          error.message || 'Failed to sign in'
+        );
       }
 
       const data = await response.json();
@@ -84,18 +99,20 @@ export class EmailPasswordProvider implements AuthProviderInterface {
         displayName: data.displayName || data.email.split('@')[0],
         photoURL: data.photoURL || null,
         emailVerified: data.emailVerified || false,
-        providerData: [{
-          providerId: this.name,
-          uid: data.uid,
-          displayName: data.displayName || data.email.split('@')[0],
-          email: data.email,
-          phoneNumber: null,
-          photoURL: data.photoURL || null
-        }],
+        providerData: [
+          {
+            providerId: this.name,
+            uid: data.uid,
+            displayName: data.displayName || data.email.split('@')[0],
+            email: data.email,
+            phoneNumber: null,
+            photoURL: data.photoURL || null,
+          },
+        ],
         metadata: {
           creationTime: data.createdAt || new Date().toISOString(),
-          lastSignInTime: new Date().toISOString()
-        }
+          lastSignInTime: new Date().toISOString(),
+        },
       };
 
       // Store auth state
@@ -110,12 +127,12 @@ export class EmailPasswordProvider implements AuthProviderInterface {
           signInMethod: 'password',
           accessToken: data.accessToken,
           refreshToken: data.refreshToken,
-          expiresAt: data.expiresAt
+          expiresAt: data.expiresAt,
         },
         additionalUserInfo: {
           isNewUser: false,
-          providerId: this.name
-        }
+          providerId: this.name,
+        },
       };
     } catch (error: any) {
       if (error instanceof AuthError) throw error;
@@ -132,7 +149,10 @@ export class EmailPasswordProvider implements AuthProviderInterface {
     }
 
     if (!options?.email || !options?.password) {
-      throw new AuthError('CREDENTIALS_REQUIRED', 'Email and password are required');
+      throw new AuthError(
+        'CREDENTIALS_REQUIRED',
+        'Email and password are required'
+      );
     }
 
     // Validate email
@@ -157,8 +177,8 @@ export class EmailPasswordProvider implements AuthProviderInterface {
           password: options.password,
           displayName: options.displayName,
           photoURL: options.photoURL,
-          clientId: this.config.clientId
-        })
+          clientId: this.config.clientId,
+        }),
       });
 
       if (!response.ok) {
@@ -166,7 +186,10 @@ export class EmailPasswordProvider implements AuthProviderInterface {
         if (response.status === 409) {
           throw new AuthError('EMAIL_EXISTS', 'Email already in use');
         }
-        throw new AuthError('SIGN_UP_FAILED', error.message || 'Failed to create account');
+        throw new AuthError(
+          'SIGN_UP_FAILED',
+          error.message || 'Failed to create account'
+        );
       }
 
       const data = await response.json();
@@ -178,18 +201,20 @@ export class EmailPasswordProvider implements AuthProviderInterface {
         displayName: options.displayName || data.email.split('@')[0],
         photoURL: options.photoURL || null,
         emailVerified: false,
-        providerData: [{
-          providerId: this.name,
-          uid: data.uid,
-          displayName: data.displayName || data.email.split('@')[0],
-          email: data.email,
-          phoneNumber: null,
-          photoURL: data.photoURL || null
-        }],
+        providerData: [
+          {
+            providerId: this.name,
+            uid: data.uid,
+            displayName: data.displayName || data.email.split('@')[0],
+            email: data.email,
+            phoneNumber: null,
+            photoURL: data.photoURL || null,
+          },
+        ],
         metadata: {
           creationTime: new Date().toISOString(),
-          lastSignInTime: new Date().toISOString()
-        }
+          lastSignInTime: new Date().toISOString(),
+        },
       };
 
       // Store auth state
@@ -204,12 +229,12 @@ export class EmailPasswordProvider implements AuthProviderInterface {
           signInMethod: 'password',
           accessToken: data.accessToken,
           refreshToken: data.refreshToken,
-          expiresAt: data.expiresAt
+          expiresAt: data.expiresAt,
         },
         additionalUserInfo: {
           isNewUser: true,
-          providerId: this.name
-        }
+          providerId: this.name,
+        },
       };
     } catch (error: any) {
       if (error instanceof AuthError) throw error;
@@ -226,12 +251,12 @@ export class EmailPasswordProvider implements AuthProviderInterface {
         await fetch(`${this.config.apiUrl}/auth/signout`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${this.authToken}`,
-            'Content-Type': 'application/json'
+            Authorization: `Bearer ${this.authToken}`,
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            clientId: this.config.clientId
-          })
+            clientId: this.config.clientId,
+          }),
         });
       } catch {
         // Ignore signout errors
@@ -260,8 +285,8 @@ export class EmailPasswordProvider implements AuthProviderInterface {
         },
         body: JSON.stringify({
           refreshToken: this.refreshTokenValue,
-          clientId: this.config.clientId
-        })
+          clientId: this.config.clientId,
+        }),
       });
 
       if (!response.ok) {
@@ -283,8 +308,8 @@ export class EmailPasswordProvider implements AuthProviderInterface {
           signInMethod: 'password',
           accessToken: data.accessToken,
           refreshToken: data.refreshToken,
-          expiresAt: data.expiresAt
-        }
+          expiresAt: data.expiresAt,
+        },
       };
     } catch (error: any) {
       if (error instanceof AuthError) throw error;
@@ -295,7 +320,10 @@ export class EmailPasswordProvider implements AuthProviderInterface {
     }
   }
 
-  async updatePassword(currentPassword: string, newPassword: string): Promise<void> {
+  async updatePassword(
+    currentPassword: string,
+    newPassword: string
+  ): Promise<void> {
     if (!this.currentUser || !this.authToken) {
       throw new AuthError('NOT_AUTHENTICATED', 'User not authenticated');
     }
@@ -307,25 +335,34 @@ export class EmailPasswordProvider implements AuthProviderInterface {
     }
 
     try {
-      const response = await fetch(`${this.config.apiUrl}/auth/update-password`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.authToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-          clientId: this.config.clientId
-        })
-      });
+      const response = await fetch(
+        `${this.config.apiUrl}/auth/update-password`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${this.authToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            currentPassword,
+            newPassword,
+            clientId: this.config.clientId,
+          }),
+        }
+      );
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({}));
         if (response.status === 401) {
-          throw new AuthError('INVALID_PASSWORD', 'Current password is incorrect');
+          throw new AuthError(
+            'INVALID_PASSWORD',
+            'Current password is incorrect'
+          );
         }
-        throw new AuthError('UPDATE_FAILED', error.message || 'Failed to update password');
+        throw new AuthError(
+          'UPDATE_FAILED',
+          error.message || 'Failed to update password'
+        );
       }
     } catch (error: any) {
       if (error instanceof AuthError) throw error;
@@ -342,20 +379,26 @@ export class EmailPasswordProvider implements AuthProviderInterface {
     }
 
     try {
-      const response = await fetch(`${this.config.apiUrl}/auth/reset-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          clientId: this.config.clientId
-        })
-      });
+      const response = await fetch(
+        `${this.config.apiUrl}/auth/reset-password`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email,
+            clientId: this.config.clientId,
+          }),
+        }
+      );
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({}));
-        throw new AuthError('RESET_FAILED', error.message || 'Failed to send reset email');
+        throw new AuthError(
+          'RESET_FAILED',
+          error.message || 'Failed to send reset email'
+        );
       }
     } catch (error: any) {
       if (error instanceof AuthError) throw error;
@@ -379,17 +422,20 @@ export class EmailPasswordProvider implements AuthProviderInterface {
       const response = await fetch(`${this.config.apiUrl}/auth/verify-email`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.authToken}`,
+          Authorization: `Bearer ${this.authToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          clientId: this.config.clientId
-        })
+          clientId: this.config.clientId,
+        }),
       });
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({}));
-        throw new AuthError('VERIFICATION_FAILED', error.message || 'Failed to send verification email');
+        throw new AuthError(
+          'VERIFICATION_FAILED',
+          error.message || 'Failed to send verification email'
+        );
       }
     } catch (error: any) {
       if (error instanceof AuthError) throw error;
@@ -424,7 +470,10 @@ export class EmailPasswordProvider implements AuthProviderInterface {
       return 'Password must contain at least one number';
     }
 
-    if (requirements.requireSpecialChars && !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    if (
+      requirements.requireSpecialChars &&
+      !/[!@#$%^&*(),.?":{}|<>]/.test(password)
+    ) {
       return 'Password must contain at least one special character';
     }
 
@@ -515,5 +564,5 @@ To use Email/Password authentication:
    \`\`\`
 
 Note: This provider requires a backend service to handle authentication.
-`
+`,
 };

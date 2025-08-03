@@ -65,8 +65,8 @@ export const AUTH_PROVIDERS = {
   ...AuthProvider,
   'magic-link': AuthProvider.MAGIC_LINK,
   'email-password': AuthProvider.EMAIL_PASSWORD,
-  'sms': AuthProvider.SMS,
-  'biometric': AuthProvider.BIOMETRIC,
+  sms: AuthProvider.SMS,
+  biometric: AuthProvider.BIOMETRIC,
 } as const;
 
 export type ProviderOptions =
@@ -141,7 +141,11 @@ export interface FacebookAuthOptions {
   scopes?: string[];
   fields?: string[];
   version?: string;
-  loginBehavior?: 'native_with_fallback' | 'native_only' | 'web_only' | 'web_view_only';
+  loginBehavior?:
+    | 'native_with_fallback'
+    | 'native_only'
+    | 'web_only'
+    | 'web_view_only';
   defaultAudience?: 'friends' | 'only_me' | 'everyone';
   limitedLogin?: boolean;
   authType?: string;

@@ -13,10 +13,7 @@ export interface AuthModuleConfig {
 
 @NgModule({
   imports: [CommonModule],
-  providers: [
-    AuthService,
-    AuthProviderFactory
-  ]
+  providers: [AuthService, AuthProviderFactory],
 })
 export class AuthModule {
   static forRoot(config?: AuthModuleConfig): ModuleWithProviders<AuthModule> {
@@ -27,9 +24,9 @@ export class AuthModule {
         AuthProviderFactory,
         {
           provide: 'AUTH_CONFIG',
-          useValue: config || {}
-        }
-      ]
+          useValue: config || {},
+        },
+      ],
     };
   }
 

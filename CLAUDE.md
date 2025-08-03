@@ -9,6 +9,7 @@ This is a Capacitor plugin project called "Capacitor Auth Manager" that provides
 ## Commands
 
 ### Development Commands
+
 - **Build**: `npm run build` - Cleans, compiles TypeScript, and bundles with Rollup
 - **Clean**: `npm run clean` - Removes the dist directory
 - **TypeScript Compile**: `npm run tsc` - Compiles TypeScript files
@@ -19,11 +20,13 @@ This is a Capacitor plugin project called "Capacitor Auth Manager" that provides
 - **Configure**: `npm run configure` - Interactive configuration script for setting up auth providers
 
 ### Package Manager
+
 This project uses Yarn. Install dependencies with `yarn install`.
 
 ## Architecture
 
 ### Project Structure
+
 - **src/**: TypeScript source code for the plugin
   - `definitions.ts`: Plugin interface definitions
   - `index.ts`: Main entry point
@@ -33,6 +36,7 @@ This project uses Yarn. Install dependencies with `yarn install`.
 - **dist/**: Build output directory
 
 ### Build System
+
 - **TypeScript**: Targets ES2017, strict mode enabled
 - **Rollup**: Creates IIFE and CommonJS bundles
 - **Output formats**:
@@ -41,6 +45,7 @@ This project uses Yarn. Install dependencies with `yarn install`.
   - IIFE bundle in `dist/plugin.js`
 
 ### Authentication Providers to Implement
+
 1. Firebase Auth
 2. Google Auth
 3. Apple Auth
@@ -56,6 +61,7 @@ This project uses Yarn. Install dependencies with `yarn install`.
 13. Biometric Auth (using capacitor-biometric-authentication package)
 
 ### Key Requirements
+
 - **Subscribable Auth State**: Must provide observable authentication state
 - **Official SDKs Only**: Use only official provider SDKs/APIs, no unofficial packages
 - **Framework Independent**: Should work with any JavaScript framework
@@ -64,6 +70,7 @@ This project uses Yarn. Install dependencies with `yarn install`.
 - **Performance**: Optimize for minimal overhead and fast authentication flows
 
 ### Code Style
+
 - ESLint configuration with TypeScript support
 - Prettier formatting with single quotes, 2-space indentation
 - No trailing commas in ES5 style

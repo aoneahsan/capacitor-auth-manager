@@ -3,10 +3,15 @@ import { BehaviorSubject, Observable, from, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { auth } from '../core/auth-manager';
 import type { AuthState } from '../core/types';
-import type { AuthUser, AuthResult, SignInOptions, SignOutOptions } from '../definitions';
+import type {
+  AuthUser,
+  AuthResult,
+  SignInOptions,
+  SignOutOptions,
+} from '../definitions';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService implements OnDestroy {
   private stateSubject: BehaviorSubject<AuthState>;
@@ -26,10 +31,12 @@ export class AuthService implements OnDestroy {
 
     // Set up observables
     this.state$ = this.stateSubject.asObservable();
-    this.user$ = this.state$.pipe(map(state => state.user));
-    this.isAuthenticated$ = this.state$.pipe(map(state => state.isAuthenticated));
-    this.isLoading$ = this.state$.pipe(map(state => state.isLoading));
-    this.provider$ = this.state$.pipe(map(state => state.provider));
+    this.user$ = this.state$.pipe(map((state) => state.user));
+    this.isAuthenticated$ = this.state$.pipe(
+      map((state) => state.isAuthenticated)
+    );
+    this.isLoading$ = this.state$.pipe(map((state) => state.isLoading));
+    this.provider$ = this.state$.pipe(map((state) => state.provider));
 
     // Subscribe to auth state changes
     this.unsubscribe = auth.onAuthStateChange((newState) => {
@@ -63,7 +70,7 @@ export class AuthService implements OnDestroy {
    */
   signIn(providerOrOptions: string | SignInOptions): Observable<AuthResult> {
     return from(auth.signIn(providerOrOptions)).pipe(
-      catchError(error => throwError(() => error))
+      catchError((error) => throwError(() => error))
     );
   }
 
@@ -72,7 +79,7 @@ export class AuthService implements OnDestroy {
    */
   signOut(options?: SignOutOptions): Observable<void> {
     return from(auth.signOut(options)).pipe(
-      catchError(error => throwError(() => error))
+      catchError((error) => throwError(() => error))
     );
   }
 
@@ -81,7 +88,7 @@ export class AuthService implements OnDestroy {
    */
   refreshToken(provider?: string): Observable<AuthResult> {
     return from(auth.refreshToken(provider)).pipe(
-      catchError(error => throwError(() => error))
+      catchError((error) => throwError(() => error))
     );
   }
 
@@ -157,14 +164,14 @@ export class AuthProviderService {
   signIn(options?: any): Observable<AuthResult> {
     return this.authService.signIn({
       provider: this.provider as any,
-      options
+      options,
     });
   }
 
   signOut(options?: any): Observable<void> {
     return this.authService.signOut({
       ...options,
-      provider: this.provider
+      provider: this.provider,
     });
   }
 
@@ -177,7 +184,7 @@ export class AuthProviderService {
  * Factory for creating provider-specific services
  */
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthProviderFactory {
   constructor(private authService: AuthService) {}

@@ -27,6 +27,7 @@ interface AuthState {
 ### Properties
 
 #### `isAuthenticated: boolean`
+
 Indicates whether the user is currently authenticated.
 
 ```typescript
@@ -39,6 +40,7 @@ if (authState.isAuthenticated) {
 ```
 
 #### `user: User | null`
+
 Contains the user information when authenticated, `null` otherwise.
 
 ```typescript
@@ -60,6 +62,7 @@ interface User {
 ```
 
 #### `provider: string | null`
+
 The primary authentication provider used for the current session.
 
 ```typescript
@@ -68,6 +71,7 @@ console.log('Primary provider:', authState.provider); // 'google', 'apple', etc.
 ```
 
 #### `accessToken: string | null`
+
 The current access token for API requests.
 
 ```typescript
@@ -76,13 +80,14 @@ if (authState.accessToken) {
   // Use token for API requests
   const response = await fetch('/api/user', {
     headers: {
-      'Authorization': `Bearer ${authState.accessToken}`
-    }
+      Authorization: `Bearer ${authState.accessToken}`,
+    },
   });
 }
 ```
 
 #### `idToken: string | null`
+
 The ID token containing user identity information (when available).
 
 ```typescript
@@ -95,6 +100,7 @@ if (authState.idToken) {
 ```
 
 #### `refreshToken: string | null`
+
 The refresh token for obtaining new access tokens.
 
 ```typescript
@@ -105,6 +111,7 @@ console.log('Has refresh token:', !!authState.refreshToken);
 ```
 
 #### `expiresAt: number | null`
+
 Timestamp when the access token expires (Unix timestamp in milliseconds).
 
 ```typescript
@@ -112,13 +119,14 @@ const authState = await CapacitorAuthManager.getCurrentUser();
 if (authState.expiresAt) {
   const expirationDate = new Date(authState.expiresAt);
   console.log('Token expires at:', expirationDate.toLocaleString());
-  
+
   const isExpired = Date.now() > authState.expiresAt;
   console.log('Token is expired:', isExpired);
 }
 ```
 
 #### `linkedProviders: string[]`
+
 Array of all linked authentication providers.
 
 ```typescript
@@ -128,6 +136,7 @@ console.log('Linked providers:', authState.linkedProviders);
 ```
 
 #### `lastUpdated: number`
+
 Timestamp when the auth state was last updated.
 
 ```typescript
@@ -155,7 +164,7 @@ The most powerful feature is the ability to listen for real-time auth state chan
 ```typescript
 const listener = CapacitorAuthManager.addAuthStateListener((authState) => {
   console.log('Auth state changed:', authState);
-  
+
   if (authState.isAuthenticated) {
     console.log('User signed in:', authState.user);
     // Update UI to show authenticated state
@@ -217,7 +226,7 @@ function MyComponent() {
   const { authState, loading } = useAuthState();
 
   if (loading) return <div>Loading...</div>;
-  
+
   return (
     <div>
       {authState?.isAuthenticated ? (
@@ -277,7 +286,7 @@ export function useAuthState() {
     loading.value = false;
 
     // Listen for changes
-    listener = CapacitorAuthManager.addAuthStateListener(state => {
+    listener = CapacitorAuthManager.addAuthStateListener((state) => {
       authState.value = state;
       loading.value = false;
     });
@@ -302,9 +311,7 @@ export function useAuthState() {
     <div v-else-if="authState?.isAuthenticated">
       Welcome, {{ authState.user?.displayName }}!
     </div>
-    <div v-else>
-      Please sign in
-    </div>
+    <div v-else>Please sign in</div>
   </div>
 </template>
 
@@ -325,7 +332,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { CapacitorAuthManager, AuthState } from 'capacitor-auth-manager';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
   private authStateSubject = new BehaviorSubject<AuthState | null>(null);
@@ -341,7 +348,7 @@ export class AuthService {
     this.authStateSubject.next(initialState);
 
     // Listen for changes
-    CapacitorAuthManager.addAuthStateListener(state => {
+    CapacitorAuthManager.addAuthStateListener((state) => {
       this.authStateSubject.next(state);
     });
   }
@@ -369,11 +376,9 @@ import { AuthService } from './auth.service';
       <div *ngIf="authState.isAuthenticated">
         Welcome, {{ authState.user?.displayName }}!
       </div>
-      <div *ngIf="!authState.isAuthenticated">
-        Please sign in
-      </div>
+      <div *ngIf="!authState.isAuthenticated">Please sign in</div>
     </div>
-  `
+  `,
 })
 export class ProfileComponent {
   constructor(public authService: AuthService) {}
@@ -383,6 +388,7 @@ export class ProfileComponent {
 ## Best Practices
 
 ### 1. Always Remove Listeners
+
 ```typescript
 // Good
 const listener = CapacitorAuthManager.addAuthStateListener(callback);
@@ -395,6 +401,7 @@ CapacitorAuthManager.addAuthStateListener(callback);
 ```
 
 ### 2. Handle Loading States
+
 ```typescript
 // Good
 const [loading, setLoading] = useState(true);
@@ -404,7 +411,7 @@ useEffect(() => {
     setAuthState(state);
     setLoading(false); // Set loading to false when state is received
   });
-  
+
   return () => listener.remove();
 }, []);
 
@@ -412,6 +419,7 @@ if (loading) return <div>Loading...</div>;
 ```
 
 ### 3. Use State for UI Decisions
+
 ```typescript
 // Good - reactive UI
 const { authState } = useAuthState();
@@ -428,10 +436,12 @@ return (
 ```
 
 ### 4. Check Token Expiration
+
 ```typescript
 // Good
-const isTokenExpired = authState?.expiresAt ? 
-  Date.now() > authState.expiresAt : true;
+const isTokenExpired = authState?.expiresAt
+  ? Date.now() > authState.expiresAt
+  : true;
 
 if (isTokenExpired) {
   // Handle token refresh or re-authentication
@@ -441,12 +451,13 @@ if (isTokenExpired) {
 ## Common Patterns
 
 ### Protected Route Component
+
 ```typescript
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { authState, loading } = useAuthState();
 
   if (loading) return <div>Loading...</div>;
-  
+
   if (!authState?.isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
@@ -456,6 +467,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 ```
 
 ### Auto-refresh Token
+
 ```typescript
 useEffect(() => {
   if (!authState?.isAuthenticated) return;
@@ -475,17 +487,20 @@ useEffect(() => {
 ## Troubleshooting
 
 ### State Not Updating
+
 - Ensure listener is properly added
 - Check if listener is removed too early
 - Verify plugin is properly initialized
 
 ### Memory Leaks
+
 - Always remove listeners in cleanup
 - Use useEffect cleanup in React
 - Use onUnmounted in Vue
 - Use ngOnDestroy in Angular
 
 ### Initial State Issues
+
 - Get initial state before adding listener
 - Handle loading states properly
 - Check for null/undefined values

@@ -82,7 +82,7 @@ After installation, you need to configure each platform:
 ```gradle
 dependencies {
     implementation 'capacitor-auth-manager:latest'
-    
+
     // Add provider-specific dependencies
     implementation 'com.google.android.gms:play-services-auth:20.7.0'
     implementation 'com.facebook.android:facebook-login:latest.release'
@@ -108,7 +108,7 @@ dependencies {
         <action android:name="android.intent.action.VIEW" />
         <category android:name="android.intent.category.DEFAULT" />
         <category android:name="android.intent.category.BROWSABLE" />
-        
+
         <!-- Add your OAuth redirect schemes -->
         <data android:scheme="YOUR_APP_SCHEME" />
     </intent-filter>
@@ -131,11 +131,19 @@ For web platform, include the provider SDKs in your HTML:
 
 ```html
 <!-- Google Sign-In -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script
+  src="https://accounts.google.com/gsi/client"
+  async
+  defer
+></script>
 
 <!-- Facebook SDK -->
-<script async defer crossorigin="anonymous" 
-        src="https://connect.facebook.net/en_US/sdk.js"></script>
+<script
+  async
+  defer
+  crossorigin="anonymous"
+  src="https://connect.facebook.net/en_US/sdk.js"
+></script>
 
 <!-- Microsoft Identity -->
 <script src="https://alcdn.msauth.net/browser/2.30.0/js/msal-browser.min.js"></script>
@@ -156,32 +164,32 @@ export const authConfig = {
     google: {
       webClientId: 'YOUR_GOOGLE_WEB_CLIENT_ID',
       offlineAccess: true,
-      scopes: ['profile', 'email']
+      scopes: ['profile', 'email'],
     },
     apple: {
       clientId: 'YOUR_APPLE_CLIENT_ID',
       redirectURI: 'YOUR_REDIRECT_URI',
-      scopes: ['name', 'email']
+      scopes: ['name', 'email'],
     },
     facebook: {
       appId: 'YOUR_FACEBOOK_APP_ID',
-      permissions: ['public_profile', 'email']
+      permissions: ['public_profile', 'email'],
     },
     microsoft: {
       clientId: 'YOUR_MICROSOFT_CLIENT_ID',
       redirectUri: 'YOUR_REDIRECT_URI',
-      scopes: ['openid', 'profile', 'email']
+      scopes: ['openid', 'profile', 'email'],
     },
     github: {
       clientId: 'YOUR_GITHUB_CLIENT_ID',
       redirectUri: 'YOUR_REDIRECT_URI',
-      scopes: ['read:user', 'user:email']
+      scopes: ['read:user', 'user:email'],
     },
     firebase: {
       apiKey: 'YOUR_FIREBASE_API_KEY',
-      authDomain: 'YOUR_FIREBASE_AUTH_DOMAIN'
-    }
-  }
+      authDomain: 'YOUR_FIREBASE_AUTH_DOMAIN',
+    },
+  },
 };
 
 // Initialize the plugin

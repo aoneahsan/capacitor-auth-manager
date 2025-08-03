@@ -15,6 +15,7 @@ Version 2.0 brings significant improvements to the capacitor-auth-manager packag
 ### 1. New Import Structure
 
 **Before (v1.x):**
+
 ```typescript
 import { CapacitorAuthManager } from 'capacitor-auth-manager';
 
@@ -25,6 +26,7 @@ await auth.initialize({
 ```
 
 **After (v2.0):**
+
 ```typescript
 // Direct singleton import
 import { auth } from 'capacitor-auth-manager';
@@ -33,14 +35,15 @@ import { auth } from 'capacitor-auth-manager';
 auth.configure({
   providers: {
     google: { clientId: '...' },
-    apple: { clientId: '...' }
-  }
+    apple: { clientId: '...' },
+  },
 });
 ```
 
 ### 2. Provider Configuration
 
 **Before (v1.x):**
+
 ```typescript
 await auth.initialize({
   providers: [
@@ -48,28 +51,30 @@ await auth.initialize({
       provider: AuthProvider.GOOGLE,
       options: {
         clientId: '...',
-        scopes: ['email', 'profile']
-      }
-    }
-  ]
+        scopes: ['email', 'profile'],
+      },
+    },
+  ],
 });
 ```
 
 **After (v2.0):**
+
 ```typescript
 auth.configure({
   providers: {
     google: {
       clientId: '...',
-      scopes: ['email', 'profile']
-    }
-  }
+      scopes: ['email', 'profile'],
+    },
+  },
 });
 ```
 
 ### 3. Sign In API
 
 **Before (v1.x):**
+
 ```typescript
 const result = await auth.signIn({
   provider: AuthProvider.GOOGLE,
@@ -78,6 +83,7 @@ const result = await auth.signIn({
 ```
 
 **After (v2.0):**
+
 ```typescript
 // Simple string for provider
 const result = await auth.signIn('google');
@@ -92,6 +98,7 @@ const result = await auth.signIn({
 ### 4. React Integration
 
 **Before (v1.x):**
+
 ```tsx
 // Required provider setup
 <AuthProvider config={...}>
@@ -103,6 +110,7 @@ const auth = useContext(AuthContext);
 ```
 
 **After (v2.0):**
+
 ```tsx
 // No provider needed!
 import { useAuth } from 'capacitor-auth-manager/react';
@@ -131,6 +139,7 @@ import { GoogleAuth } from 'capacitor-auth-manager/providers/google';
 ### 2. Framework-Specific Hooks
 
 #### React
+
 ```tsx
 import { useAuth, useAuthState, useUser } from 'capacitor-auth-manager/react';
 
@@ -142,6 +151,7 @@ function App() {
 ```
 
 #### Vue (Coming Soon)
+
 ```vue
 <script setup>
 import { useAuth } from 'capacitor-auth-manager/vue';
@@ -151,6 +161,7 @@ const { user, signIn, signOut } = useAuth();
 ```
 
 #### Angular (Coming Soon)
+
 ```typescript
 import { AuthService } from 'capacitor-auth-manager/angular';
 
@@ -163,6 +174,7 @@ export class AppComponent {
 ### 3. Better Error Messages
 
 When a provider SDK is missing:
+
 ```
 Error: Google Sign-In SDK not found.
 To use Google authentication, install the SDK:
@@ -223,12 +235,12 @@ Move configuration to where you use it:
 auth.configure({
   providers: {
     google: { clientId: process.env.GOOGLE_CLIENT_ID },
-    apple: { 
+    apple: {
       clientId: process.env.APPLE_CLIENT_ID,
-      redirectUri: window.location.origin + '/auth/callback'
-    }
+      redirectUri: window.location.origin + '/auth/callback',
+    },
   },
-  enableLogging: process.env.NODE_ENV === 'development'
+  enableLogging: process.env.NODE_ENV === 'development',
 });
 ```
 
@@ -265,8 +277,8 @@ Make sure to call `auth.configure()` before using auth methods:
 // In your app initialization
 auth.configure({
   providers: {
-    google: { clientId: '...' }
-  }
+    google: { clientId: '...' },
+  },
 });
 ```
 
