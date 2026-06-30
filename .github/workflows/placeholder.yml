@@ -1,0 +1,32 @@
+# ──────────────────────────────────────────────────────────────────────────
+# Placeholder CI workflow — INTENTIONALLY INERT (manual-trigger only).
+#
+# All automated GitHub Actions were removed on 2026-06-10 at the owner's
+# request. Real CI will be re-added per-project, customized, when needed.
+# This file is kept as a record / reference / pickup point so the
+# .github/workflows/ flow stays documented and easy to extend later.
+#
+# Reference — flows previously wired here (re-add when ready):
+#   * Typecheck (Yarn Berry):
+#       - uses: actions/setup-node@v4   # node-version-file: .nvmrc  (or node 22)
+#       - run: corepack enable
+#       - run: yarn install --immutable
+#       - run: yarn typecheck           # or: npx tsc --noEmit
+#   * Claude Code (@claude):
+#       - uses: anthropics/claude-code-action@v1
+#         with:
+#           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+# ──────────────────────────────────────────────────────────────────────────
+
+name: CI (placeholder — inert)
+
+on:
+  workflow_dispatch:        # manual only; never runs on push/PR (uses no Actions minutes)
+
+jobs:
+  placeholder:
+    name: Placeholder (no-op)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notice
+        run: echo "Inert placeholder. Add real CI jobs here — see the comments at the top of this file."

@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "declaration": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["DOM", "ES2020"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "outDir": "dist/esm",
+    "rootDir": "./src",
+    "pretty": true,
+    "skipLibCheck": true,
+    "sourceMap": false,
+    "inlineSourceMap": false,
+    "declarationMap": false,
+    "strict": true,
+    "target": "ES2017",
+    "jsx": "react",
+    "importHelpers": true,
+    "paths": {
+      "capacitor-auth-manager": ["./src/index.ts"],
+      "capacitor-auth-manager/core": ["./src/core/index.ts"],
+      "capacitor-auth-manager/react": ["./src/react/index.ts"],
+      "capacitor-auth-manager/providers/*": ["./src/providers/*/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "android", "ios", "dist", "example", "examples"]
+}

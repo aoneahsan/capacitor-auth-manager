@@ -1,0 +1,29 @@
+{
+  "extends": "./tsconfig.json",
+  "//": "WIP: providers ship one at a time. The 14 non-Google web providers below are excluded from the published build (their loaders are un-registered in provider-registry.ts). Remove a file from this list, restore its loader, and verify on device to re-enable it. See docs/features/google-provider-production-v3.",
+  "exclude": [
+    "node_modules",
+    "android",
+    "ios",
+    "dist",
+    "example",
+    "examples",
+    "src/__tests__",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "src/providers/web/apple-provider.ts",
+    "src/providers/web/microsoft-provider.ts",
+    "src/providers/web/facebook-provider.ts",
+    "src/providers/web/github-provider.ts",
+    "src/providers/web/firebase-provider.ts",
+    "src/providers/web/slack-provider.ts",
+    "src/providers/web/linkedin-provider.ts",
+    "src/providers/web/magic-link-provider.ts",
+    "src/providers/web/sms-provider.ts",
+    "src/providers/web/email-password-provider.ts",
+    "src/providers/web/username-password-provider.ts",
+    "src/providers/web/phone-password-provider.ts",
+    "src/providers/web/email-code-provider.ts",
+    "src/providers/web/biometric-provider.ts"
+  ]
+}
