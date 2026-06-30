@@ -27,7 +27,7 @@ import Capacitor
         logger.setLogLevel(options.logLevel)
         
         // Configure storage persistence
-        storage.setPersistence(options.persistence)
+        storage.setPersistence(options.persistence.rawValue)
         
         // Initialize providers
         let group = DispatchGroup()
@@ -76,7 +76,7 @@ import Capacitor
         provider.signIn(credentials: options.credentials, options: options.options) { result, error in
             if let result = result {
                 self.currentProvider = options.provider
-                self.storage.setLastAuthProvider(options.provider)
+                self.storage.setLastAuthProvider(options.provider.rawValue)
                 
                 // Notify listeners
                 self.notifyAuthStateChange(result.user)
@@ -374,7 +374,7 @@ import Capacitor
     }
     
     func setCustomParameters(provider: AuthProvider, parameters: JSObject, completion: @escaping (Error?) -> Void) {
-        storage.setCustomParameters(provider: provider, parameters: parameters)
+        storage.setCustomParameters(provider: provider.rawValue, parameters: parameters)
         completion(nil)
     }
     
@@ -399,19 +399,10 @@ import Capacitor
         switch config.provider {
         case .google:
             return GoogleAuthProvider(config: config, storage: storage, logger: logger)
-        case .apple:
-            return AppleAuthProvider(config: config, storage: storage, logger: logger)
-        case .microsoft:
-            return MicrosoftAuthProvider(config: config, storage: storage, logger: logger)
-        case .facebook:
-            return FacebookAuthProvider(config: config, storage: storage, logger: logger)
-        case .github:
-            return GitHubAuthProvider(config: config, storage: storage, logger: logger)
-        case .slack:
-            return SlackAuthProvider(config: config, storage: storage, logger: logger)
-        case .linkedin:
-            return LinkedInAuthProvider(config: config, storage: storage, logger: logger)
         default:
+            // Google-first build (2.4.x): non-Google native providers are disabled. Their Swift lives in
+            // ios/disabled-native-providers/ (not compiled, not shipped) so this pod no longer depends on
+            // the Facebook SDK / MSAL. The JS layer reports PROVIDER_NOT_ENABLED before reaching native.
             throw AuthManagerError.providerNotImplemented(config.provider)
         }
     }

@@ -5,6 +5,37 @@ All notable changes to `capacitor-auth-manager` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.2] — 2026-06-30
+
+**Native now actually compiles — Google-only native (verified).** `2.4.1` shipped native sources that
+had never been built in a real app; an end-to-end integration compile (a throwaway Capacitor app, real
+Android `gradle assembleDebug` + iOS `pod lib lint`) surfaced and fixed the breakage. **Use `2.4.2`, not
+`2.4.1`** (which is deprecated).
+
+### Changed
+
+- **Native is Google-only.** Removed the Facebook (`FBSDKLoginKit` / `facebook-login`) and Microsoft
+  (`MSAL`) native dependencies so the plugin no longer drags heavy auth SDKs into every consumer app. The
+  disabled providers' native code moved to `android/disabled-native-providers/` and
+  `ios/disabled-native-providers/` (kept for re-enablement; not compiled, not shipped). `ProviderFactory`
+  (Android) and `createProvider` (iOS) are trimmed to Google; the JS layer already reports
+  `PROVIDER_NOT_ENABLED` for the rest.
+- iOS podspec slimmed to `Capacitor` + `GoogleSignIn ~> 7.1`; removed the dangling
+  `SWIFT_OBJC_BRIDGING_HEADER` (the file never existed; GoogleSignIn 7 is pure Swift).
+
+### Fixed (native compile errors that blocked every consumer build)
+
+- **Android:** `com.facebook.android:facebook-login:17.0.3` was unresolvable → build failed before any
+  Java compiled. `GoogleAuthProvider` caught `GoogleIdTokenParsingException`, a checked exception
+  `GoogleIdTokenCredential.createFrom` doesn't declare in googleid 1.1.1. `getIdToken` called the throwing
+  `JSObject.getBoolean(...)` unguarded → unreported `JSONException`. Verified with `gradle :…:assembleDebug`.
+- **iOS:** `CapacitorAuthManager` passed `AuthPersistence` / `AuthProvider` enums where the storage API
+  expects `String` (`.rawValue`). `Plugin.removeAllListeners(_:)` now `override public`s Capacitor 8's
+  built-in and delegates to `super`. Verified with `pod lib lint`.
+
+> Both platforms now build in a clean Capacitor 8 app. Still verify Google sign-in on a real device before
+> the fleet rollout (a successful compile is not a runtime test).
+
 ## [2.4.1] — 2026-06-30
 
 **Google-first production refocus.** This release turns the package into a working, **Firebase-agnostic

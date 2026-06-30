@@ -115,9 +115,11 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
         ])
     }
     
-    @objc func removeAllListeners(_ call: CAPPluginCall) {
+    // CAPPlugin provides a built-in removeAllListeners(_:) in Capacitor 8; override it so our auth-state
+    // listener registry is cleared too, then let the base clear Capacitor's listeners and resolve.
+    @objc override public func removeAllListeners(_ call: CAPPluginCall) {
         implementation.removeAllListeners()
-        call.resolve()
+        super.removeAllListeners(call)
     }
     
     @objc func isSupported(_ call: CAPPluginCall) {

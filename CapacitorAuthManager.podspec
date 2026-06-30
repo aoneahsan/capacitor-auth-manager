@@ -14,23 +14,15 @@ Pod::Spec.new do |s|
   s.ios.deployment_target  = '14.0'
   s.swift_version = '5.9'
   s.dependency 'Capacitor'
-  
-  # Auth Provider Dependencies
+
+  # Google Sign-In — the only enabled provider as of 2.4.x (Firebase-agnostic). Pure-Swift SDK,
+  # no Objective-C bridging header required.
   s.dependency 'GoogleSignIn', '~> 7.1'
-  s.dependency 'FBSDKLoginKit', '~> 17.0'
-  
-  # Apple Sign In is built into iOS
-  
-  # Microsoft Authentication Library
-  s.dependency 'MSAL', '~> 1.5'
-  
-  # Firebase Auth (optional, can be added when needed)
-  # s.dependency 'Firebase/Auth'
-  
+
+  # NOTE: Google-first build. The Facebook (FBSDKLoginKit) and Microsoft (MSAL) pod dependencies were
+  # removed so this plugin no longer pulls heavy auth SDKs into every consumer app. Those providers'
+  # Swift lives in ios/disabled-native-providers/ (not compiled, not shipped). Re-add a dependency here
+  # when its provider is re-enabled.
+
   s.static_framework = true
-  
-  # Required for Google Sign In
-  s.pod_target_xcconfig = {
-    'SWIFT_OBJC_BRIDGING_HEADER' => '$(PODS_TARGET_SRCROOT)/ios/Plugin/Plugin-Bridging-Header.h'
-  }
 end

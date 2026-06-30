@@ -22,7 +22,6 @@ import androidx.credentials.exceptions.NoCredentialException;
 import com.getcapacitor.JSObject;
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
-import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -355,11 +354,9 @@ public class GoogleAuthProvider implements BaseAuthProvider {
                 callback.onResult(CapacitorAuthManager.AuthResult.error(new IllegalStateException(
                         "Unexpected credential type returned from Google sign-in: " + type)));
             }
-        } catch (GoogleIdTokenParsingException e) {
-            logger.error("Failed to parse Google ID token credential", e);
-            callback.onResult(CapacitorAuthManager.AuthResult.error(new Exception(
-                    "Failed to parse Google ID token credential: " + e.getMessage())));
         } catch (Exception e) {
+            // Covers a malformed credential / ID-token parse failure. (googleid 1.1.1's
+            // GoogleIdTokenCredential.createFrom does not declare a checked exception.)
             logger.error("Unexpected error handling Google credential", e);
             callback.onResult(CapacitorAuthManager.AuthResult.error(e));
         }

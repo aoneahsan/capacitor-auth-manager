@@ -425,7 +425,7 @@ public class CapacitorAuthManager {
             return;
         }
 
-        boolean forceRefresh = options != null && options.has("forceRefresh") ? options.getBoolean("forceRefresh") : false;
+        boolean forceRefresh = options != null && options.optBoolean("forceRefresh", false);
         authProvider.getIdToken(forceRefresh, callback);
     }
 

@@ -61,22 +61,12 @@ dependencies {
     implementation 'androidx.credentials:credentials-play-services-auth:1.3.0'
     implementation 'com.google.android.libraries.identity.googleid:googleid:1.1.1'
 
-    // Facebook SDK
-    implementation 'com.facebook.android:facebook-login:17.0.3'
-    
-    // Microsoft Authentication Library (MSAL)
-    implementation 'com.microsoft.identity.client:msal:5.2.0'
-    
-    // Firebase Auth (optional)
-    // implementation 'com.google.firebase:firebase-auth:23.2.0'
-    
-    // Biometric
-    implementation 'androidx.biometric:biometric:1.1.0'
-    
-    // Coroutines for async operations
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0'
-    
-    // Security
+    // NOTE: Google-first build (2.4.x). The Facebook SDK + Microsoft MSAL dependencies were removed so
+    // this plugin no longer pulls heavy auth SDKs into every consumer app. Their native providers live in
+    // android/disabled-native-providers/ (not compiled, not shipped). Re-add a dependency here when its
+    // provider is re-enabled.
+
+    // Security (AuthStorage uses EncryptedSharedPreferences)
     implementation 'androidx.security:security-crypto:1.1.0-alpha06'
     
     testImplementation "junit:junit:$junitVersion"
