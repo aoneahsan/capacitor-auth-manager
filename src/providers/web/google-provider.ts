@@ -1,6 +1,7 @@
 import {
   AuthProvider,
   GoogleAuthOptions,
+  GoogleWebFlow,
   SignInOptions,
   SignOutOptions,
   RefreshTokenOptions,
@@ -8,12 +9,12 @@ import {
   AuthCredential,
   AuthErrorCode,
   AuthUser,
-} from '../../definitions';
-import { BaseAuthProvider, BaseProviderConfig } from '../base-provider';
-import { AuthError } from '../../utils/auth-error';
+} from '../../definitions.js';
+import { BaseAuthProvider, BaseProviderConfig } from '../base-provider.js';
+import { AuthError } from '../../utils/auth-error.js';
 
-/** Decoded subset of a Google ID-token (JWT) payload we read. */
-interface GoogleIdTokenClaims {
+/** Decoded subset of a Google ID-token (JWT) payload / userinfo response we read. */
+interface GoogleProfileClaims {
   iss?: string;
   aud?: string;
   sub?: string;
@@ -70,27 +71,65 @@ interface GoogleIdApi {
   ) => void;
 }
 
+interface GoogleTokenResponse {
+  access_token?: string;
+  expires_in?: string | number;
+  scope?: string;
+  token_type?: string;
+  error?: string;
+  error_description?: string;
+}
+
+interface GoogleTokenClientConfig {
+  client_id: string;
+  scope: string;
+  callback: (response: GoogleTokenResponse) => void;
+  error_callback?: (error: { type?: string; message?: string }) => void;
+  prompt?: '' | 'none' | 'consent' | 'select_account';
+  hint?: string;
+  hosted_domain?: string;
+  include_granted_scopes?: boolean;
+}
+
+interface GoogleTokenClient {
+  requestAccessToken: (overrides?: { prompt?: string; hint?: string }) => void;
+}
+
+interface GoogleOAuth2Api {
+  initTokenClient: (config: GoogleTokenClientConfig) => GoogleTokenClient;
+  revoke: (accessToken: string, callback?: () => void) => void;
+}
+
 declare global {
   interface Window {
-    google?: { accounts: { id: GoogleIdApi } };
+    google?: { accounts: { id: GoogleIdApi; oauth2?: GoogleOAuth2Api } };
   }
 }
 
 const GSI_SRC = 'https://accounts.google.com/gsi/client';
+const USERINFO_ENDPOINT = 'https://www.googleapis.com/oauth2/v3/userinfo';
+const DEFAULT_SCOPES = ['openid', 'email', 'profile'];
 
 /**
  * Web Google provider — the implementation the registry loads on **web / electron**.
  *
- * Uses the **Google Identity Services ID-token flow** (`google.accounts.id`): no client secret, no
- * backend, no popup-blocker problems. The browser returns a Google **ID token** (JWT) which is
- * surfaced as `result.credential.idToken` — the SAME field the native providers populate — so the
- * Firebase handoff is identical on every platform:
+ * Two Google Identity Services flows are available, selected by {@link GoogleAuthOptions.webFlow}
+ * (default `'auto'`):
  *
- *   await signInWithCredential(getAuth(), GoogleAuthProvider.credential(result.credential.idToken));
+ * 1. **One-Tap / FedCM id-token flow** (`google.accounts.id`): returns a Google **ID token** (JWT) as
+ *    `result.credential.idToken` — the same field the native providers populate.
+ * 2. **OAuth2 popup flow** (`google.accounts.oauth2.initTokenClient`): a deterministic popup that works
+ *    from any click handler and returns an **access token** as `result.credential.accessToken`; the user
+ *    profile is read from Google's `userinfo` endpoint. `'auto'` falls back to this whenever the browser
+ *    does not display One-Tap (cooldown, FedCM opt-out, third-party-cookie settings).
  *
- * The id-token flow does NOT return an OAuth `accessToken` (use the GIS token client separately if you
- * need to call Google APIs from the browser). Sign-in is triggered via One-Tap / FedCM `prompt()`; for a
- * guaranteed button UX call {@link renderButton} to render Google's official button (same callback).
+ * Either credential is accepted by Firebase — the handoff is identical on every platform:
+ *
+ *   const { idToken, accessToken } = result.credential;
+ *   await signInWithCredential(getAuth(), GoogleAuthProvider.credential(idToken ?? null, accessToken));
+ *
+ * Neither flow needs a client secret or a backend. For Google's official button call
+ * {@link renderButton}; it shares the One-Tap credential callback.
  */
 export class GoogleAuthProviderWeb extends BaseAuthProvider {
   private loadPromise: Promise<void> | null = null;
@@ -98,6 +137,8 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
   private pendingResolve: ((result: AuthResult) => void) | null = null;
   private pendingReject: ((error: AuthError) => void) | null = null;
   private currentNonce?: string;
+  /** Last credential issued in this page session (tokens are deliberately not persisted). */
+  private lastCredential: AuthCredential | null = null;
 
   constructor(config: BaseProviderConfig) {
     super(config);
@@ -112,6 +153,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
       return;
     }
     try {
+      this.requireClientId();
       await this.loadGsi();
       this.configureIdClient();
       await this.loadCurrentUser();
@@ -122,54 +164,36 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     }
   }
 
-  async signIn(_options?: SignInOptions): Promise<AuthResult> {
+  async signIn(options?: SignInOptions): Promise<AuthResult> {
     if (!this.isInitialized) {
       await this.initialize();
     }
-    this.configureIdClient();
+    // AuthManagerCore spreads per-call options to the top level; direct callers nest them under
+    // `options`. Read both shapes.
+    const perCall = (options ?? {}) as Partial<SignInOptions> & {
+      webFlow?: GoogleWebFlow;
+      loginHint?: string;
+    };
+    const flow: GoogleWebFlow =
+      perCall.options?.webFlow ??
+      perCall.webFlow ??
+      (this.options as GoogleAuthOptions).webFlow ??
+      'auto';
+    const loginHint =
+      perCall.options?.loginHint ??
+      perCall.loginHint ??
+      (this.options as GoogleAuthOptions).loginHint;
 
-    return new Promise<AuthResult>((resolve, reject) => {
-      this.pendingResolve = resolve;
-      this.pendingReject = (e) => reject(e);
-
-      const api = this.requireIdApi();
-      try {
-        api.prompt((notification: PromptMomentNotification) => {
-          // One-Tap was suppressed (cooldown / dismissed / FedCM opt-out): fail clearly so the
-          // consumer can fall back to renderButton(). Wrapped in try/catch because these moment
-          // methods are deprecated under FedCM and may throw.
-          try {
-            const notDisplayed = notification.isNotDisplayed?.() ?? false;
-            const skipped = notification.isSkippedMoment?.() ?? false;
-            if (notDisplayed || skipped) {
-              const reason =
-                notification.getNotDisplayedReason?.() ??
-                notification.getSkippedReason?.() ??
-                'suppressed';
-              this.rejectPending(
-                new AuthError(
-                  AuthErrorCode.POPUP_BLOCKED,
-                  `Google One-Tap was not displayed (${reason}). Render the Google button via ` +
-                    `provider.renderButton(element) for a guaranteed sign-in UI, or sign in on web ` +
-                    `with your own Firebase popup.`,
-                  AuthProvider.GOOGLE
-                )
-              );
-            }
-          } catch {
-            // FedCM: moment methods unavailable — wait for the credential callback instead.
-          }
-        });
-      } catch (error) {
-        this.rejectPending(AuthError.fromError(error, AuthProvider.GOOGLE));
-      }
-    });
+    if (flow === 'popup') {
+      return this.signInWithPopup(loginHint);
+    }
+    return this.signInWithOneTap(flow === 'auto', loginHint);
   }
 
   /**
-   * Renders Google's official "Sign in with Google" button into `parent`. Use this when One-Tap is
-   * suppressed or you want a deterministic button. The button uses the SAME credential callback, so a
-   * click resolves the most recent (or next) {@link signIn} promise with the ID-token credential.
+   * Renders Google's official "Sign in with Google" button into `parent`. Use this when you want
+   * Google's branded button rather than your own. It uses the SAME credential callback, so a click
+   * resolves the most recent (or next) {@link signIn} promise with the ID-token credential.
    */
   async renderButton(
     parent: HTMLElement,
@@ -188,32 +212,73 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     } catch (error) {
       this.logger.warn('Google disableAutoSelect failed', error);
     }
+    this.lastCredential = null;
     await this.clearStoredData();
     await this.setCurrentUser(null);
   }
 
   /**
-   * Web ID tokens cannot be refreshed silently — re-running One-Tap (with auto-select) re-issues a
-   * fresh ID token for a returning user. Falls back to a normal prompt if auto-select can't.
+   * Web tokens cannot be refreshed silently without a backend — re-running the configured flow
+   * (One-Tap auto-select for a returning user, or the popup) re-issues a fresh credential.
    */
   async refreshToken(_options?: RefreshTokenOptions): Promise<AuthResult> {
     return this.signIn();
   }
 
+  /**
+   * Returns the ID token from the current page session. `forceRefresh` (or an expired token) re-runs
+   * One-Tap. Throws `NO_AUTH_SESSION` when the last sign-in was the popup flow, which issues no ID token.
+   */
+  async getIdToken(forceRefresh = false): Promise<string> {
+    const cached = this.lastCredential;
+    const expired =
+      typeof cached?.expiresAt === 'number' && cached.expiresAt <= Date.now();
+    if (cached?.idToken && !forceRefresh && !expired) {
+      return cached.idToken;
+    }
+    if (cached && !cached.idToken && !forceRefresh) {
+      throw new AuthError(
+        AuthErrorCode.NO_AUTH_SESSION,
+        'The popup flow issues an access token, not an ID token. Use result.credential.accessToken, or sign in with webFlow "one-tap".',
+        AuthProvider.GOOGLE
+      );
+    }
+    const result = await this.signInWithOneTap(false);
+    if (!result.credential.idToken) {
+      throw new AuthError(
+        AuthErrorCode.NO_AUTH_SESSION,
+        'No Google ID token available',
+        AuthProvider.GOOGLE
+      );
+    }
+    return result.credential.idToken;
+  }
+
   async revokeAccess(token?: string): Promise<void> {
-    const user = this.currentUser ?? (await this.getCurrentUser());
-    const hint = user?.email ?? token;
-    if (!hint) {
+    const accessToken = token ?? this.lastCredential?.accessToken;
+    const oauth2 = window.google?.accounts?.oauth2;
+    if (accessToken && oauth2) {
+      await new Promise<void>((resolve) => {
+        try {
+          oauth2.revoke(accessToken, () => resolve());
+        } catch {
+          resolve();
+        }
+      });
       await this.signOut();
       return;
     }
-    await new Promise<void>((resolve) => {
-      try {
-        this.requireIdApi().revoke(hint, () => resolve());
-      } catch {
-        resolve();
-      }
-    });
+    const user = this.currentUser ?? (await this.getCurrentUser());
+    const hint = user?.email ?? token;
+    if (hint) {
+      await new Promise<void>((resolve) => {
+        try {
+          this.requireIdApi().revoke(hint, () => resolve());
+        } catch {
+          resolve();
+        }
+      });
+    }
     await this.signOut();
   }
 
@@ -229,49 +294,79 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     }
   }
 
-  // --- internals --------------------------------------------------------------------------------
+  // --- One-Tap flow --------------------------------------------------------------------------------
 
-  private requireIdApi(): GoogleIdApi {
-    const api = window.google?.accounts?.id;
-    if (!api) {
-      throw new AuthError(
-        AuthErrorCode.PROVIDER_NOT_INITIALIZED,
-        'Google Identity Services not loaded',
-        AuthProvider.GOOGLE
-      );
-    }
-    return api;
-  }
+  private signInWithOneTap(
+    fallbackToPopup: boolean,
+    loginHint?: string
+  ): Promise<AuthResult> {
+    this.configureIdClient(loginHint);
 
-  private configureIdClient(): void {
-    const options = this.options as GoogleAuthOptions;
-    if (!options?.clientId) {
-      throw new AuthError(
-        AuthErrorCode.MISSING_CONFIGURATION,
-        'Google web sign-in requires a `clientId` (your OAuth 2.0 Web client ID).',
-        AuthProvider.GOOGLE
-      );
-    }
-    this.currentNonce = options.nonce;
-    const config: GoogleIdConfig = {
-      client_id: options.clientId,
-      callback: (response) => this.handleCredential(response),
-      auto_select: options.autoSelectEnabled ?? false,
-      cancel_on_tap_outside: false,
-      context: 'signin',
-      use_fedcm_for_prompt: true,
-      itp_support: true,
-    };
-    if (options.nonce) {
-      config.nonce = options.nonce;
-    }
-    if (options.loginHint) {
-      config.login_hint = options.loginHint;
-    }
-    if (options.hostedDomain) {
-      config.hd = options.hostedDomain;
-    }
-    this.requireIdApi().initialize(config);
+    return new Promise<AuthResult>((resolve, reject) => {
+      this.pendingResolve = resolve;
+      this.pendingReject = (e) => reject(e);
+
+      const fallback = (reason: string) => {
+        this.logger.info(
+          `Google One-Tap not shown (${reason}); using the popup flow`
+        );
+        // Drop the One-Tap resolvers so a late credential callback cannot double-resolve.
+        this.pendingResolve = null;
+        this.pendingReject = null;
+        this.signInWithPopup(loginHint).then(resolve, reject);
+      };
+
+      try {
+        this.requireIdApi().prompt((notification: PromptMomentNotification) => {
+          // These moment methods are deprecated under FedCM and may throw — guard every call.
+          try {
+            const notDisplayed = notification.isNotDisplayed?.() ?? false;
+            const skipped = notification.isSkippedMoment?.() ?? false;
+            if (notDisplayed || skipped) {
+              const reason =
+                notification.getNotDisplayedReason?.() ??
+                notification.getSkippedReason?.() ??
+                'suppressed';
+              if (fallbackToPopup) {
+                fallback(reason);
+              } else {
+                this.rejectPending(
+                  new AuthError(
+                    AuthErrorCode.POPUP_BLOCKED,
+                    `Google One-Tap was not displayed (${reason}). Use webFlow 'popup' or 'auto', or ` +
+                      `render Google's button via provider.renderButton(element).`,
+                    AuthProvider.GOOGLE
+                  )
+                );
+              }
+              return;
+            }
+            const dismissed = notification.isDismissedMoment?.() ?? false;
+            if (dismissed) {
+              const reason = notification.getDismissedReason?.() ?? '';
+              // 'credential_returned' is the success path — the credential callback resolves it.
+              if (reason !== 'credential_returned') {
+                this.rejectPending(
+                  new AuthError(
+                    AuthErrorCode.USER_CANCELLED,
+                    `Google One-Tap was dismissed (${reason || 'cancelled'})`,
+                    AuthProvider.GOOGLE
+                  )
+                );
+              }
+            }
+          } catch {
+            // FedCM: moment methods unavailable — wait for the credential callback instead.
+          }
+        });
+      } catch (error) {
+        if (fallbackToPopup) {
+          fallback(error instanceof Error ? error.message : 'prompt failed');
+        } else {
+          this.rejectPending(AuthError.fromError(error, AuthProvider.GOOGLE));
+        }
+      }
+    });
   }
 
   private async handleCredential(
@@ -297,9 +392,12 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
         providerId: 'google.com',
         signInMethod: 'google.com',
         idToken,
+        expiresAt:
+          typeof claims.exp === 'number' ? claims.exp * 1000 : undefined,
         tokenType: 'Bearer',
-        scope: 'openid email profile',
+        scope: DEFAULT_SCOPES.join(' '),
       };
+      this.lastCredential = credential;
       await this.setCurrentUser(user);
       this.resolvePending(this.createAuthResult(user, credential, false));
     } catch (error) {
@@ -307,7 +405,186 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     }
   }
 
-  private validateIdToken(idToken: string): GoogleIdTokenClaims {
+  // --- OAuth2 popup flow ---------------------------------------------------------------------------
+
+  private async signInWithPopup(loginHint?: string): Promise<AuthResult> {
+    const options = this.options as GoogleAuthOptions;
+    const clientId = this.requireClientId();
+    await this.loadGsi();
+    const oauth2 = window.google?.accounts?.oauth2;
+    if (!oauth2) {
+      throw new AuthError(
+        AuthErrorCode.PROVIDER_NOT_INITIALIZED,
+        'Google Identity Services OAuth2 client not loaded',
+        AuthProvider.GOOGLE
+      );
+    }
+
+    const scopes = Array.from(
+      new Set([...DEFAULT_SCOPES, ...(options.scopes ?? [])])
+    );
+
+    const tokenResponse = await new Promise<GoogleTokenResponse>(
+      (resolve, reject) => {
+        try {
+          const client = oauth2.initTokenClient({
+            client_id: clientId,
+            scope: scopes.join(' '),
+            hint: loginHint,
+            hosted_domain: options.hostedDomain,
+            include_granted_scopes: options.includeGrantedScopes ?? true,
+            callback: (response) => {
+              if (response.error) {
+                reject(
+                  new AuthError(
+                    response.error === 'access_denied'
+                      ? AuthErrorCode.USER_CANCELLED
+                      : AuthErrorCode.SIGN_IN_FAILED,
+                    response.error_description || response.error,
+                    AuthProvider.GOOGLE
+                  )
+                );
+                return;
+              }
+              resolve(response);
+            },
+            error_callback: (error) => {
+              const type = error?.type ?? 'unknown';
+              reject(
+                new AuthError(
+                  type === 'popup_closed'
+                    ? AuthErrorCode.POPUP_CLOSED_BY_USER
+                    : type === 'popup_failed_to_open'
+                      ? AuthErrorCode.POPUP_BLOCKED
+                      : AuthErrorCode.SIGN_IN_FAILED,
+                  error?.message || `Google sign-in popup failed (${type})`,
+                  AuthProvider.GOOGLE
+                )
+              );
+            },
+          });
+          client.requestAccessToken({
+            prompt: options.autoSelectEnabled ? '' : 'select_account',
+          });
+        } catch (error) {
+          reject(AuthError.fromError(error, AuthProvider.GOOGLE));
+        }
+      }
+    );
+
+    const accessToken = tokenResponse.access_token;
+    if (!accessToken) {
+      throw new AuthError(
+        AuthErrorCode.SIGN_IN_FAILED,
+        'Google returned no access token',
+        AuthProvider.GOOGLE
+      );
+    }
+
+    const profile = await this.fetchUserInfo(accessToken);
+    if (options.hostedDomain && profile.hd !== options.hostedDomain) {
+      throw new AuthError(
+        AuthErrorCode.SIGN_IN_FAILED,
+        `Account is not in the required Google Workspace domain (${options.hostedDomain})`,
+        AuthProvider.GOOGLE
+      );
+    }
+
+    const user = this.buildUser(profile);
+    const expiresIn = Number(tokenResponse.expires_in);
+    const credential: AuthCredential = {
+      providerId: 'google.com',
+      signInMethod: 'google.com',
+      accessToken,
+      expiresAt: this.calculateTokenExpiry(
+        Number.isFinite(expiresIn) && expiresIn > 0 ? expiresIn : undefined
+      ),
+      tokenType: tokenResponse.token_type || 'Bearer',
+      scope: tokenResponse.scope || scopes.join(' '),
+    };
+    this.lastCredential = credential;
+    await this.setCurrentUser(user);
+    return this.createAuthResult(user, credential, false);
+  }
+
+  private async fetchUserInfo(
+    accessToken: string
+  ): Promise<GoogleProfileClaims> {
+    let response: Response;
+    try {
+      response = await fetch(USERINFO_ENDPOINT, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+    } catch (error) {
+      throw new AuthError(
+        AuthErrorCode.NETWORK_ERROR,
+        `Could not reach Google userinfo: ${error instanceof Error ? error.message : String(error)}`,
+        AuthProvider.GOOGLE
+      );
+    }
+    if (!response.ok) {
+      throw new AuthError(
+        AuthErrorCode.SIGN_IN_FAILED,
+        `Google userinfo request failed (${response.status})`,
+        AuthProvider.GOOGLE
+      );
+    }
+    return (await response.json()) as GoogleProfileClaims;
+  }
+
+  // --- internals -----------------------------------------------------------------------------------
+
+  private requireClientId(): string {
+    const options = this.options as GoogleAuthOptions;
+    if (!options?.clientId) {
+      throw new AuthError(
+        AuthErrorCode.MISSING_CONFIGURATION,
+        'Google web sign-in requires a `clientId` (your OAuth 2.0 Web client ID).',
+        AuthProvider.GOOGLE
+      );
+    }
+    return options.clientId;
+  }
+
+  private requireIdApi(): GoogleIdApi {
+    const api = window.google?.accounts?.id;
+    if (!api) {
+      throw new AuthError(
+        AuthErrorCode.PROVIDER_NOT_INITIALIZED,
+        'Google Identity Services not loaded',
+        AuthProvider.GOOGLE
+      );
+    }
+    return api;
+  }
+
+  private configureIdClient(loginHint?: string): void {
+    const options = this.options as GoogleAuthOptions;
+    const clientId = this.requireClientId();
+    this.currentNonce = options.nonce;
+    const config: GoogleIdConfig = {
+      client_id: clientId,
+      callback: (response) => this.handleCredential(response),
+      auto_select: options.autoSelectEnabled ?? false,
+      cancel_on_tap_outside: false,
+      context: 'signin',
+      use_fedcm_for_prompt: true,
+      itp_support: true,
+    };
+    if (options.nonce) {
+      config.nonce = options.nonce;
+    }
+    const hint = loginHint ?? options.loginHint;
+    if (hint) {
+      config.login_hint = hint;
+    }
+    if (options.hostedDomain) {
+      config.hd = options.hostedDomain;
+    }
+    this.requireIdApi().initialize(config);
+  }
+
+  private validateIdToken(idToken: string): GoogleProfileClaims {
     const claims = decodeJwtPayload(idToken);
     const options = this.options as GoogleAuthOptions;
 
@@ -344,7 +621,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     return claims;
   }
 
-  private buildUser(claims: GoogleIdTokenClaims): AuthUser {
+  private buildUser(claims: GoogleProfileClaims): AuthUser {
     const uid = claims.sub || this.generateUniqueId();
     const email = claims.email ?? null;
     const emailVerified =
@@ -354,6 +631,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
       [claims.given_name, claims.family_name].filter(Boolean).join(' ') ||
       null;
     const photoURL = claims.picture ?? null;
+    const now = new Date().toISOString();
     return {
       uid,
       email,
@@ -374,8 +652,8 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
         },
       ],
       metadata: {
-        creationTime: new Date().toISOString(),
-        lastSignInTime: new Date().toISOString(),
+        creationTime: now,
+        lastSignInTime: now,
       },
     };
   }
@@ -441,7 +719,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
 }
 
 /** Decodes a JWT payload (no signature verification — Google issues the token directly to this origin). */
-function decodeJwtPayload(jwt: string): GoogleIdTokenClaims {
+function decodeJwtPayload(jwt: string): GoogleProfileClaims {
   const parts = jwt.split('.');
   if (parts.length !== 3) {
     throw new AuthError(
@@ -451,8 +729,6 @@ function decodeJwtPayload(jwt: string): GoogleIdTokenClaims {
     );
   }
   if (typeof atob !== 'function') {
-    // This provider only runs in the browser (the registry routes native platforms to the native
-    // bridge); `atob` is always present there.
     throw new AuthError(
       AuthErrorCode.INTERNAL_ERROR,
       'Google web sign-in requires a browser environment (atob unavailable).',
@@ -467,5 +743,5 @@ function decodeJwtPayload(jwt: string): GoogleIdTokenClaims {
     bytes[i] = binary.charCodeAt(i);
   }
   const json = new TextDecoder().decode(bytes);
-  return JSON.parse(json) as GoogleIdTokenClaims;
+  return JSON.parse(json) as GoogleProfileClaims;
 }

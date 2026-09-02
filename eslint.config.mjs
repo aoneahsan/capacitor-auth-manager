@@ -28,6 +28,7 @@ export default tseslint.config(
       'eslint.config.mjs',
       '.eslintrc.js',
       'scripts/',
+      'test/',
     ],
   },
   ...tseslint.configs.recommended,

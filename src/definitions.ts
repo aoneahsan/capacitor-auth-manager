@@ -119,7 +119,31 @@ export interface GoogleAuthOptions {
   autoSelectEnabled?: boolean;
   /** GIS web: a per-request nonce (also forwarded to Android). Validated against the returned idToken. */
   nonce?: string;
+  /**
+   * Web only — which Google Identity Services flow `signIn()` uses.
+   * - `'auto'` (default): try One-Tap / FedCM first; if the browser does not display it (cooldown,
+   *   FedCM opt-out, third-party-cookie settings) fall back to the OAuth2 popup.
+   * - `'one-tap'`: One-Tap only; a suppressed prompt rejects with `POPUP_BLOCKED`.
+   * - `'popup'`: the OAuth2 token popup only — deterministic, works from any click handler.
+   * One-Tap yields an `idToken`; the popup yields an `accessToken` (plus the Google profile). Both are
+   * accepted by Firebase: `GoogleAuthProvider.credential(idToken ?? null, accessToken)`.
+   */
+  webFlow?: GoogleWebFlow;
+  /**
+   * Android only — which Credential Manager flow `signIn()` uses.
+   * - `'auto'` (default): the Google account bottom sheet; if no credential is available fall back to
+   *   the explicit "Sign in with Google" button flow, which can add an account.
+   * - `'bottom-sheet'`: bottom sheet only.
+   * - `'button'`: the "Sign in with Google" button flow only.
+   */
+  androidFlow?: GoogleAndroidFlow;
 }
+
+/** Web sign-in flow selector for the Google provider. See {@link GoogleAuthOptions.webFlow}. */
+export type GoogleWebFlow = 'auto' | 'one-tap' | 'popup';
+
+/** Android sign-in flow selector for the Google provider. See {@link GoogleAuthOptions.androidFlow}. */
+export type GoogleAndroidFlow = 'auto' | 'bottom-sheet' | 'button';
 
 export interface AppleAuthOptions {
   clientId: string;
@@ -426,6 +450,10 @@ export type SignInProviderOptions = {
   state?: string;
   nonce?: string;
   pkceEnabled?: boolean;
+  /** Google web: per-call override of {@link GoogleAuthOptions.webFlow}. */
+  webFlow?: GoogleWebFlow;
+  /** Google Android: per-call override of {@link GoogleAuthOptions.androidFlow}. */
+  androidFlow?: GoogleAndroidFlow;
 };
 
 export interface SignOutOptions {

@@ -6,13 +6,13 @@ import {
   SignOutOptions,
   RefreshTokenOptions,
   GoogleAuthOptions,
-} from '../../definitions';
+} from '../../definitions.js';
 import {
   BaseAuthProvider,
   resolveProviderConfig,
-} from '../base-provider';
-import { AuthError } from '../../utils/auth-error';
-import { CapacitorAuthManager } from '../../capacitor-plugin';
+} from '../base-provider.js';
+import { AuthError } from '../../utils/auth-error.js';
+import { CapacitorAuthManager } from '../../capacitor-plugin.js';
 
 /**
  * Native Google provider — the implementation the registry loads on **iOS / Android**.
@@ -63,9 +63,20 @@ export class GoogleNativeProvider extends BaseAuthProvider {
       await this.initialize();
     }
     try {
+      // AuthManagerCore spreads the per-call `options` to the top level before calling us, so read
+      // both shapes: a nested `options` object (direct plugin-style callers) or the flattened one.
+      const source = (options ?? {}) as SignInOptions & Record<string, unknown>;
+      const { credentials, options: nested } = source;
+      const flat = Object.fromEntries(
+        Object.entries(source).filter(
+          ([key]) => !['provider', 'credentials', 'options'].includes(key)
+        )
+      );
+      const perCall = { ...flat, ...(nested ?? {}) } as SignInOptions['options'];
       const result = await CapacitorAuthManager.signIn({
         provider: AuthProvider.GOOGLE,
-        options: options?.options,
+        credentials,
+        options: perCall,
       });
       await this.setCurrentUser(result.user);
       return result;
@@ -100,7 +111,17 @@ export class GoogleNativeProvider extends BaseAuthProvider {
 
   async getCurrentUser(): Promise<AuthUser | null> {
     try {
-      const user = await CapacitorAuthManager.getCurrentUser();
+      const raw = (await CapacitorAuthManager.getCurrentUser()) as
+        | Partial<AuthUser>
+        | null
+        | undefined;
+      // A Capacitor call cannot resolve `null`; the native side answers `{}` when nobody is signed
+      // in. Treat anything without a string `uid` as "no user" — otherwise the empty object was
+      // taken as a user and the app restored an authenticated state with no account behind it.
+      const user =
+        raw && typeof raw.uid === 'string' && raw.uid.length > 0
+          ? (raw as AuthUser)
+          : null;
       this.currentUser = user;
       return user;
     } catch {

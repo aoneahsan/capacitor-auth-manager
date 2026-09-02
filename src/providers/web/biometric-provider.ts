@@ -6,15 +6,15 @@ import {
   SignInOptions,
   UnlinkAccountOptions,
   AuthProvider,
-} from '../../definitions';
-import { AuthError } from '../../utils/auth-error';
-import { getErrorMessage } from '../../utils/error-message';
+} from '../../definitions.js';
+import { AuthError } from '../../utils/auth-error.js';
+import { getErrorMessage } from '../../utils/error-message.js';
 import {
   BaseAuthProvider,
   BaseProviderConfig,
   resolveProviderConfig,
-} from '../base-provider';
-import { defaultLogger } from '../../utils/logger';
+} from '../base-provider.js';
+import { defaultLogger } from '../../utils/logger.js';
 
 // Using the capacitor-biometric-authentication package
 interface BiometricAuth {

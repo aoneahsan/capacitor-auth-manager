@@ -5,4 +5,4 @@
 // folder but are excluded from the published build until each is re-enabled and verified. Re-add a
 // provider's export below (and restore its registry loader + remove its tsconfig.build exclude) when
 // its turn comes.
-export { GoogleAuthProviderWeb } from './google-provider';
+export { GoogleAuthProviderWeb } from './google-provider.js';

@@ -12,12 +12,12 @@ import {
   UnlinkAccountOptions,
   ProviderOptions,
   AuthPersistence,
-} from '../definitions';
-import { AuthError } from '../utils/auth-error';
-import { EventEmitter, UnsubscribeFn } from '../utils/event-emitter';
-import { StorageInterface, WebStorage } from '../utils/storage';
-import { Logger, defaultLogger } from '../utils/logger';
-import { AuthProviderInterface } from '../core/types';
+} from '../definitions.js';
+import { AuthError } from '../utils/auth-error.js';
+import { EventEmitter, UnsubscribeFn } from '../utils/event-emitter.js';
+import { StorageInterface, WebStorage } from '../utils/storage.js';
+import { Logger, defaultLogger } from '../utils/logger.js';
+import { AuthProviderInterface } from '../core/types.js';
 
 export interface BaseProviderConfig {
   provider: AuthProvider;
@@ -33,9 +33,8 @@ export interface BaseProviderConfig {
  * The standalone providers are public (exported from `capacitor-auth-manager/providers/web`) and
  * get constructed two ways: the factory/registry pass a full {@link BaseProviderConfig}, while
  * tests and direct consumers pass the provider's own bare options object. This helper accepts
- * either — a bare object is wrapped with an in-memory storage (`AuthPersistence.NONE`, so it never
- * touches `window` and stays safe under SSR / Node test environments) plus the shared
- * {@link defaultLogger}. Callers that pass a full config keep their injected storage/logger.
+ * either — a bare object is wrapped with an in-memory storage (`AuthPersistence.NONE`) plus the
+ * shared {@link defaultLogger}. Callers that pass a full config keep their injected storage/logger.
  */
 export function resolveProviderConfig(
   provider: AuthProvider,

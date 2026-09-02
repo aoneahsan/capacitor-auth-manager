@@ -1,4 +1,4 @@
-import { defaultLogger } from './logger';
+import { defaultLogger } from './logger.js';
 
 /**
  * Small, SSR-guarded, localStorage-backed store for passwordless "pending verification" metadata

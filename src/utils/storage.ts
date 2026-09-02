@@ -1,5 +1,5 @@
-import { AuthPersistence } from '../definitions';
-import { Logger, defaultLogger } from './logger';
+import { AuthPersistence } from '../definitions.js';
+import { Logger, defaultLogger } from './logger.js';
 
 export interface StorageInterface {
   /**
@@ -34,17 +34,15 @@ export class WebStorage implements StorageInterface {
 
     switch (persistence) {
       case AuthPersistence.SESSION:
-        this.storage = window.sessionStorage;
-        break;
-      case AuthPersistence.LOCAL:
-        this.storage = window.localStorage;
+        this.storage = resolveBrowserStorage('sessionStorage');
         break;
       case AuthPersistence.NONE:
         // Use in-memory storage
         this.storage = new InMemoryStorage();
         break;
+      case AuthPersistence.LOCAL:
       default:
-        this.storage = window.localStorage;
+        this.storage = resolveBrowserStorage('localStorage');
     }
   }
 
@@ -169,6 +167,32 @@ export class CapacitorPreferencesStorage implements StorageInterface {
         .filter((k) => k.startsWith(this.prefix))
         .map((k) => prefs.remove({ key: k }))
     );
+  }
+}
+
+/**
+ * Returns the requested browser storage when it exists AND is usable, otherwise an in-memory
+ * fallback. Two environments make the fallback necessary:
+ *   - Node / SSR / test runners: `window` is undefined, so the old unguarded `window.localStorage`
+ *     read threw `ReferenceError: window is not defined` at import time (ISSUE-002).
+ *   - Browsers that expose the API but refuse it (Safari private mode, cookies disabled, sandboxed
+ *     iframes): `getItem`/`setItem` throw, so the probe below catches that and degrades gracefully.
+ */
+function resolveBrowserStorage(kind: 'localStorage' | 'sessionStorage'): Storage {
+  if (typeof window === 'undefined') {
+    return new InMemoryStorage();
+  }
+  try {
+    const candidate = window[kind];
+    if (!candidate) {
+      return new InMemoryStorage();
+    }
+    const probeKey = '__cap_auth_probe__';
+    candidate.setItem(probeKey, '1');
+    candidate.removeItem(probeKey);
+    return candidate;
+  } catch {
+    return new InMemoryStorage();
   }
 }
 

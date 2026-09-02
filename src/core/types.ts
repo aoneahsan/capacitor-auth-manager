@@ -7,8 +7,8 @@ import type {
   LinkAccountOptions,
   UnlinkAccountOptions,
   ProviderOptions,
-} from '../definitions';
-import type { StorageInterface } from '../utils/storage';
+} from '../definitions.js';
+import type { StorageInterface } from '../utils/storage.js';
 
 export interface AuthManagerConfig {
   providers?: Record<string, ProviderOptions>;

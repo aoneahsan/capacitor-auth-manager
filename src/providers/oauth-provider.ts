@@ -5,9 +5,9 @@ import {
   AuthCredential,
   RefreshTokenOptions,
   AuthUser,
-} from '../definitions';
-import { BaseAuthProvider } from './base-provider';
-import { AuthError } from '../utils/auth-error';
+} from '../definitions.js';
+import { BaseAuthProvider } from './base-provider.js';
+import { AuthError } from '../utils/auth-error.js';
 
 export interface OAuthTokenResponse {
   access_token: string;

@@ -89,6 +89,11 @@ public class ProviderFactory {
                 provider.setLoginHint(loginHint);
             }
 
+            String androidFlow = config.getString("androidFlow");
+            if (androidFlow != null) {
+                provider.setAndroidFlow(androidFlow);
+            }
+
             try {
                 JSONArray scopesArray = config.getJSONArray("scopes");
                 if (scopesArray != null) {

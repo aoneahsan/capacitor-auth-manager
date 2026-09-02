@@ -2,12 +2,12 @@ import {
   AuthProvider,
   AuthProviderConfig,
   AuthPersistence,
-} from '../definitions';
-import { BaseAuthProvider } from './base-provider';
-import { AuthProviderInterface } from '../core/types';
-import { StorageInterface } from '../utils/storage';
-import { Logger } from '../utils/logger';
-import { GoogleAuthProviderWeb } from './web/google-provider';
+} from '../definitions.js';
+import { BaseAuthProvider } from './base-provider.js';
+import { AuthProviderInterface } from '../core/types.js';
+import { StorageInterface } from '../utils/storage.js';
+import { Logger } from '../utils/logger.js';
+import { GoogleAuthProviderWeb } from './web/google-provider.js';
 
 export type AnyAuthProvider = BaseAuthProvider | AuthProviderInterface;
 

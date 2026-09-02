@@ -1,6 +1,6 @@
 {
   "name": "capacitor-auth-manager",
-  "version": "2.4.2",
+  "version": "2.5.0",
   "description": "Capacitor + web authentication. Firebase-agnostic native & web Google sign-in (idToken/accessToken) for React, Vue, Angular and vanilla JS — a drop-in alternative to @codetrix-studio/capacitor-google-auth. More providers shipping one at a time.",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
@@ -48,10 +48,11 @@
     "android/proguard-rules.pro",
     "dist/",
     "ios/Plugin/",
+    "scripts/configure.js",
     "CapacitorAuthManager.podspec",
+    "README.md",
     "CHANGELOG.md",
-    "!**/CLAUDE.md",
-    "!**/AGENTS.md"
+    "LICENSE"
   ],
   "author": {
     "email": "aoneahsan@gmail.com",
@@ -66,47 +67,35 @@
   "bugs": {
     "url": "https://github.com/aoneahsan/capacitor-auth-manager/issues"
   },
-  "homepage": "https://npmjs.com/package/capacitor-auth-manager",
+  "homepage": "https://capacitor-auth-manager-docs.aoneahsan.com",
+  "funding": "https://aoneahsan.com/payment?project-id=capacitor-auth-manager&project-identifier=capacitor-auth-manager",
   "keywords": [
-    "auth",
+    "capacitor",
     "authentication",
+    "google-sign-in",
     "oauth",
-    "google",
-    "apple",
-    "microsoft",
-    "facebook",
-    "github",
-    "slack",
-    "linkedin",
-    "firebase",
-    "email-magic-link",
-    "sms",
-    "email-code",
-    "biometric",
+    "id-token",
+    "capacitor-plugin",
     "react",
     "vue",
-    "angular",
-    "capacitor",
-    "plugin",
-    "native",
-    "web",
-    "pwa",
-    "universal"
+    "angular"
   ],
   "scripts": {
     "build": "npm run clean && npm run tsc && rollup -c rollup.config.mjs",
     "clean": "rimraf ./dist",
     "tsc": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.build.json --noEmit",
     "watch": "tsc --watch",
     "lint": "eslint .",
     "prettier": "prettier --write .",
     "prepack": "npm run build",
-    "prepublishOnly": "npm run build && npm run lint",
+    "prepublishOnly": "npm run build && npm run lint && npm run smoke:tarball",
     "swiftlint": "cd ios && swiftlint lint --fix --format --path Plugin --verbose",
-    "configure": "node scripts/configure.js"
+    "configure": "node scripts/configure.js",
+    "smoke:tarball": "node --test test/tarball-smoke.test.js"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=24.0.0"
   },
   "bin": {
     "capacitor-auth-configure": "./scripts/configure.js"
@@ -146,9 +135,6 @@
     "@angular/core": {
       "optional": true
     },
-    "@capacitor/core": {
-      "optional": true
-    },
     "@capacitor/preferences": {
       "optional": true
     },
@@ -159,9 +145,6 @@
       "optional": true
     }
   },
-  "optionalDependencies": {
-    "capacitor-biometric-authentication": "^2.3.1"
-  },
   "capacitor": {
     "ios": {
       "src": "ios"
@@ -169,5 +152,6 @@
     "android": {
       "src": "android"
     }
-  }
+  },
+  "packageManager": "yarn@4.17.1"
 }

@@ -4,14 +4,14 @@ import {
   AuthErrorCode,
   SignInOptions,
   AuthProvider,
-} from '../../definitions';
-import { AuthError } from '../../utils/auth-error';
+} from '../../definitions.js';
+import { AuthError } from '../../utils/auth-error.js';
 import {
   BaseAuthProvider,
   BaseProviderConfig,
   resolveProviderConfig,
-} from '../base-provider';
-import { PendingVerificationStore } from '../../utils/pending-verification-store';
+} from '../base-provider.js';
+import { PendingVerificationStore } from '../../utils/pending-verification-store.js';
 
 /** A thrown value that may carry a `message` (used to surface backend/network error text). */
 interface ErrorLike {
