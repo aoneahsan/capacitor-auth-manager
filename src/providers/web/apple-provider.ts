@@ -11,15 +11,15 @@ import {
   AuthErrorCode,
   AuthUser,
   AuthCredential,
-} from '../../definitions';
+} from '../../definitions.js';
 import {
   OAuthProvider,
   OAuthConfig,
   OAuthTokenResponse,
   OAuthUserInfo,
-} from '../oauth-provider';
-import { BaseProviderConfig } from '../base-provider';
-import { AuthError } from '../../utils/auth-error';
+} from '../oauth-provider.js';
+import { BaseProviderConfig } from '../base-provider.js';
+import { AuthError } from '../../utils/auth-error.js';
 
 interface AppleSignInResponse {
   authorization: {

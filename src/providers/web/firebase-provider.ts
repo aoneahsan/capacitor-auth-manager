@@ -1,4 +1,4 @@
-import { BaseAuthProvider } from '../base-provider';
+import { BaseAuthProvider } from '../base-provider.js';
 import {
   AuthResult,
   AuthErrorCode,
@@ -7,9 +7,9 @@ import {
   FirebaseAuthOptions,
   LinkAccountOptions,
   UnlinkAccountOptions,
-} from '../../definitions';
-import { AuthError } from '../../utils/auth-error';
-import type { SignInOptions, SignOutOptions } from '../../definitions';
+} from '../../definitions.js';
+import { AuthError } from '../../utils/auth-error.js';
+import type { SignInOptions, SignOutOptions } from '../../definitions.js';
 
 /**
  * Minimal structural types for the slices of the Firebase compat ("namespaced") Web SDK this

@@ -1,10 +1,10 @@
-import { EventEmitter } from '../utils/event-emitter';
-import { Logger } from '../utils/logger';
-import { WebStorage, StorageInterface } from '../utils/storage';
-import { AuthError } from '../utils/auth-error';
-import { ProviderRegistry } from './provider-registry';
-import type { ProviderDeps } from './provider-registry';
-import type { AuthManagerConfig, AuthState, AuthStateListener } from './types';
+import { EventEmitter } from '../utils/event-emitter.js';
+import { Logger } from '../utils/logger.js';
+import { WebStorage, StorageInterface } from '../utils/storage.js';
+import { AuthError } from '../utils/auth-error.js';
+import { ProviderRegistry } from './provider-registry.js';
+import type { ProviderDeps } from './provider-registry.js';
+import type { AuthManagerConfig, AuthState, AuthStateListener } from './types.js';
 import type {
   AuthUser,
   AuthCredential,
@@ -16,8 +16,8 @@ import type {
   GetIdTokenOptions,
   UpdateProfileOptions,
   DeleteAccountOptions,
-} from '../definitions';
-import { AuthProvider, AuthErrorCode, AuthPersistence } from '../definitions';
+} from '../definitions.js';
+import { AuthProvider, AuthErrorCode, AuthPersistence } from '../definitions.js';
 
 /**
  * Maps the config's persistence literal to the {@link AuthPersistence} enum WebStorage expects.
@@ -777,8 +777,43 @@ class AuthManagerCore {
   }
 }
 
-// Create singleton instance
-export const auth = new AuthManagerCore();
+let instance: AuthManagerCore | null = null;
+
+/**
+ * Returns the process-wide auth manager, constructing it on first call.
+ *
+ * The singleton is created lazily on purpose (ISSUE-002): constructing it eagerly at module scope
+ * built a `WebStorage` that read `window.localStorage` while the module was being evaluated, which
+ * crashed any import under Node / SSR and made `"sideEffects": false` untrue. Nothing touches the
+ * browser until the first real use.
+ */
+export function getAuth(): AuthManagerCore {
+  if (!instance) {
+    instance = new AuthManagerCore();
+  }
+  return instance;
+}
+
+/**
+ * The shared auth manager. Every property access is forwarded to the lazily-created instance, so
+ * `import { auth } from 'capacitor-auth-manager'` keeps working unchanged while importing the
+ * package has no side effects.
+ */
+export const auth: AuthManagerCore = new Proxy({} as AuthManagerCore, {
+  get(_target, property) {
+    const target = getAuth();
+    const value = Reflect.get(target, property, target) as unknown;
+    return typeof value === 'function'
+      ? (value as (...args: unknown[]) => unknown).bind(target)
+      : value;
+  },
+  set(_target, property, value) {
+    return Reflect.set(getAuth(), property, value);
+  },
+  has(_target, property) {
+    return Reflect.has(getAuth(), property);
+  },
+});
 
 // Export types
 export type { AuthManagerCore };

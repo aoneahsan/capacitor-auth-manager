@@ -8,7 +8,7 @@ import type {
   GetIdTokenOptions,
   UpdateProfileOptions,
   DeleteAccountOptions,
-} from '../definitions';
+} from '../definitions.js';
 
 export interface UseAuthReturn {
   user: AuthUser | null;

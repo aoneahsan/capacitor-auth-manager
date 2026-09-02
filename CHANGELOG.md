@@ -5,6 +5,105 @@ All notable changes to `capacitor-auth-manager` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 2026-09-03
+
+Google sign-in hardened on every layer. Closes all five entries that `2.4.3` documented in
+`docs/REPORTED-ISSUES.md` and fixes the runtime defects found while reviewing the native bridge. Native code
+compiles are verified by the owner on a separate Android build machine before this version is published.
+
+### Fixed
+
+- **ISSUE-001 — bare Node ESM could not import the package.** Every relative specifier in `src/` now carries
+  its `.js` extension (155 specifiers across 41 files), so `dist/esm` resolves under Node's ESM resolver as
+  well as under bundlers. Guarded by the new tarball smoke test.
+- **ISSUE-002 — importing the package threw `window is not defined`.** The `auth` singleton is created lazily
+  on first use (a `Proxy` keeps `import { auth }` unchanged), and `WebStorage` falls back to in-memory storage
+  when `window` is absent or the browser refuses storage access (private mode). `"sideEffects": false` is now
+  true.
+- **ISSUE-003 — `@capacitor/core` was declared optional but required.** It is a required peer now.
+- **ISSUE-004 — `capacitor-biometric-authentication` was installed for every consumer.** Removed from
+  `optionalDependencies`; it returns as an optional peer when the biometric provider is re-enabled.
+- **ISSUE-005 — `engines.node` was untested and disagreed with `.nvmrc`.** The floor is now `>=24.0.0`
+  (owner decision: current and latest Node only, no legacy targets) and CI builds, lints and runs the tarball
+  smoke test on Node 24 and 26. Node is a build/install requirement only — the package runs in a browser or a
+  webview.
+- **Web One-Tap dismissed by the user hung `signIn()` forever.** A dismissed prompt now rejects with
+  `USER_CANCELLED`; a suppressed prompt rejects with `POPUP_BLOCKED` (or falls back, see Added).
+- **Native `getCurrentUser()` returned `{}` and the app treated it as a signed-in user.** The bridge now
+  normalizes any result without a string `uid` to `null`, so a cold start with no session is "signed out"
+  instead of authenticated-with-an-empty-user.
+- **Android `getCurrentUser()` resolved the same plugin call twice** when no provider was active. It answers
+  exactly once and remembers which provider owns the restored session.
+- **Android manifest declared `READ_SMS`, `RECEIVE_SMS` and `USE_BIOMETRIC`** for providers that are disabled.
+  Only `INTERNET` remains; the SMS permissions are Play-restricted and were a store-rejection risk for every
+  consumer.
+- Per-call sign-in options (`nonce`, `loginHint`, the new flow selectors) now reach the native side; they
+  were previously dropped because the manager flattens them before calling the provider.
+
+### Added
+
+- **`GoogleAuthOptions.webFlow`** (`'auto' | 'one-tap' | 'popup'`, default `'auto'`): One-Tap first, then a
+  Google Identity Services OAuth2 **popup fallback** whenever the browser does not display One-Tap (cooldown,
+  FedCM opt-out, third-party-cookie settings). The popup returns `accessToken` plus the Google profile;
+  Firebase accepts `GoogleAuthProvider.credential(idToken ?? null, accessToken)`.
+- **`GoogleAuthOptions.androidFlow`** (`'auto' | 'bottom-sheet' | 'button'`, default `'auto'`): the
+  Credential Manager bottom sheet first, then the explicit **Sign in with Google button flow**
+  (`GetSignInWithGoogleOption`) when no authorized account is offered — that flow can add an account.
+- Both selectors are also accepted per call: `auth.signIn({ provider, options: { webFlow: 'popup' } })`.
+- `getAuth()` export alongside `auth` for callers who prefer an explicit accessor.
+- Web `getIdToken()` and `revokeAccess()` implementations (revoke uses the OAuth2 token when present).
+- **Tarball smoke test** (`yarn smoke:tarball`, `node:test`): packs the package, installs the tarball into a
+  scratch directory and imports it under bare Node (ESM and CJS). Wired into `prepublishOnly`.
+
+### Changed
+
+- `@capacitor/core` peer: optional → required.
+- Android: `androidx.credentials` 1.3.0 → 1.5.0, `security-crypto` 1.1.0-alpha06 → 1.1.0 (stable),
+  AGP/compileSdk/minSdk fallbacks aligned with Capacitor 8 (8.13.0 / 36 / 24), `lintOptions` → `lint`,
+  the unused direct `play-services-auth` dependency removed (still provided transitively), Facebook/MSAL
+  ProGuard rules dropped.
+- `packageManager: yarn@4.17.1` declared so corepack picks the right Yarn.
+- Google provider manifest no longer names a non-existent `@google/gsi` npm package.
+
+### Not changed on purpose
+
+- iOS `GoogleSignIn ~> 7.1` stays. A major SDK bump without a compile check is not acceptable; it moves in
+  a release that is verified on a Mac.
+
+## [2.4.4] - 2026-07-25
+
+### Fixed
+
+- **The README stated the previous version.** The at-a-glance `Version` row is a static duplicate of
+  `package.json.version`, so it drifted the moment the version was bumped — it shipped stale in eight of the
+  fleet's packages at once. The row, and any native version string, now move with the release.
+
+## [2.4.3] — 2026-07-25
+
+**Documentation and metadata only — no runtime changes.** Brings the package to the house README
+standard and, importantly, **documents two High-severity defects that have been shipping since before
+this release**. They are stated plainly in the README's Limitations section rather than left for a
+consumer to discover at runtime:
+
+- **The published ESM build does not resolve under bare Node.** `moduleResolution: "bundler"` emits 133
+  extensionless relative specifiers across 33 files. Bundlers resolve them; Node's ESM resolver does
+  not, so SSR, Node-resolution test runners and `node --import` all fail.
+- **Importing the package throws `window is not defined`.** A module-scope singleton in
+  `src/core/auth-manager.ts` constructs a `WebStorage` that reads `window.localStorage` unguarded. This
+  also makes `sideEffects: false` untrue.
+
+Neither is fixed here — both need a code change and a version bump beyond a documentation patch. Every
+conventional gate passes while they ship: typecheck, lint, build, the exports-map walk and even an
+esbuild bundle are all green. Only installing the tarball and importing it under bare Node catches them.
+Tracked in `docs/REPORTED-ISSUES.md` as ISSUE-001 and ISSUE-002.
+
+### Changed
+
+- README rewritten to the canonical package pattern; `Readme.md` renamed to `README.md`.
+- `homepage` moved off the npmjs.com page onto the documentation site.
+- `funding` added; `keywords` reduced from 24 to 9 honest terms.
+- `files` allowlist corrected to include the `bin` script explicitly; inert `.npmignore` removed.
+
 ## [2.4.2] — 2026-06-30
 
 **Native now actually compiles — Google-only native (verified).** `2.4.1` shipped native sources that
@@ -177,4 +276,10 @@ as each is hardened and verified on device; until then they report a clear `PROV
 
 - `npm run build` succeeds; `npm run test:run` — 79 tests pass; `npm run lint` — 0 errors.
 
-[2.2.0]: https://github.com/aoneahsan/capacitor-auth-manager/releases/tag/v2.2.0
+## Earlier releases
+
+`0.0.1`, `0.0.2`, `1.0.0`, `1.1.0` and `2.1.0` were published before this changelog was started, and no
+per-version record of them was kept. They are listed here so the gap is visible rather than silent; the
+published artefacts remain on
+[npm](https://www.npmjs.com/package/capacitor-auth-manager?activeTab=versions). Treat `2.2.0` as the first
+release with a documented history.

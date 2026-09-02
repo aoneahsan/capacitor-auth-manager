@@ -1,8 +1,8 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable, from, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { auth } from '../core/auth-manager';
-import type { AuthState, AuthManagerConfig } from '../core/types';
+import { auth } from '../core/auth-manager.js';
+import type { AuthState, AuthManagerConfig } from '../core/types.js';
 import type {
   AuthUser,
   AuthResult,
@@ -14,7 +14,7 @@ import type {
   GetIdTokenOptions,
   UpdateProfileOptions,
   DeleteAccountOptions,
-} from '../definitions';
+} from '../definitions.js';
 
 @Injectable({
   providedIn: 'root',

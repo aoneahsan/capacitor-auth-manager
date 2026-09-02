@@ -1,12 +1,12 @@
-import { BaseAuthProvider } from '../base-provider';
+import { BaseAuthProvider } from '../base-provider.js';
 import {
   AuthResult,
   AuthErrorCode,
   AuthUser,
   GitHubAuthOptions,
-} from '../../definitions';
-import { AuthError } from '../../utils/auth-error';
-import type { SignInOptions, SignOutOptions } from '../../definitions';
+} from '../../definitions.js';
+import { AuthError } from '../../utils/auth-error.js';
+import type { SignInOptions, SignOutOptions } from '../../definitions.js';
 
 /** Subset of GitHub's `/user` response this provider reads. */
 interface GitHubUserData {

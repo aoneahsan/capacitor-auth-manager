@@ -1,4 +1,4 @@
-import { Logger, defaultLogger } from './logger';
+import { Logger, defaultLogger } from './logger.js';
 
 export type EventListener<T = unknown> = (data: T) => void;
 export type UnsubscribeFn = () => void;

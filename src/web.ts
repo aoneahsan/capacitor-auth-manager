@@ -28,16 +28,16 @@ import type {
   RevokeAccessOptions,
   AuthProviderConfig,
   AuthCredential,
-} from './definitions';
+} from './definitions.js';
 
-import { AuthErrorCode, AuthPersistence, AuthProvider } from './definitions';
+import { AuthErrorCode, AuthPersistence, AuthProvider } from './definitions.js';
 
-import { AuthError } from './utils/auth-error';
-import { EventEmitter } from './utils/event-emitter';
-import { WebStorage, StorageInterface } from './utils/storage';
-import { Logger } from './utils/logger';
-import { BaseAuthProvider } from './providers/base-provider';
-import { ProviderFactory, AnyAuthProvider } from './providers/provider-factory';
+import { AuthError } from './utils/auth-error.js';
+import { EventEmitter } from './utils/event-emitter.js';
+import { WebStorage, StorageInterface } from './utils/storage.js';
+import { Logger } from './utils/logger.js';
+import { BaseAuthProvider } from './providers/base-provider.js';
+import { ProviderFactory, AnyAuthProvider } from './providers/provider-factory.js';
 
 export class CapacitorAuthManagerWeb
   extends WebPlugin

@@ -2,7 +2,7 @@ import {
   AuthError as IAuthError,
   AuthErrorCode,
   AuthProvider,
-} from '../definitions';
+} from '../definitions.js';
 
 export class AuthError extends Error implements IAuthError {
   code: string;

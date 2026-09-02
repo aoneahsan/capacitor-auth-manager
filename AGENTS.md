@@ -27,19 +27,25 @@ one at a time.
 ## Local development
 
 ```bash
-npm install
-npm run build      # clean + tsc + rollup → dist (ESM + CJS + browser)
-npm run lint       # eslint — must be 0 errors / 0 warnings
-npm run prettier   # format
+corepack enable                 # Yarn 4.17.1 is pinned via "packageManager" (Node >= 24)
+corepack yarn install
+corepack yarn build             # clean + tsc + rollup → dist (ESM + CJS + browser)
+corepack yarn lint              # eslint — must be 0 errors / 0 warnings
+corepack yarn smoke:tarball     # packs the tarball, installs it in a scratch dir, imports it under bare Node
+corepack yarn prettier          # format
 ```
 
-No automated test suite — auth flows are validated manually on real devices. The native code DOES compile in
-a clean Capacitor 8 app (verified via `gradle assembleDebug` + `pod lib lint`), but a green build is not a
-runtime test — verify Google sign-in on a device.
+The only automated test is the tarball smoke test (`test/tarball-smoke.test.js`, node:test) — it guards the
+Node ESM / SSR import path that no repo build exercises. Auth flows are validated manually on real devices:
+the native code compiles in a clean Capacitor 8 app, but a green build is not a runtime test — verify Google
+sign-in on a device before rolling a version out.
 
 ## Hard rules
 
-- **TypeScript:** strict, no `any`, absolute imports, `export type` for type-only exports.
+- **TypeScript:** strict, no `any`, `export type` for type-only exports, and **every relative import carries
+  its `.js` extension** — the published ESM must resolve under bare Node, not only under bundlers.
+- **No import-time side effects:** the `auth` singleton is lazy (`getAuth()`), storage access is guarded;
+  `sideEffects: false` has to stay true.
 - **Tree-shaking:** keep `sideEffects: false`; providers load via dynamic `import()` — no eager provider imports.
 - **No Firebase coupling, no secrets in code.** The package returns a credential; the app owns Firebase.
 - **Logging:** use the package logger, never `console.*` directly.

@@ -1,6 +1,6 @@
 import { ref, computed, readonly, onUnmounted, Ref, ComputedRef } from 'vue';
-import { auth } from '../core/auth-manager';
-import type { AuthState, AuthManagerConfig } from '../core/types';
+import { auth } from '../core/auth-manager.js';
+import type { AuthState, AuthManagerConfig } from '../core/types.js';
 import type {
   AuthUser,
   AuthResult,
@@ -11,7 +11,7 @@ import type {
   GetIdTokenOptions,
   UpdateProfileOptions,
   DeleteAccountOptions,
-} from '../definitions';
+} from '../definitions.js';
 
 interface UseAuthReturn {
   user: Readonly<Ref<AuthUser | null>>;

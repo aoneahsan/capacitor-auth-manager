@@ -5,8 +5,8 @@ import {
   inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AuthService, AuthProviderFactory } from './auth.service';
-import type { ProviderOptions } from '../definitions';
+import { AuthService, AuthProviderFactory } from './auth.service.js';
+import type { ProviderOptions } from '../definitions.js';
 
 export interface AuthModuleConfig {
   providers?: Record<string, ProviderOptions>;

@@ -8,28 +8,40 @@ on:
 
 jobs:
   build:
-    name: Build & lint
+    name: Build, lint, tarball smoke (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # engines.node is ">=24.0.0" (current + latest only, owner decision 2026-09-03); this matrix backs the claim.
+        node: [24, 26]
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: ${{ matrix.node }}
+
+      - name: Enable corepack (Yarn 4 is pinned via packageManager)
+        run: |
+          npm install -g corepack
+          corepack enable
 
       - name: Install
-        run: npm ci
+        run: corepack yarn install --immutable
 
       - name: Typecheck
-        run: npx tsc -p tsconfig.build.json --noEmit
+        run: corepack yarn typecheck
 
       - name: Build
-        run: npm run build
+        run: corepack yarn build
 
       - name: Lint
-        run: npm run lint
+        run: corepack yarn lint
+
+      - name: Tarball smoke (bare Node ESM + CJS import of the packed package)
+        run: corepack yarn smoke:tarball
 
       - name: Pack (verify tarball contents)
         run: npm pack --dry-run

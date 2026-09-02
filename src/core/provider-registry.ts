@@ -1,13 +1,13 @@
-import type { AuthProviderInterface, ProviderManifest } from './types';
-import { PlatformDetector } from './platform';
-import { AuthProvider, AuthPersistence, AuthErrorCode } from '../definitions';
-import type { ProviderOptions } from '../definitions';
-import { AuthError } from '../utils/auth-error';
-import { WebStorage } from '../utils/storage';
-import type { StorageInterface } from '../utils/storage';
-import { Logger } from '../utils/logger';
-import { getErrorMessage } from '../utils/error-message';
-import { BUILT_IN_PROVIDER_MANIFESTS } from './provider-manifests';
+import type { AuthProviderInterface, ProviderManifest } from './types.js';
+import { PlatformDetector } from './platform.js';
+import { AuthProvider, AuthPersistence, AuthErrorCode } from '../definitions.js';
+import type { ProviderOptions } from '../definitions.js';
+import { AuthError } from '../utils/auth-error.js';
+import { WebStorage } from '../utils/storage.js';
+import type { StorageInterface } from '../utils/storage.js';
+import { Logger } from '../utils/logger.js';
+import { getErrorMessage } from '../utils/error-message.js';
+import { BUILT_IN_PROVIDER_MANIFESTS } from './provider-manifests.js';
 
 export interface ProviderLoader {
   (): Promise<
@@ -88,10 +88,10 @@ export class ProviderRegistry {
     this.registerLoader('google', () => {
       const { platform } = PlatformDetector.getPlatform();
       return platform === 'ios' || platform === 'android'
-        ? import('../providers/native/google-native-provider').then((m) => ({
+        ? import('../providers/native/google-native-provider.js').then((m) => ({
             default: m.GoogleNativeProvider,
           }))
-        : import('../providers/web/google-provider').then((m) => ({
+        : import('../providers/web/google-provider.js').then((m) => ({
             default: m.GoogleAuthProviderWeb,
           }));
     });

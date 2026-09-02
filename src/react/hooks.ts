@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { auth } from '../core/auth-manager';
-import type { AuthState } from '../core/types';
+import { auth } from '../core/auth-manager.js';
+import type { AuthState } from '../core/types.js';
 import type {
   AuthUser,
   SignInOptions,
@@ -10,12 +10,12 @@ import type {
   GetIdTokenOptions,
   UpdateProfileOptions,
   DeleteAccountOptions,
-} from '../definitions';
+} from '../definitions.js';
 import type {
   UseAuthReturn,
   UseAuthStateReturn,
   UseAuthProviderReturn,
-} from './types';
+} from './types.js';
 
 /**
  * Hook for complete authentication functionality

@@ -6,14 +6,14 @@ import {
   SignUpOptions,
   RefreshTokenOptions,
   AuthProvider,
-} from '../../definitions';
-import { AuthError } from '../../utils/auth-error';
-import { getErrorMessage } from '../../utils/error-message';
+} from '../../definitions.js';
+import { AuthError } from '../../utils/auth-error.js';
+import { getErrorMessage } from '../../utils/error-message.js';
 import {
   BaseAuthProvider,
   BaseProviderConfig,
   resolveProviderConfig,
-} from '../base-provider';
+} from '../base-provider.js';
 
 export interface UsernamePasswordConfig {
   apiUrl: string;

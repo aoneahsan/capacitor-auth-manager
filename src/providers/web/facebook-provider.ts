@@ -1,12 +1,12 @@
-import { BaseAuthProvider } from '../base-provider';
+import { BaseAuthProvider } from '../base-provider.js';
 import {
   AuthResult,
   AuthErrorCode,
   AuthUser,
   FacebookAuthOptions,
-} from '../../definitions';
-import { AuthError } from '../../utils/auth-error';
-import type { SignInOptions, SignOutOptions } from '../../definitions';
+} from '../../definitions.js';
+import { AuthError } from '../../utils/auth-error.js';
+import type { SignInOptions, SignOutOptions } from '../../definitions.js';
 
 /**
  * Minimal structural types for the slice of the Facebook JS SDK (`window.FB`) this provider uses.

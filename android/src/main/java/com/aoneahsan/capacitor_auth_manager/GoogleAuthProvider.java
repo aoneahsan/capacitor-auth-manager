@@ -21,6 +21,7 @@ import androidx.credentials.exceptions.NoCredentialException;
 
 import com.getcapacitor.JSObject;
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 
 import org.json.JSONArray;
@@ -80,6 +81,8 @@ public class GoogleAuthProvider implements BaseAuthProvider {
     private String nonce;
     private String hostedDomain;
     private String loginHint;
+    /** "auto" (bottom sheet, then button on NoCredentialException) | "bottom-sheet" | "button". */
+    private String androidFlow = "auto";
 
     private JSObject currentUser;
 
@@ -129,6 +132,12 @@ public class GoogleAuthProvider implements BaseAuthProvider {
         this.loginHint = loginHint;
     }
 
+    public void setAndroidFlow(String androidFlow) {
+        if (androidFlow != null && !androidFlow.isEmpty()) {
+            this.androidFlow = androidFlow;
+        }
+    }
+
     // ---- BaseAuthProvider ----
 
     @Override
@@ -150,9 +159,42 @@ public class GoogleAuthProvider implements BaseAuthProvider {
     }
 
     @Override
-    public void signIn(JSObject credentials, JSObject options, CapacitorAuthManager.AuthCallback<JSObject> callback) {
-        logger.info("Starting Google sign-in (Credential Manager)");
-        requestGoogleCredential(filterByAuthorizedAccounts, autoSelectEnabled, callback);
+    public void signIn(JSObject credentials, JSObject options, final CapacitorAuthManager.AuthCallback<JSObject> callback) {
+        String flow = androidFlow;
+        if (options != null && options.has("androidFlow")) {
+            String perCall = options.getString("androidFlow");
+            if (perCall != null && !perCall.isEmpty()) {
+                flow = perCall;
+            }
+        }
+        logger.info("Starting Google sign-in (Credential Manager, flow=" + flow + ")");
+
+        if ("button".equals(flow)) {
+            requestSignInWithGoogleButton(callback);
+            return;
+        }
+
+        final boolean fallbackToButton = !"bottom-sheet".equals(flow);
+        requestGoogleCredential(filterByAuthorizedAccounts, autoSelectEnabled, new CapacitorAuthManager.AuthCallback<JSObject>() {
+            @Override
+            public void onResult(CapacitorAuthManager.AuthResult<JSObject> result) {
+                if (result.isSuccess() || !fallbackToButton || !(result.getError() instanceof NoGoogleCredentialException)) {
+                    callback.onResult(result);
+                    return;
+                }
+                // No authorized Google account was offered by the bottom sheet: the explicit
+                // "Sign in with Google" button flow lets the user pick or add an account.
+                logger.info("No Google credential from the bottom sheet; falling back to the Sign in with Google button flow");
+                requestSignInWithGoogleButton(callback);
+            }
+        });
+    }
+
+    /** Marker so signIn() can distinguish "no account offered" from every other failure. */
+    private static class NoGoogleCredentialException extends Exception {
+        NoGoogleCredentialException(String message) {
+            super(message);
+        }
     }
 
     @Override
@@ -287,30 +329,80 @@ public class GoogleAuthProvider implements BaseAuthProvider {
                     .addCredentialOption(googleIdOption)
                     .build();
 
-            CredentialManager credentialManager = CredentialManager.create(context);
-            Executor executor = ContextCompat.getMainExecutor(context);
-
-            credentialManager.getCredentialAsync(
-                    activity,
-                    request,
-                    null,
-                    executor,
-                    new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
-                        @Override
-                        public void onResult(GetCredentialResponse response) {
-                            handleSignInResponse(response, callback);
-                        }
-
-                        @Override
-                        public void onError(GetCredentialException e) {
-                            handleSignInError(e, callback);
-                        }
-                    }
-            );
+            launchCredentialRequest(request, callback);
         } catch (Exception e) {
             logger.error("Failed to start Google Credential Manager request", e);
             callback.onResult(CapacitorAuthManager.AuthResult.error(e));
         }
+    }
+
+    /**
+     * The explicit "Sign in with Google" button flow ({@link GetSignInWithGoogleOption}). Unlike the
+     * bottom sheet it always shows the account chooser and can add a new Google account, so it is the
+     * right fallback when {@code NoCredentialException} is raised. Same result shape (ID token).
+     */
+    private void requestSignInWithGoogleButton(final CapacitorAuthManager.AuthCallback<JSObject> callback) {
+        String resolvedServerClientId = (serverClientId != null && !serverClientId.isEmpty())
+                ? serverClientId
+                : clientId;
+
+        if (resolvedServerClientId == null || resolvedServerClientId.isEmpty()) {
+            callback.onResult(CapacitorAuthManager.AuthResult.error(new IllegalStateException(
+                    "Google sign-in requires a serverClientId (your Web OAuth client id). "
+                            + "Provide 'serverClientId' (or 'clientId') in the google provider options.")));
+            return;
+        }
+
+        if (activity == null) {
+            callback.onResult(CapacitorAuthManager.AuthResult.error(new IllegalStateException(
+                    "Google sign-in requires a foreground Activity.")));
+            return;
+        }
+
+        try {
+            GetSignInWithGoogleOption.Builder optionBuilder = new GetSignInWithGoogleOption.Builder(resolvedServerClientId);
+            if (nonce != null && !nonce.isEmpty()) {
+                optionBuilder.setNonce(nonce);
+            }
+            if (hostedDomain != null && !hostedDomain.isEmpty()) {
+                optionBuilder.setHostedDomainFilter(hostedDomain);
+            }
+
+            GetCredentialRequest request = new GetCredentialRequest.Builder()
+                    .addCredentialOption(optionBuilder.build())
+                    .build();
+
+            launchCredentialRequest(request, callback);
+        } catch (Exception e) {
+            logger.error("Failed to start the Sign in with Google button flow", e);
+            callback.onResult(CapacitorAuthManager.AuthResult.error(e));
+        }
+    }
+
+    private void launchCredentialRequest(
+            GetCredentialRequest request,
+            final CapacitorAuthManager.AuthCallback<JSObject> callback
+    ) {
+        CredentialManager credentialManager = CredentialManager.create(context);
+        Executor executor = ContextCompat.getMainExecutor(context);
+
+        credentialManager.getCredentialAsync(
+                activity,
+                request,
+                null,
+                executor,
+                new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
+                    @Override
+                    public void onResult(GetCredentialResponse response) {
+                        handleSignInResponse(response, callback);
+                    }
+
+                    @Override
+                    public void onError(GetCredentialException e) {
+                        handleSignInError(e, callback);
+                    }
+                }
+        );
     }
 
     private void handleSignInResponse(
@@ -373,7 +465,7 @@ public class GoogleAuthProvider implements BaseAuthProvider {
         }
         if (e instanceof NoCredentialException) {
             logger.warn("No Google credentials available for sign-in");
-            callback.onResult(CapacitorAuthManager.AuthResult.error(new Exception(
+            callback.onResult(CapacitorAuthManager.AuthResult.error(new NoGoogleCredentialException(
                     "No Google account available. Add a Google account to the device, or ensure "
                             + "Google Play services is up to date and the SHA-1 fingerprint is registered.")));
             return;

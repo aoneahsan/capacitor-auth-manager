@@ -208,17 +208,33 @@ public class CapacitorAuthManager {
             }
         }
 
-        // Try to get user from any provider
-        for (BaseAuthProvider provider : providers.values()) {
-            provider.getCurrentUser(result -> {
-                if (result.isSuccess() && result.getData() != null) {
-                    callback.onResult(result);
-                    return;
-                }
-            });
-        }
+        // No active provider: ask each configured provider in turn and answer exactly ONCE. The
+        // previous loop fired every provider's async callback AND an unconditional success(null),
+        // which resolved the same PluginCall twice.
+        java.util.List<java.util.Map.Entry<String, BaseAuthProvider>> candidates =
+                new java.util.ArrayList<>(providers.entrySet());
+        findCurrentUserFrom(candidates, 0, callback);
+    }
 
-        callback.onResult(AuthResult.success(null));
+    private void findCurrentUserFrom(
+            java.util.List<java.util.Map.Entry<String, BaseAuthProvider>> candidates,
+            int index,
+            AuthCallback<JSObject> callback
+    ) {
+        if (index >= candidates.size()) {
+            callback.onResult(AuthResult.success(null));
+            return;
+        }
+        java.util.Map.Entry<String, BaseAuthProvider> entry = candidates.get(index);
+        entry.getValue().getCurrentUser(result -> {
+            if (result.isSuccess() && result.getData() != null && result.getData().has("uid")) {
+                // Remember which provider owns the restored session for subsequent calls.
+                currentProvider = entry.getKey();
+                callback.onResult(result);
+            } else {
+                findCurrentUserFrom(candidates, index + 1, callback);
+            }
+        });
     }
 
     public void refreshToken(JSObject options, AuthCallback<JSObject> callback) {

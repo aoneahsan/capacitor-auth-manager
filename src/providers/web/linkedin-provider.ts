@@ -6,15 +6,15 @@ import {
   SignOutOptions,
   LinkAccountOptions,
   UnlinkAccountOptions,
-} from '../../definitions';
-import { BaseProviderConfig } from '../base-provider';
+} from '../../definitions.js';
+import { BaseProviderConfig } from '../base-provider.js';
 import {
   OAuthProvider,
   OAuthConfig,
   OAuthTokenResponse,
   OAuthUserInfo,
-} from '../oauth-provider';
-import { AuthError } from '../../utils/auth-error';
+} from '../oauth-provider.js';
+import { AuthError } from '../../utils/auth-error.js';
 
 export interface LinkedInAuthOptions {
   clientId: string;

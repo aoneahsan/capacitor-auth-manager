@@ -1,4 +1,4 @@
-import type { ProviderManifest } from './types';
+import type { ProviderManifest } from './types.js';
 
 /**
  * Built-in provider manifests (display metadata + human-readable setup instructions).
@@ -11,28 +11,27 @@ export const BUILT_IN_PROVIDER_MANIFESTS: ProviderManifest[] = [
   {
     name: 'google',
     displayName: 'Google',
-    packageName: '@google/gsi',
     setupInstructions: `
-To use Google authentication, you need to:
+To use Google authentication:
 
-1. Install the Google Sign-In SDK:
-   npm install @google/gsi
+1. Create (or reuse) an OAuth 2.0 **Web** client in Google Cloud Console — Firebase creates one for you
+   when you enable the Google sign-in provider. Add your site origins (including your dev server, e.g.
+   http://localhost:5931) under "Authorized JavaScript origins".
 
-2. Configure your Google OAuth client:
-   - Go to https://console.cloud.google.com/
-   - Create or select a project
-   - Enable Google Sign-In API
-   - Create OAuth 2.0 credentials
-   - Add authorized JavaScript origins
-
-3. Configure the provider:
+2. Configure the provider (no extra npm package is needed — the Google Identity Services script is
+   loaded on demand on web; the native SDKs ship with the plugin):
    auth.configure({
      providers: {
        google: {
-         clientId: 'YOUR_CLIENT_ID'
+         clientId: 'YOUR_WEB_CLIENT_ID',        // web + Android serverClientId fallback
+         serverClientId: 'YOUR_WEB_CLIENT_ID',  // Android
+         iosClientId: 'YOUR_IOS_CLIENT_ID',     // iOS (or GIDClientID in Info.plist)
        }
      }
    })
+
+3. Android: register your signing key's SHA-1 in Firebase / Google Cloud. iOS: add the reversed
+   client id as a URL scheme.
 `,
     platforms: ['web', 'ios', 'android'],
     configSchema: {
