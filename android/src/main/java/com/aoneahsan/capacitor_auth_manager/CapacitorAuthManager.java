@@ -138,13 +138,13 @@ public class CapacitorAuthManager {
 
     public void signIn(String provider, JSObject credentials, JSObject options, AuthCallback<JSObject> callback) {
         if (!isInitialized) {
-            callback.onResult(AuthResult.error(new Exception("Auth manager not initialized")));
+            callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.PROVIDER_NOT_INITIALIZED, "Auth manager not initialized")));
             return;
         }
 
         BaseAuthProvider authProvider = providers.get(provider);
         if (authProvider == null) {
-            callback.onResult(AuthResult.error(new Exception("Provider " + provider + " not configured")));
+            callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.PROVIDER_NOT_ENABLED, "Provider " + provider + " not configured")));
             return;
         }
 
@@ -160,7 +160,7 @@ public class CapacitorAuthManager {
 
     public void signOut(JSObject options, AuthCallback<Void> callback) {
         if (!isInitialized) {
-            callback.onResult(AuthResult.error(new Exception("Auth manager not initialized")));
+            callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.PROVIDER_NOT_INITIALIZED, "Auth manager not initialized")));
             return;
         }
 
@@ -180,7 +180,7 @@ public class CapacitorAuthManager {
                     callback.onResult(result);
                 });
             } else {
-                callback.onResult(AuthResult.error(new Exception("Provider " + provider + " not found")));
+                callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.PROVIDER_NOT_ENABLED, "Provider " + provider + " not found")));
             }
         } else {
             // Sign out from all providers
@@ -196,7 +196,7 @@ public class CapacitorAuthManager {
 
     public void getCurrentUser(AuthCallback<JSObject> callback) {
         if (!isInitialized) {
-            callback.onResult(AuthResult.error(new Exception("Auth manager not initialized")));
+            callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.PROVIDER_NOT_INITIALIZED, "Auth manager not initialized")));
             return;
         }
 
@@ -239,20 +239,20 @@ public class CapacitorAuthManager {
 
     public void refreshToken(JSObject options, AuthCallback<JSObject> callback) {
         if (!isInitialized) {
-            callback.onResult(AuthResult.error(new Exception("Auth manager not initialized")));
+            callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.PROVIDER_NOT_INITIALIZED, "Auth manager not initialized")));
             return;
         }
 
         String provider = options != null && options.has("provider") ? options.getString("provider") : currentProvider;
         
         if (provider == null) {
-            callback.onResult(AuthResult.error(new Exception("No provider specified")));
+            callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.MISSING_CONFIGURATION, "No provider specified")));
             return;
         }
 
         BaseAuthProvider authProvider = providers.get(provider);
         if (authProvider == null) {
-            callback.onResult(AuthResult.error(new Exception("Provider " + provider + " not configured")));
+            callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.PROVIDER_NOT_ENABLED, "Provider " + provider + " not configured")));
             return;
         }
 
@@ -301,7 +301,7 @@ public class CapacitorAuthManager {
 
     public void configure(String provider, JSObject options, AuthCallback<Void> callback) {
         if (!isInitialized) {
-            callback.onResult(AuthResult.error(new Exception("Auth manager not initialized")));
+            callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.PROVIDER_NOT_INITIALIZED, "Auth manager not initialized")));
             return;
         }
 
@@ -320,7 +320,7 @@ public class CapacitorAuthManager {
                     }
                 });
             } else {
-                callback.onResult(AuthResult.error(new Exception("Unknown provider: " + provider)));
+                callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.UNSUPPORTED_PROVIDER, "Unknown provider: " + provider)));
             }
         } catch (Exception e) {
             logger.error("Failed to configure provider: " + provider, e);
@@ -330,13 +330,13 @@ public class CapacitorAuthManager {
 
     public void linkAccount(String provider, JSObject credentials, JSObject options, AuthCallback<JSObject> callback) {
         if (!isInitialized) {
-            callback.onResult(AuthResult.error(new Exception("Auth manager not initialized")));
+            callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.PROVIDER_NOT_INITIALIZED, "Auth manager not initialized")));
             return;
         }
 
         BaseAuthProvider authProvider = providers.get(provider);
         if (authProvider == null) {
-            callback.onResult(AuthResult.error(new Exception("Provider " + provider + " not configured")));
+            callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.PROVIDER_NOT_ENABLED, "Provider " + provider + " not configured")));
             return;
         }
 
@@ -345,13 +345,13 @@ public class CapacitorAuthManager {
 
     public void unlinkAccount(String provider, AuthCallback<Void> callback) {
         if (!isInitialized) {
-            callback.onResult(AuthResult.error(new Exception("Auth manager not initialized")));
+            callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.PROVIDER_NOT_INITIALIZED, "Auth manager not initialized")));
             return;
         }
 
         BaseAuthProvider authProvider = providers.get(provider);
         if (authProvider == null) {
-            callback.onResult(AuthResult.error(new Exception("Provider " + provider + " not configured")));
+            callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.PROVIDER_NOT_ENABLED, "Provider " + provider + " not configured")));
             return;
         }
 
@@ -361,7 +361,7 @@ public class CapacitorAuthManager {
     public void sendPasswordResetEmail(String email, JSObject actionCodeSettings, AuthCallback<Void> callback) {
         // Password reset is not supported on Android native - requires web-based email/password provider
         // See docs/api-reference/CAPABILITY_MATRIX.md for platform support details
-        callback.onResult(AuthResult.error(new UnsupportedOperationException(
+        callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.OPERATION_NOT_ALLOWED,
                 "sendPasswordResetEmail is not supported on Android. This method requires web-based providers. " +
                 "See docs/api-reference/CAPABILITY_MATRIX.md for platform support details.")));
     }
@@ -369,7 +369,7 @@ public class CapacitorAuthManager {
     public void sendEmailVerification(JSObject options, AuthCallback<Void> callback) {
         // Email verification is not supported on Android native - requires web-based email/password provider
         // See docs/api-reference/CAPABILITY_MATRIX.md for platform support details
-        callback.onResult(AuthResult.error(new UnsupportedOperationException(
+        callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.OPERATION_NOT_ALLOWED,
                 "sendEmailVerification is not supported on Android. This method requires web-based providers. " +
                 "See docs/api-reference/CAPABILITY_MATRIX.md for platform support details.")));
     }
@@ -377,7 +377,7 @@ public class CapacitorAuthManager {
     public void sendSmsCode(String phoneNumber, String recaptchaToken, String testCode, AuthCallback<Void> callback) {
         // SMS code is not supported on Android native - requires web-based SMS provider
         // See docs/api-reference/CAPABILITY_MATRIX.md for platform support details
-        callback.onResult(AuthResult.error(new UnsupportedOperationException(
+        callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.OPERATION_NOT_ALLOWED,
                 "sendSmsCode is not supported on Android. This method requires web-based providers. " +
                 "See docs/api-reference/CAPABILITY_MATRIX.md for platform support details.")));
     }
@@ -385,7 +385,7 @@ public class CapacitorAuthManager {
     public void verifySmsCode(String phoneNumber, String code, String verificationId, AuthCallback<JSObject> callback) {
         // SMS verification is not supported on Android native - requires web-based SMS provider
         // See docs/api-reference/CAPABILITY_MATRIX.md for platform support details
-        callback.onResult(AuthResult.error(new UnsupportedOperationException(
+        callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.OPERATION_NOT_ALLOWED,
                 "verifySmsCode is not supported on Android. This method requires web-based providers. " +
                 "See docs/api-reference/CAPABILITY_MATRIX.md for platform support details.")));
     }
@@ -393,7 +393,7 @@ public class CapacitorAuthManager {
     public void sendEmailCode(String email, String recaptchaToken, String testCode, AuthCallback<Void> callback) {
         // Email code is not supported on Android native - requires web-based email-code provider
         // See docs/api-reference/CAPABILITY_MATRIX.md for platform support details
-        callback.onResult(AuthResult.error(new UnsupportedOperationException(
+        callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.OPERATION_NOT_ALLOWED,
                 "sendEmailCode is not supported on Android. This method requires web-based providers. " +
                 "See docs/api-reference/CAPABILITY_MATRIX.md for platform support details.")));
     }
@@ -401,7 +401,7 @@ public class CapacitorAuthManager {
     public void verifyEmailCode(String email, String code, String verificationId, AuthCallback<JSObject> callback) {
         // Email code verification is not supported on Android native - requires web-based email-code provider
         // See docs/api-reference/CAPABILITY_MATRIX.md for platform support details
-        callback.onResult(AuthResult.error(new UnsupportedOperationException(
+        callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.OPERATION_NOT_ALLOWED,
                 "verifyEmailCode is not supported on Android. This method requires web-based providers. " +
                 "See docs/api-reference/CAPABILITY_MATRIX.md for platform support details.")));
     }
@@ -409,7 +409,7 @@ public class CapacitorAuthManager {
     public void updateProfile(JSObject options, AuthCallback<JSObject> callback) {
         // Profile updates are not supported on Android native - OAuth providers manage profiles externally
         // See docs/api-reference/CAPABILITY_MATRIX.md for platform support details
-        callback.onResult(AuthResult.error(new UnsupportedOperationException(
+        callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.OPERATION_NOT_ALLOWED,
                 "updateProfile is not supported on Android. OAuth providers manage profiles externally. " +
                 "See docs/api-reference/CAPABILITY_MATRIX.md for platform support details.")));
     }
@@ -417,27 +417,27 @@ public class CapacitorAuthManager {
     public void deleteAccount(JSObject options, AuthCallback<Void> callback) {
         // Account deletion is not supported on Android native - OAuth providers manage accounts externally
         // See docs/api-reference/CAPABILITY_MATRIX.md for platform support details
-        callback.onResult(AuthResult.error(new UnsupportedOperationException(
+        callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.OPERATION_NOT_ALLOWED,
                 "deleteAccount is not supported on Android. OAuth providers manage accounts externally. " +
                 "See docs/api-reference/CAPABILITY_MATRIX.md for platform support details.")));
     }
 
     public void getIdToken(JSObject options, AuthCallback<JSObject> callback) {
         if (!isInitialized) {
-            callback.onResult(AuthResult.error(new Exception("Auth manager not initialized")));
+            callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.PROVIDER_NOT_INITIALIZED, "Auth manager not initialized")));
             return;
         }
 
         String provider = options != null && options.has("provider") ? options.getString("provider") : currentProvider;
         
         if (provider == null) {
-            callback.onResult(AuthResult.error(new Exception("No provider specified")));
+            callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.MISSING_CONFIGURATION, "No provider specified")));
             return;
         }
 
         BaseAuthProvider authProvider = providers.get(provider);
         if (authProvider == null) {
-            callback.onResult(AuthResult.error(new Exception("Provider " + provider + " not configured")));
+            callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.PROVIDER_NOT_ENABLED, "Provider " + provider + " not configured")));
             return;
         }
 
@@ -452,20 +452,20 @@ public class CapacitorAuthManager {
 
     public void revokeAccess(JSObject options, AuthCallback<Void> callback) {
         if (!isInitialized) {
-            callback.onResult(AuthResult.error(new Exception("Auth manager not initialized")));
+            callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.PROVIDER_NOT_INITIALIZED, "Auth manager not initialized")));
             return;
         }
 
         String provider = options != null && options.has("provider") ? options.getString("provider") : currentProvider;
         
         if (provider == null) {
-            callback.onResult(AuthResult.error(new Exception("No provider specified")));
+            callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.MISSING_CONFIGURATION, "No provider specified")));
             return;
         }
 
         BaseAuthProvider authProvider = providers.get(provider);
         if (authProvider == null) {
-            callback.onResult(AuthResult.error(new Exception("Provider " + provider + " not configured")));
+            callback.onResult(AuthResult.error(new AuthException(AuthErrorCodes.PROVIDER_NOT_ENABLED, "Provider " + provider + " not configured")));
             return;
         }
 

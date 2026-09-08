@@ -12,13 +12,25 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AuthStorage {
     private static final String PREFS_NAME = "cap_auth_prefs";
     private static final String KEY_PREFIX = "cap_auth_";
     
     private final Context context;
+    private final AuthLogger logger = new AuthLogger("AuthStorage");
+
+    /**
+     * Encrypted preferences, or {@code null} when the Android keystore refused to produce a master
+     * key. In that case {@link #memoryStore} takes over: a session that cannot be encrypted is kept
+     * in memory for the life of the process rather than written to disk in the clear. ID tokens are
+     * bearer credentials, so plaintext {@code MODE_PRIVATE} preferences are not an acceptable
+     * fallback (any process with the app's uid, and any backup or rooted device, can read them).
+     */
     private SharedPreferences sharedPreferences;
+    private final Map<String, String> memoryStore = new HashMap<>();
     private String persistence = "local";
     
     public enum Persistence {
@@ -57,8 +69,14 @@ public class AuthStorage {
                     EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             );
         } catch (GeneralSecurityException | IOException e) {
-            // Fallback to regular shared preferences
-            sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            // The keystore is unavailable (a locked device-protected storage, a corrupted master
+            // key, an OEM keystore bug). Degrade to memory-only rather than writing tokens in the
+            // clear; the user simply has to sign in again after the process dies.
+            sharedPreferences = null;
+            memoryStore.clear();
+            logger.error(
+                    "Encrypted storage unavailable; the auth session will be kept in memory only "
+                            + "and will not survive app restarts", e);
         }
     }
     
@@ -66,9 +84,17 @@ public class AuthStorage {
         this.persistence = persistence;
     }
     
+    /** True when values are written to encrypted preferences rather than kept in memory only. */
+    public boolean isEncrypted() {
+        return sharedPreferences != null;
+    }
+
     public String get(String key) {
         if (persistence.equals(Persistence.NONE.getValue())) {
             return null;
+        }
+        if (sharedPreferences == null) {
+            return memoryStore.get(KEY_PREFIX + key);
         }
         return sharedPreferences.getString(KEY_PREFIX + key, null);
     }
@@ -77,14 +103,26 @@ public class AuthStorage {
         if (persistence.equals(Persistence.NONE.getValue())) {
             return;
         }
+        if (sharedPreferences == null) {
+            memoryStore.put(KEY_PREFIX + key, value);
+            return;
+        }
         sharedPreferences.edit().putString(KEY_PREFIX + key, value).apply();
     }
     
     public void remove(String key) {
+        if (sharedPreferences == null) {
+            memoryStore.remove(KEY_PREFIX + key);
+            return;
+        }
         sharedPreferences.edit().remove(KEY_PREFIX + key).apply();
     }
     
     public void clear() {
+        if (sharedPreferences == null) {
+            memoryStore.clear();
+            return;
+        }
         SharedPreferences.Editor editor = sharedPreferences.edit();
         for (String key : sharedPreferences.getAll().keySet()) {
             if (key.startsWith(KEY_PREFIX)) {

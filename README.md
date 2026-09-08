@@ -360,8 +360,20 @@ run it in a real terminal rather than in CI.
 - **Custom secure storage** — implement `StorageInterface` over Keychain or Keystore and pass it as
   `storage` instead of the default web storage.
 - **Nonce validation** — supply `nonce` on web and the package checks the returned id token's claim against it.
-- **Google's own button** — when One-Tap is inside its cooldown window, the web provider exposes a
-  `renderButton(element)` escape hatch that draws Google's official button.
+- **Google's own button** — when One-Tap is inside its cooldown window you can draw Google's official
+  button yourself. `renderButton` lives on the web provider class rather than on the `auth` singleton,
+  so construct it directly:
+
+  ```ts
+  import { GoogleAuthProviderWeb } from 'capacitor-auth-manager/providers/web';
+
+  const google = new GoogleAuthProviderWeb({ clientId: import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID });
+  // renderButton initializes the provider on demand; options default to { theme: 'outline', size: 'large' }
+  await google.renderButton(document.getElementById('google-btn')!);
+  ```
+
+  The button shares the One-Tap credential callback, so a click resolves the same
+  `signIn()` promise shape.
 - **Log level control** — `defaultLogger.setLevel('debug')`, or the `VITE_LOG_LEVEL` / `LOG_LEVEL` build
   variables, without touching `console` directly.
 - **Config in `capacitor.config`** — keep the Google block in native config instead of application code.
@@ -372,10 +384,10 @@ run it in a real terminal rather than in CI.
 | Symptom | Cause | Fix |
 |---|---|---|
 | `idToken` is `null` on Android | `serverClientId` missing, or the SHA fingerprint is not registered | Pass your **Web** client ID as `serverClientId` and register the app's SHA-1/SHA-256 on the Android OAuth client |
-| `PROVIDER_NOT_ENABLED` | that provider is not enabled in `2.4.x` | Only Google is available today — see [Roadmap](#roadmap) |
+| `PROVIDER_NOT_ENABLED` | that provider is not enabled yet in `2.5.x` | Only Google is available today — see [Roadmap](#roadmap) |
 | `window is not defined` on the server | you are on `< 2.5.0` | Upgrade — the singleton is lazy and storage is guarded since `2.5.0` |
 | `Cannot find module '…/core/auth-manager'` under Node | you are on `< 2.5.0` | Upgrade — every relative specifier carries its `.js` extension since `2.5.0` |
-| `POPUP_BLOCKED` on web with `webFlow: 'one-tap'` | One-Tap is suppressed (cooldown, FedCM opt-out, third-party cookies) | Use the default `webFlow: 'auto'` (falls back to the popup) or `'popup'`, or render Google's button via `renderButton(element)` |
+| `POPUP_BLOCKED` on web with `webFlow: 'one-tap'` | One-Tap is suppressed (cooldown, FedCM opt-out, third-party cookies) | Use the default `webFlow: 'auto'` (falls back to the popup) or `'popup'`, or draw Google's button with `GoogleAuthProviderWeb.renderButton` — see [Advanced Features](#advanced-features) |
 | `USER_CANCELLED` / `POPUP_CLOSED_BY_USER` | the user closed One-Tap or the popup | Expected — show your own "try again" |
 | No Google account offered on Android | the bottom sheet has no authorized account | The default `androidFlow: 'auto'` falls back to the Sign in with Google button flow, which can add an account |
 | `Cannot find module '@capacitor/core'` | the peer is not installed | `yarn add @capacitor/core` — it is a required peer |

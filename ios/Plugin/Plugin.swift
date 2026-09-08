@@ -1,6 +1,30 @@
 import Foundation
 import Capacitor
 
+extension CAPPluginCall {
+    /// Reject carrying a real `AuthErrorCode`.
+    ///
+    /// `BaseAuthProvider.createAuthError` already builds the code into `NSError.userInfo["code"]`
+    /// and `AuthManagerError` now maps itself to one, but every rejection used to pass only
+    /// `localizedDescription`. JS then fell back to substring-matching the message, so anything that
+    /// did not literally contain "cancelled"/"network"/"timeout" arrived as `auth/internal-error`.
+    func rejectAuth(_ error: Error, fallback: AuthErrorCode = .internalError) {
+        let code: String
+        if let managerError = error as? AuthManagerError {
+            code = managerError.authErrorCode.rawValue
+        } else if let carried = (error as NSError).userInfo["code"] as? String {
+            code = carried
+        } else {
+            code = fallback.rawValue
+        }
+        self.reject(error.localizedDescription, code, error)
+    }
+
+    func rejectAuth(_ message: String, _ code: AuthErrorCode) {
+        self.reject(message, code.rawValue)
+    }
+}
+
 @objc(CapacitorAuthManagerPlugin)
 public class CapacitorAuthManagerPlugin: CAPPlugin {
     private let implementation = CapacitorAuthManager()
@@ -22,13 +46,13 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
             
             implementation.initialize(options: options) { [weak self] error in
                 if let error = error {
-                    call.reject(error.localizedDescription)
+                    call.rejectAuth(error)
                 } else {
                     call.resolve()
                 }
             }
         } catch {
-            call.reject(error.localizedDescription)
+            call.rejectAuth(error)
         }
     }
     
@@ -47,15 +71,15 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
             
             implementation.signIn(options: options) { [weak self] result, error in
                 if let error = error {
-                    call.reject(error.localizedDescription)
+                    call.rejectAuth(error)
                 } else if let result = result {
                     call.resolve(result.toJSObject())
                 } else {
-                    call.reject("Unknown error occurred")
+                    call.rejectAuth("Unknown error occurred", .internalError)
                 }
             }
         } catch {
-            call.reject(error.localizedDescription)
+            call.rejectAuth(error)
         }
     }
     
@@ -69,7 +93,7 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
         
         implementation.signOut(options: options) { [weak self] error in
             if let error = error {
-                call.reject(error.localizedDescription)
+                call.rejectAuth(error)
             } else {
                 call.resolve()
             }
@@ -79,7 +103,7 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
     @objc func getCurrentUser(_ call: CAPPluginCall) {
         implementation.getCurrentUser { [weak self] user, error in
             if let error = error {
-                call.reject(error.localizedDescription)
+                call.rejectAuth(error)
             } else if let user = user {
                 call.resolve(user.toJSObject())
             } else {
@@ -96,11 +120,11 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
         
         implementation.refreshToken(options: options) { [weak self] result, error in
             if let error = error {
-                call.reject(error.localizedDescription)
+                call.rejectAuth(error)
             } else if let result = result {
                 call.resolve(result.toJSObject())
             } else {
-                call.reject("Unknown error occurred")
+                call.rejectAuth("Unknown error occurred", .internalError)
             }
         }
     }
@@ -125,17 +149,17 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
     @objc func isSupported(_ call: CAPPluginCall) {
         guard let providerString = call.getString("provider"),
               let provider = AuthProvider(rawValue: providerString) else {
-            call.reject("Invalid provider")
+            call.rejectAuth("Invalid provider", .unsupportedProvider)
             return
         }
         
         implementation.isSupported(provider: provider) { [weak self] result, error in
             if let error = error {
-                call.reject(error.localizedDescription)
+                call.rejectAuth(error)
             } else if let result = result {
                 call.resolve(result.toJSObject())
             } else {
-                call.reject("Unknown error occurred")
+                call.rejectAuth("Unknown error occurred", .internalError)
             }
         }
     }
@@ -152,13 +176,13 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
             
             implementation.configure(config: config) { [weak self] error in
                 if let error = error {
-                    call.reject(error.localizedDescription)
+                    call.rejectAuth(error)
                 } else {
                     call.resolve()
                 }
             }
         } catch {
-            call.reject(error.localizedDescription)
+            call.rejectAuth(error)
         }
     }
     
@@ -177,28 +201,28 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
             
             implementation.linkAccount(options: options) { [weak self] result, error in
                 if let error = error {
-                    call.reject(error.localizedDescription)
+                    call.rejectAuth(error)
                 } else if let result = result {
                     call.resolve(result.toJSObject())
                 } else {
-                    call.reject("Unknown error occurred")
+                    call.rejectAuth("Unknown error occurred", .internalError)
                 }
             }
         } catch {
-            call.reject(error.localizedDescription)
+            call.rejectAuth(error)
         }
     }
     
     @objc func unlinkAccount(_ call: CAPPluginCall) {
         guard let providerString = call.getString("provider"),
               let provider = AuthProvider(rawValue: providerString) else {
-            call.reject("Invalid provider")
+            call.rejectAuth("Invalid provider", .unsupportedProvider)
             return
         }
         
         implementation.unlinkAccount(provider: provider) { [weak self] error in
             if let error = error {
-                call.reject(error.localizedDescription)
+                call.rejectAuth(error)
             } else {
                 call.resolve()
             }
@@ -207,7 +231,7 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
     
     @objc func sendPasswordResetEmail(_ call: CAPPluginCall) {
         guard let email = call.getString("email") else {
-            call.reject("Email is required")
+            call.rejectAuth("Email is required", .emailRequired)
             return
         }
         
@@ -218,7 +242,7 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
         
         implementation.sendPasswordResetEmail(options: options) { [weak self] error in
             if let error = error {
-                call.reject(error.localizedDescription)
+                call.rejectAuth(error)
             } else {
                 call.resolve()
             }
@@ -232,7 +256,7 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
         
         implementation.sendEmailVerification(options: options) { [weak self] error in
             if let error = error {
-                call.reject(error.localizedDescription)
+                call.rejectAuth(error)
             } else {
                 call.resolve()
             }
@@ -241,7 +265,7 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
     
     @objc func sendSmsCode(_ call: CAPPluginCall) {
         guard let phoneNumber = call.getString("phoneNumber") else {
-            call.reject("Phone number is required")
+            call.rejectAuth("Phone number is required", .phoneRequired)
             return
         }
         
@@ -253,7 +277,7 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
         
         implementation.sendSmsCode(options: options) { [weak self] error in
             if let error = error {
-                call.reject(error.localizedDescription)
+                call.rejectAuth(error)
             } else {
                 call.resolve()
             }
@@ -263,7 +287,7 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
     @objc func verifySmsCode(_ call: CAPPluginCall) {
         guard let phoneNumber = call.getString("phoneNumber"),
               let code = call.getString("code") else {
-            call.reject("Phone number and code are required")
+            call.rejectAuth("Phone number and code are required", .credentialsRequired)
             return
         }
         
@@ -275,18 +299,18 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
         
         implementation.verifySmsCode(options: options) { [weak self] result, error in
             if let error = error {
-                call.reject(error.localizedDescription)
+                call.rejectAuth(error)
             } else if let result = result {
                 call.resolve(result.toJSObject())
             } else {
-                call.reject("Unknown error occurred")
+                call.rejectAuth("Unknown error occurred", .internalError)
             }
         }
     }
     
     @objc func sendEmailCode(_ call: CAPPluginCall) {
         guard let email = call.getString("email") else {
-            call.reject("Email is required")
+            call.rejectAuth("Email is required", .emailRequired)
             return
         }
         
@@ -298,7 +322,7 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
         
         implementation.sendEmailCode(options: options) { [weak self] error in
             if let error = error {
-                call.reject(error.localizedDescription)
+                call.rejectAuth(error)
             } else {
                 call.resolve()
             }
@@ -308,7 +332,7 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
     @objc func verifyEmailCode(_ call: CAPPluginCall) {
         guard let email = call.getString("email"),
               let code = call.getString("code") else {
-            call.reject("Email and code are required")
+            call.rejectAuth("Email and code are required", .credentialsRequired)
             return
         }
         
@@ -320,11 +344,11 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
         
         implementation.verifyEmailCode(options: options) { [weak self] result, error in
             if let error = error {
-                call.reject(error.localizedDescription)
+                call.rejectAuth(error)
             } else if let result = result {
                 call.resolve(result.toJSObject())
             } else {
-                call.reject("Unknown error occurred")
+                call.rejectAuth("Unknown error occurred", .internalError)
             }
         }
     }
@@ -339,11 +363,11 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
         
         implementation.updateProfile(options: options) { [weak self] user, error in
             if let error = error {
-                call.reject(error.localizedDescription)
+                call.rejectAuth(error)
             } else if let user = user {
                 call.resolve(user.toJSObject())
             } else {
-                call.reject("Unknown error occurred")
+                call.rejectAuth("Unknown error occurred", .internalError)
             }
         }
     }
@@ -357,7 +381,7 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
         
         implementation.deleteAccount(options: options) { [weak self] error in
             if let error = error {
-                call.reject(error.localizedDescription)
+                call.rejectAuth(error)
             } else {
                 call.resolve()
             }
@@ -372,11 +396,11 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
         
         implementation.getIdToken(options: options) { [weak self] token, error in
             if let error = error {
-                call.reject(error.localizedDescription)
+                call.rejectAuth(error)
             } else if let token = token {
                 call.resolve(["token": token])
             } else {
-                call.reject("Failed to get ID token")
+                call.rejectAuth("Failed to get ID token", .noAuthSession)
             }
         }
     }
@@ -385,13 +409,13 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
         guard let providerString = call.getString("provider"),
               let provider = AuthProvider(rawValue: providerString),
               let parameters = call.getObject("parameters") else {
-            call.reject("Provider and parameters are required")
+            call.rejectAuth("Provider and parameters are required", .missingConfiguration)
             return
         }
         
         implementation.setCustomParameters(provider: provider, parameters: parameters) { [weak self] error in
             if let error = error {
-                call.reject(error.localizedDescription)
+                call.rejectAuth(error)
             } else {
                 call.resolve()
             }
@@ -406,7 +430,7 @@ public class CapacitorAuthManagerPlugin: CAPPlugin {
         
         implementation.revokeAccess(options: options) { [weak self] error in
             if let error = error {
-                call.reject(error.localizedDescription)
+                call.rejectAuth(error)
             } else {
                 call.resolve()
             }

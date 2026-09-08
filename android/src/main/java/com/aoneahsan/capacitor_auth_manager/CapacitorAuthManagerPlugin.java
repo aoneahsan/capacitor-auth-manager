@@ -11,6 +11,24 @@ public class CapacitorAuthManagerPlugin extends Plugin {
 
     private CapacitorAuthManager implementation;
 
+    /**
+     * Reject a call with the {@link AuthErrorCodes} value the failure carries, so JS receives a real
+     * {@code AuthError.code} instead of one guessed from the message text. A plain exception (nothing
+     * below it set a code) falls back to {@code fallbackCode}.
+     */
+    private static void rejectWith(PluginCall call, Exception error, String fallbackCode) {
+        if (error == null) {
+            call.reject("Unknown error", AuthErrorCodes.INTERNAL_ERROR);
+            return;
+        }
+        String message = error.getMessage() != null ? error.getMessage() : error.toString();
+        call.reject(message, AuthException.codeOf(error, fallbackCode));
+    }
+
+    private static void rejectWith(PluginCall call, Exception error) {
+        rejectWith(call, error, AuthErrorCodes.INTERNAL_ERROR);
+    }
+
     @Override
     public void load() {
         implementation = new CapacitorAuthManager(getContext(), getActivity());
@@ -27,7 +45,7 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                 options = call.getData();
             }
             if (options == null) {
-                call.reject("Options are required");
+                call.reject("Options are required", AuthErrorCodes.MISSING_CONFIGURATION);
                 return;
             }
 
@@ -35,11 +53,11 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                 if (result.isSuccess()) {
                     call.resolve();
                 } else {
-                    call.reject(result.getError().getMessage());
+                    rejectWith(call, result.getError());
                 }
             });
         } catch (Exception e) {
-            call.reject("Failed to initialize: " + e.getMessage());
+            call.reject("Failed to initialize: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.PROVIDER_INIT_FAILED));
         }
     }
 
@@ -51,7 +69,7 @@ public class CapacitorAuthManagerPlugin extends Plugin {
             JSObject options = call.getObject("options");
 
             if (provider == null) {
-                call.reject("Provider is required");
+                call.reject("Provider is required", AuthErrorCodes.MISSING_CONFIGURATION);
                 return;
             }
 
@@ -59,11 +77,11 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                 if (result.isSuccess()) {
                     call.resolve(result.getData());
                 } else {
-                    call.reject(result.getError().getMessage());
+                    rejectWith(call, result.getError());
                 }
             });
         } catch (Exception e) {
-            call.reject("Sign in failed: " + e.getMessage());
+            call.reject("Sign in failed: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.SIGN_IN_FAILED));
         }
     }
 
@@ -81,11 +99,11 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                 if (result.isSuccess()) {
                     call.resolve();
                 } else {
-                    call.reject(result.getError().getMessage());
+                    rejectWith(call, result.getError());
                 }
             });
         } catch (Exception e) {
-            call.reject("Sign out failed: " + e.getMessage());
+            call.reject("Sign out failed: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.SIGN_OUT_FAILED));
         }
     }
 
@@ -101,11 +119,11 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                         call.resolve(new JSObject());
                     }
                 } else {
-                    call.reject(result.getError().getMessage());
+                    rejectWith(call, result.getError());
                 }
             });
         } catch (Exception e) {
-            call.reject("Failed to get current user: " + e.getMessage());
+            call.reject("Failed to get current user: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.INTERNAL_ERROR));
         }
     }
 
@@ -123,11 +141,11 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                 if (result.isSuccess()) {
                     call.resolve(result.getData());
                 } else {
-                    call.reject(result.getError().getMessage());
+                    rejectWith(call, result.getError());
                 }
             });
         } catch (Exception e) {
-            call.reject("Token refresh failed: " + e.getMessage());
+            call.reject("Token refresh failed: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.TOKEN_REFRESH_FAILED));
         }
     }
 
@@ -148,7 +166,7 @@ public class CapacitorAuthManagerPlugin extends Plugin {
             ret.put("callbackId", callbackId);
             call.resolve(ret);
         } catch (Exception e) {
-            call.reject("Failed to add listener: " + e.getMessage());
+            call.reject("Failed to add listener: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.INTERNAL_ERROR));
         }
     }
 
@@ -158,7 +176,7 @@ public class CapacitorAuthManagerPlugin extends Plugin {
             implementation.removeAllListeners();
             call.resolve();
         } catch (Exception e) {
-            call.reject("Failed to remove listeners: " + e.getMessage());
+            call.reject("Failed to remove listeners: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.INTERNAL_ERROR));
         }
     }
 
@@ -167,7 +185,7 @@ public class CapacitorAuthManagerPlugin extends Plugin {
         try {
             String provider = call.getString("provider");
             if (provider == null) {
-                call.reject("Provider is required");
+                call.reject("Provider is required", AuthErrorCodes.MISSING_CONFIGURATION);
                 return;
             }
 
@@ -175,11 +193,11 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                 if (result.isSuccess()) {
                     call.resolve(result.getData());
                 } else {
-                    call.reject(result.getError().getMessage());
+                    rejectWith(call, result.getError());
                 }
             });
         } catch (Exception e) {
-            call.reject("Failed to check support: " + e.getMessage());
+            call.reject("Failed to check support: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.INTERNAL_ERROR));
         }
     }
 
@@ -190,7 +208,7 @@ public class CapacitorAuthManagerPlugin extends Plugin {
             JSObject options = call.getObject("options");
 
             if (provider == null || options == null) {
-                call.reject("Provider and options are required");
+                call.reject("Provider and options are required", AuthErrorCodes.MISSING_CONFIGURATION);
                 return;
             }
 
@@ -198,11 +216,11 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                 if (result.isSuccess()) {
                     call.resolve();
                 } else {
-                    call.reject(result.getError().getMessage());
+                    rejectWith(call, result.getError());
                 }
             });
         } catch (Exception e) {
-            call.reject("Configuration failed: " + e.getMessage());
+            call.reject("Configuration failed: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.MISSING_CONFIGURATION));
         }
     }
 
@@ -214,7 +232,7 @@ public class CapacitorAuthManagerPlugin extends Plugin {
             JSObject options = call.getObject("options");
 
             if (provider == null) {
-                call.reject("Provider is required");
+                call.reject("Provider is required", AuthErrorCodes.MISSING_CONFIGURATION);
                 return;
             }
 
@@ -222,11 +240,11 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                 if (result.isSuccess()) {
                     call.resolve(result.getData());
                 } else {
-                    call.reject(result.getError().getMessage());
+                    rejectWith(call, result.getError());
                 }
             });
         } catch (Exception e) {
-            call.reject("Account linking failed: " + e.getMessage());
+            call.reject("Account linking failed: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.OPERATION_NOT_ALLOWED));
         }
     }
 
@@ -235,7 +253,7 @@ public class CapacitorAuthManagerPlugin extends Plugin {
         try {
             String provider = call.getString("provider");
             if (provider == null) {
-                call.reject("Provider is required");
+                call.reject("Provider is required", AuthErrorCodes.MISSING_CONFIGURATION);
                 return;
             }
 
@@ -243,11 +261,11 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                 if (result.isSuccess()) {
                     call.resolve();
                 } else {
-                    call.reject(result.getError().getMessage());
+                    rejectWith(call, result.getError());
                 }
             });
         } catch (Exception e) {
-            call.reject("Account unlinking failed: " + e.getMessage());
+            call.reject("Account unlinking failed: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.OPERATION_NOT_ALLOWED));
         }
     }
 
@@ -258,7 +276,7 @@ public class CapacitorAuthManagerPlugin extends Plugin {
             JSObject actionCodeSettings = call.getObject("actionCodeSettings");
 
             if (email == null) {
-                call.reject("Email is required");
+                call.reject("Email is required", AuthErrorCodes.EMAIL_REQUIRED);
                 return;
             }
 
@@ -266,11 +284,11 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                 if (result.isSuccess()) {
                     call.resolve();
                 } else {
-                    call.reject(result.getError().getMessage());
+                    rejectWith(call, result.getError());
                 }
             });
         } catch (Exception e) {
-            call.reject("Failed to send password reset email: " + e.getMessage());
+            call.reject("Failed to send password reset email: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.OPERATION_NOT_ALLOWED));
         }
     }
 
@@ -283,11 +301,11 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                 if (result.isSuccess()) {
                     call.resolve();
                 } else {
-                    call.reject(result.getError().getMessage());
+                    rejectWith(call, result.getError());
                 }
             });
         } catch (Exception e) {
-            call.reject("Failed to send email verification: " + e.getMessage());
+            call.reject("Failed to send email verification: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.OPERATION_NOT_ALLOWED));
         }
     }
 
@@ -299,7 +317,7 @@ public class CapacitorAuthManagerPlugin extends Plugin {
             String testCode = call.getString("testCode");
 
             if (phoneNumber == null) {
-                call.reject("Phone number is required");
+                call.reject("Phone number is required", AuthErrorCodes.PHONE_REQUIRED);
                 return;
             }
 
@@ -307,11 +325,11 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                 if (result.isSuccess()) {
                     call.resolve();
                 } else {
-                    call.reject(result.getError().getMessage());
+                    rejectWith(call, result.getError());
                 }
             });
         } catch (Exception e) {
-            call.reject("Failed to send SMS code: " + e.getMessage());
+            call.reject("Failed to send SMS code: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.OPERATION_NOT_ALLOWED));
         }
     }
 
@@ -323,7 +341,7 @@ public class CapacitorAuthManagerPlugin extends Plugin {
             String verificationId = call.getString("verificationId");
 
             if (phoneNumber == null || code == null) {
-                call.reject("Phone number and code are required");
+                call.reject("Phone number and code are required", AuthErrorCodes.CREDENTIALS_REQUIRED);
                 return;
             }
 
@@ -331,11 +349,11 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                 if (result.isSuccess()) {
                     call.resolve(result.getData());
                 } else {
-                    call.reject(result.getError().getMessage());
+                    rejectWith(call, result.getError());
                 }
             });
         } catch (Exception e) {
-            call.reject("SMS verification failed: " + e.getMessage());
+            call.reject("SMS verification failed: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.OPERATION_NOT_ALLOWED));
         }
     }
 
@@ -347,7 +365,7 @@ public class CapacitorAuthManagerPlugin extends Plugin {
             String testCode = call.getString("testCode");
 
             if (email == null) {
-                call.reject("Email is required");
+                call.reject("Email is required", AuthErrorCodes.EMAIL_REQUIRED);
                 return;
             }
 
@@ -355,11 +373,11 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                 if (result.isSuccess()) {
                     call.resolve();
                 } else {
-                    call.reject(result.getError().getMessage());
+                    rejectWith(call, result.getError());
                 }
             });
         } catch (Exception e) {
-            call.reject("Failed to send email code: " + e.getMessage());
+            call.reject("Failed to send email code: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.OPERATION_NOT_ALLOWED));
         }
     }
 
@@ -371,7 +389,7 @@ public class CapacitorAuthManagerPlugin extends Plugin {
             String verificationId = call.getString("verificationId");
 
             if (email == null || code == null) {
-                call.reject("Email and code are required");
+                call.reject("Email and code are required", AuthErrorCodes.CREDENTIALS_REQUIRED);
                 return;
             }
 
@@ -379,11 +397,11 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                 if (result.isSuccess()) {
                     call.resolve(result.getData());
                 } else {
-                    call.reject(result.getError().getMessage());
+                    rejectWith(call, result.getError());
                 }
             });
         } catch (Exception e) {
-            call.reject("Email verification failed: " + e.getMessage());
+            call.reject("Email verification failed: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.OPERATION_NOT_ALLOWED));
         }
     }
 
@@ -399,11 +417,11 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                 if (result.isSuccess()) {
                     call.resolve(result.getData());
                 } else {
-                    call.reject(result.getError().getMessage());
+                    rejectWith(call, result.getError());
                 }
             });
         } catch (Exception e) {
-            call.reject("Profile update failed: " + e.getMessage());
+            call.reject("Profile update failed: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.OPERATION_NOT_ALLOWED));
         }
     }
 
@@ -416,18 +434,23 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                 if (result.isSuccess()) {
                     call.resolve();
                 } else {
-                    call.reject(result.getError().getMessage());
+                    rejectWith(call, result.getError());
                 }
             });
         } catch (Exception e) {
-            call.reject("Account deletion failed: " + e.getMessage());
+            call.reject("Account deletion failed: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.OPERATION_NOT_ALLOWED));
         }
     }
 
     @PluginMethod
     public void getIdToken(PluginCall call) {
         try {
+            // JS passes { provider, forceRefresh } at the top level; fall back to the call data so
+            // both reach the orchestrator (it reads options.provider / options.forceRefresh).
             JSObject options = call.getObject("options");
+            if (options == null) {
+                options = call.getData();
+            }
             
             implementation.getIdToken(options, result -> {
                 if (result.isSuccess()) {
@@ -435,11 +458,11 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                     ret.put("token", result.getData().getString("token"));
                     call.resolve(ret);
                 } else {
-                    call.reject(result.getError().getMessage());
+                    rejectWith(call, result.getError());
                 }
             });
         } catch (Exception e) {
-            call.reject("Failed to get ID token: " + e.getMessage());
+            call.reject("Failed to get ID token: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.INTERNAL_ERROR));
         }
     }
 
@@ -450,7 +473,7 @@ public class CapacitorAuthManagerPlugin extends Plugin {
             JSObject parameters = call.getObject("parameters");
 
             if (provider == null || parameters == null) {
-                call.reject("Provider and parameters are required");
+                call.reject("Provider and parameters are required", AuthErrorCodes.MISSING_CONFIGURATION);
                 return;
             }
 
@@ -458,11 +481,11 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                 if (result.isSuccess()) {
                     call.resolve();
                 } else {
-                    call.reject(result.getError().getMessage());
+                    rejectWith(call, result.getError());
                 }
             });
         } catch (Exception e) {
-            call.reject("Failed to set custom parameters: " + e.getMessage());
+            call.reject("Failed to set custom parameters: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.INTERNAL_ERROR));
         }
     }
 
@@ -480,11 +503,11 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                 if (result.isSuccess()) {
                     call.resolve();
                 } else {
-                    call.reject(result.getError().getMessage());
+                    rejectWith(call, result.getError());
                 }
             });
         } catch (Exception e) {
-            call.reject("Access revocation failed: " + e.getMessage());
+            call.reject("Access revocation failed: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.OPERATION_NOT_ALLOWED));
         }
     }
 }

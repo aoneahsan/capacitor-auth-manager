@@ -5,11 +5,14 @@ All notable changes to `capacitor-auth-manager` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.5.0] - 2026-09-03
+## [2.5.0] - 2026-09-08
 
 Google sign-in hardened on every layer. Closes all five entries that `2.4.3` documented in
-`docs/REPORTED-ISSUES.md` and fixes the runtime defects found while reviewing the native bridge. Native code
-compiles are verified by the owner on a separate Android build machine before this version is published.
+`docs/REPORTED-ISSUES.md`, fixes the runtime defects found while reviewing the native bridge, and gives the
+native layers a real error-code channel. The Android plugin and the example app are **compiled and run on an
+emulator** (Gradle 8.14.3 / AGP 8.13 / JDK 21 / compileSdk 36, emulator API 37) before release; the iOS
+change below is the one part that no machine here can compile, and it ships unverified until the next iOS
+device test.
 
 ### Fixed
 
@@ -39,6 +42,22 @@ compiles are verified by the owner on a separate Android build machine before th
   consumer.
 - Per-call sign-in options (`nonce`, `loginHint`, the new flow selectors) now reach the native side; they
   were previously dropped because the manager flattens them before calling the provider.
+- **`auth.getIdToken()` failed on iOS and Android** with `OPERATION_NOT_ALLOWED` even though both native
+  layers implement it, because the native bridge never exposed the method the manager looks for. It is
+  implemented now, and the Android plugin method also accepts the flat `{ provider, forceRefresh }` shape
+  the bridge sends (it previously read a nested `options` object only).
+- **Native errors reached JavaScript without a code.** Android rejected with a bare message and iOS rejected
+  with `localizedDescription`, so `AuthError.fromError` had to guess the code by substring-matching the
+  message: anything that did not contain "cancelled", "network" or "timeout" surfaced as
+  `auth/internal-error`. Both platforms now send a real `AuthErrorCode` — a cancelled sheet is
+  `auth/user-cancelled`, an interrupted request is `auth/network-error`, a missing `serverClientId` is
+  `auth/missing-configuration`, and so on. (Android verified on an emulator; iOS unverified, see above.)
+- **Android fell back to plaintext `SharedPreferences`** when the keystore refused a master key, writing ID
+  tokens to disk in the clear with no signal. It now keeps the session in memory for the life of the process
+  and logs the degradation; `AuthStorage.isEncrypted()` reports which mode is active.
+- **`npm run configure` emitted a `GoogleSignInOptions` manifest entry** from the deprecated
+  `com.google.android.gms.auth.api.signin` flow this plugin stopped using in 2.4.2. Pasting it did nothing;
+  the wizard now says Google needs no manifest entry.
 
 ### Added
 
@@ -64,6 +83,9 @@ compiles are verified by the owner on a separate Android build machine before th
   ProGuard rules dropped.
 - `packageManager: yarn@4.17.1` declared so corepack picks the right Yarn.
 - Google provider manifest no longer names a non-existent `@google/gsi` npm package.
+- README: `renderButton` is documented as what it is — a method on `GoogleAuthProviderWeb`, reached by
+  importing `capacitor-auth-manager/providers/web` — rather than implied to be on the `auth` singleton,
+  where readers could not find it.
 
 ### Not changed on purpose
 

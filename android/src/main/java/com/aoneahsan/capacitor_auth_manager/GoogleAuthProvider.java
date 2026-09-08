@@ -17,6 +17,7 @@ import androidx.credentials.GetCredentialResponse;
 import androidx.credentials.exceptions.ClearCredentialException;
 import androidx.credentials.exceptions.GetCredentialCancellationException;
 import androidx.credentials.exceptions.GetCredentialException;
+import androidx.credentials.exceptions.GetCredentialInterruptedException;
 import androidx.credentials.exceptions.NoCredentialException;
 
 import com.getcapacitor.JSObject;
@@ -154,7 +155,9 @@ public class GoogleAuthProvider implements BaseAuthProvider {
             callback.onResult(CapacitorAuthManager.AuthResult.success(null));
         } catch (Exception e) {
             logger.error("Failed to initialize Google auth provider", e);
-            callback.onResult(CapacitorAuthManager.AuthResult.error(e));
+            callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
+                    AuthErrorCodes.PROVIDER_INIT_FAILED,
+                    "Failed to initialize Google auth provider: " + e.getMessage(), e)));
         }
     }
 
@@ -190,10 +193,14 @@ public class GoogleAuthProvider implements BaseAuthProvider {
         });
     }
 
-    /** Marker so signIn() can distinguish "no account offered" from every other failure. */
-    private static class NoGoogleCredentialException extends Exception {
+    /**
+     * Marker so signIn() can distinguish "no account offered" from every other failure. It extends
+     * {@link AuthException} because it also reaches JS unchanged when the caller pinned
+     * {@code androidFlow: 'bottom-sheet'}, in which case no button fallback runs.
+     */
+    private static class NoGoogleCredentialException extends AuthException {
         NoGoogleCredentialException(String message) {
-            super(message);
+            super(AuthErrorCodes.SIGN_IN_FAILED, message);
         }
     }
 
@@ -221,7 +228,8 @@ public class GoogleAuthProvider implements BaseAuthProvider {
                 if (result.isSuccess()) {
                     callback.onResult(result);
                 } else {
-                    callback.onResult(CapacitorAuthManager.AuthResult.error(new Exception(
+                    callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
+                            AuthErrorCodes.TOKEN_REFRESH_FAILED,
                             "Re-authentication required: could not silently refresh the Google ID token. "
                                     + "Prompt the user to sign in again.")));
                 }
@@ -273,7 +281,8 @@ public class GoogleAuthProvider implements BaseAuthProvider {
                         return;
                     }
                 }
-                callback.onResult(CapacitorAuthManager.AuthResult.error(new Exception(
+                callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
+                        AuthErrorCodes.NO_AUTH_SESSION,
                         "No Google ID token available. Re-authentication required.")));
             }
         });
@@ -299,14 +308,16 @@ public class GoogleAuthProvider implements BaseAuthProvider {
                 : clientId;
 
         if (resolvedServerClientId == null || resolvedServerClientId.isEmpty()) {
-            callback.onResult(CapacitorAuthManager.AuthResult.error(new IllegalStateException(
+            callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
+                    AuthErrorCodes.MISSING_CONFIGURATION,
                     "Google sign-in requires a serverClientId (your Web OAuth client id). "
                             + "Provide 'serverClientId' (or 'clientId') in the google provider options.")));
             return;
         }
 
         if (activity == null) {
-            callback.onResult(CapacitorAuthManager.AuthResult.error(new IllegalStateException(
+            callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
+                    AuthErrorCodes.PROVIDER_NOT_INITIALIZED,
                     "Google sign-in requires a foreground Activity.")));
             return;
         }
@@ -332,7 +343,9 @@ public class GoogleAuthProvider implements BaseAuthProvider {
             launchCredentialRequest(request, callback);
         } catch (Exception e) {
             logger.error("Failed to start Google Credential Manager request", e);
-            callback.onResult(CapacitorAuthManager.AuthResult.error(e));
+            callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
+                    AuthErrorCodes.SIGN_IN_FAILED,
+                    "Failed to start Google sign-in: " + e.getMessage(), e)));
         }
     }
 
@@ -347,14 +360,16 @@ public class GoogleAuthProvider implements BaseAuthProvider {
                 : clientId;
 
         if (resolvedServerClientId == null || resolvedServerClientId.isEmpty()) {
-            callback.onResult(CapacitorAuthManager.AuthResult.error(new IllegalStateException(
+            callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
+                    AuthErrorCodes.MISSING_CONFIGURATION,
                     "Google sign-in requires a serverClientId (your Web OAuth client id). "
                             + "Provide 'serverClientId' (or 'clientId') in the google provider options.")));
             return;
         }
 
         if (activity == null) {
-            callback.onResult(CapacitorAuthManager.AuthResult.error(new IllegalStateException(
+            callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
+                    AuthErrorCodes.PROVIDER_NOT_INITIALIZED,
                     "Google sign-in requires a foreground Activity.")));
             return;
         }
@@ -375,7 +390,9 @@ public class GoogleAuthProvider implements BaseAuthProvider {
             launchCredentialRequest(request, callback);
         } catch (Exception e) {
             logger.error("Failed to start the Sign in with Google button flow", e);
-            callback.onResult(CapacitorAuthManager.AuthResult.error(e));
+            callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
+                    AuthErrorCodes.SIGN_IN_FAILED,
+                    "Failed to start the Sign in with Google button flow: " + e.getMessage(), e)));
         }
     }
 
@@ -443,14 +460,17 @@ public class GoogleAuthProvider implements BaseAuthProvider {
             } else {
                 String type = credential != null ? credential.getType() : "null";
                 logger.error("Unexpected credential type from Credential Manager: " + type, null);
-                callback.onResult(CapacitorAuthManager.AuthResult.error(new IllegalStateException(
+                callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
+                        AuthErrorCodes.INVALID_CREDENTIALS,
                         "Unexpected credential type returned from Google sign-in: " + type)));
             }
         } catch (Exception e) {
             // Covers a malformed credential / ID-token parse failure. (googleid 1.1.1's
             // GoogleIdTokenCredential.createFrom does not declare a checked exception.)
             logger.error("Unexpected error handling Google credential", e);
-            callback.onResult(CapacitorAuthManager.AuthResult.error(e));
+            callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
+                    AuthErrorCodes.INVALID_CREDENTIALS,
+                    "Could not read the Google credential: " + e.getMessage(), e)));
         }
     }
 
@@ -460,7 +480,16 @@ public class GoogleAuthProvider implements BaseAuthProvider {
     ) {
         if (e instanceof GetCredentialCancellationException) {
             logger.info("Google sign-in cancelled by user");
-            callback.onResult(CapacitorAuthManager.AuthResult.error(new Exception("User cancelled Google sign-in")));
+            callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
+                    AuthErrorCodes.USER_CANCELLED, "User cancelled Google sign-in")));
+            return;
+        }
+        if (e instanceof GetCredentialInterruptedException) {
+            // Transient: Play services restarted or the device lost connectivity mid-request.
+            logger.warn("Google sign-in interrupted; the caller may retry");
+            callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
+                    AuthErrorCodes.NETWORK_ERROR,
+                    "Google sign-in was interrupted. Check the connection and try again.")));
             return;
         }
         if (e instanceof NoCredentialException) {
@@ -471,8 +500,9 @@ public class GoogleAuthProvider implements BaseAuthProvider {
             return;
         }
         logger.error("Google sign-in failed: " + e.getClass().getSimpleName(), e);
-        callback.onResult(CapacitorAuthManager.AuthResult.error(new Exception(
-                "Google sign-in failed: " + e.getMessage())));
+        callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
+                AuthErrorCodes.SIGN_IN_FAILED,
+                "Google sign-in failed: " + e.getMessage(), e)));
     }
 
     private void clearCredentialState(final CapacitorAuthManager.AuthCallback<Void> callback) {

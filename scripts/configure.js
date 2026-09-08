@@ -311,9 +311,8 @@ async function configureAndroid(configs) {
 ${
   configs.google
     ? `
-<meta-data
-  android:name="com.google.android.gms.auth.api.signin.GoogleSignInOptions"
-  android:value="@string/default_web_client_id" />
+<!-- Google needs no manifest entry: sign-in runs through Credential Manager and reads the
+     Web OAuth client id from auth.configure({ serverClientId }) at runtime. -->
 `
     : ''
 }

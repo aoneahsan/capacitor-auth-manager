@@ -64,6 +64,18 @@ enum AuthErrorCode: String {
     case redirectCancelledByUser = "auth/redirect-cancelled-by-user"
     case missingRedirectUrl = "auth/missing-redirect-url"
     case invalidState = "auth/invalid-state"
+    // Added so the plugin can name the failure it is actually reporting; the raw values mirror
+    // AuthErrorCode in src/definitions.ts exactly, which is what makes them usable from JS.
+    case signInFailed = "auth/sign-in-failed"
+    case signOutFailed = "auth/sign-out-failed"
+    case providerNotInitialized = "auth/provider-not-initialized"
+    case providerNotEnabled = "auth/provider-not-enabled"
+    case providerInitFailed = "auth/provider-init-failed"
+    case credentialsRequired = "auth/credentials-required"
+    case emailRequired = "auth/email-required"
+    case phoneRequired = "auth/phone-required"
+    case noAuthSession = "auth/no-auth-session"
+    case tokenRefreshFailed = "auth/token-refresh-failed"
 }
 
 // MARK: - Models
@@ -375,6 +387,22 @@ struct RevokeAccessOptions {
 // MARK: - Errors
 
 enum AuthManagerError: LocalizedError {
+    /// The `AuthErrorCode` this failure should surface as on the JavaScript side.
+    var authErrorCode: AuthErrorCode {
+        switch self {
+        case .notInitialized:
+            return .providerNotInitialized
+        case .invalidProvider:
+            return .unsupportedProvider
+        case .providerNotConfigured, .providerNotImplemented:
+            return .providerNotEnabled
+        case .missingConfiguration, .invalidConfiguration, .noProviderSpecified:
+            return .missingConfiguration
+        case .operationNotSupported, .operationNotSupportedOnPlatform:
+            return .operationNotAllowed
+        }
+    }
+
     case notInitialized
     case invalidProvider
     case providerNotConfigured(AuthProvider)

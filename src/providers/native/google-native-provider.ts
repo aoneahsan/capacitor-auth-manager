@@ -1,5 +1,6 @@
 import {
   AuthProvider,
+  AuthErrorCode,
   AuthResult,
   AuthUser,
   SignInOptions,
@@ -104,6 +105,39 @@ export class GoogleNativeProvider extends BaseAuthProvider {
         await this.setCurrentUser(result.user);
       }
       return result;
+    } catch (error) {
+      throw AuthError.fromError(error, AuthProvider.GOOGLE);
+    }
+  }
+
+  /**
+   * The current Google ID token, refreshed through the platform SDK when `forceRefresh` is set.
+   *
+   * `AuthManagerCore.getIdToken` looks for this method on the resolved provider and throws
+   * `OPERATION_NOT_ALLOWED` when it is missing, so without it `auth.getIdToken()` failed on iOS and
+   * Android even though both native layers implement it — while the same call worked on web.
+   *
+   * Capacitor cannot resolve a bare string, so the native side answers `{ token }`; the web
+   * fallback in `src/web.ts` resolves the string itself. Read both shapes.
+   */
+  async getIdToken(forceRefresh = false): Promise<string> {
+    if (!this.isInitialized) {
+      await this.initialize();
+    }
+    try {
+      const raw = (await CapacitorAuthManager.getIdToken({
+        provider: AuthProvider.GOOGLE,
+        forceRefresh,
+      })) as unknown as string | { token?: string } | null;
+      const token = typeof raw === 'string' ? raw : (raw?.token ?? '');
+      if (!token) {
+        throw new AuthError(
+          AuthErrorCode.NO_AUTH_SESSION,
+          'No Google ID token available. Sign in again.',
+          AuthProvider.GOOGLE
+        );
+      }
+      return token;
     } catch (error) {
       throw AuthError.fromError(error, AuthProvider.GOOGLE);
     }
