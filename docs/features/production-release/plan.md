@@ -35,3 +35,7 @@ The minified Android check exposed googleid 1.2.1 Kotlin metadata incompatibilit
 Final local Android debug and R8-minified release both passed (281 Gradle tasks) with googleid 1.1.1 and no package deprecation/Kotlin metadata errors. Root coordination now ignores and records the owner-cloned independent package checkout; it will be fast-forwarded to the pushed release without moving either checkout.
 
 First CI run failed before install: setup-node v5 automatically invoked runner Yarn 1 for caching before Corepack. Use its supported package-manager-cache:false setting; Corepack then activates the pinned Yarn 4. No checks are skipped.
+
+## Completed release
+
+3.0.0 published and verified as npm latest; downloaded artifact contains only INTERNET permission and all native sources. Fresh registry consumer smoke passed. Release CI: https://github.com/aoneahsan/capacitor-auth-manager/actions/runs/37927572869 (all four jobs successful). GitHub release/tag 3.0.0 points to the verified source. Docs Pages deploy 37928133178 succeeded; HTTPS homepage, integration/ai, llms.txt, llms-full.txt, raw/manifest.json and raw/integration/ai.md return 200 and version 3.0.0 (35 raw pages). ISSUE-006 moved to resolved history only after publication verification. The newly cloned owner checkout is synchronized. No real OAuth/device sign-in was performed; production app acceptance remains mandatory. Docs tooling retains the explicitly recorded unpatched braces advisory. Direct pushes used the configured admin bypass for the PR requirement; protections were not changed.
