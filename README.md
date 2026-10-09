@@ -21,8 +21,8 @@
 > - **Google is the only enabled provider in `3.x`.** The other fourteen are present in the source but
 >   un-registered — calling one throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. They are re-enabled one at a
 >   time, each verified on a device first.
-> - **`@capacitor/core` is a required peer** as of `3.0.0` — the published bundle registers the Capacitor
->   plugin even for a web-only build. Bare Node ESM and server-side imports work since `3.0.0`.
+> - **`@capacitor/core` is a required peer** as of `3.0.0` — the native bridge imports Capacitor core
+>   even for a web-only build. Bare Node ESM and server-side imports work since `3.0.0`.
 
 Capacitor Auth Manager gives a Capacitor app one Google sign-in call that behaves the same on web, iOS and
 Android, and hands back a Google ID token or web popup access token to use as you like. It pulls in no `firebase` dependency, so it fits
@@ -103,8 +103,7 @@ Firebase-popup web flow that works and no native build to support.
 - **Observable auth state** — subscribe once with `onAuthStateChange` and let the UI follow.
 - **Pluggable storage** — web and Capacitor Preferences backends ship with it, and it accepts your own
   `StorageInterface` when you need Keychain or Keystore.
-- **No token persistence by default** — sessions restore through the Google SDK rather than through
-  `localStorage`.
+- **No token strings in default JS storage** — cached profile metadata can restore locally; Android credentials stay in memory and iOS uses the Google SDK Keychain. Firebase owns the app session.
 
 <a id="platform-support"></a>
 ## 📱 Platform Support&nbsp;[#](#platform-support)
@@ -116,10 +115,7 @@ Firebase-popup web flow that works and no native build to support.
 | iOS | ✅ | GoogleSignIn 10.x; iOS 15+. Returns `idToken`, `accessToken`, and `serverAuthCode` when configured. |
 | Node / SSR | ✅ import | Importing is side-effect free since `3.0.0`; sign-in itself still needs a browser or a device. |
 
-Native sources for both platforms compile in a clean Capacitor 8 app, verified with Gradle `assembleDebug`
-and `pod lib lint`. A successful compile is not a runtime test — sign in once on a real device before rolling
-a new version across several apps. The maintained end-to-end example is `examples/react` in the private
-repository (a Capacitor app wired to a Firebase project).
+Package CI compiles a clean Capacitor 8 consumer with Android debug/minified-release builds and an iOS simulator build. A compile check is not a runtime test: verify real Google sign-in with your app’s OAuth clients on each deployed platform.
 
 <a id="requirements"></a>
 ## 📋 Requirements&nbsp;[#](#requirements)
@@ -127,11 +123,13 @@ repository (a Capacitor app wired to a Firebase project).
 | Requirement | Version | Why |
 |---|---|---|
 | Node | `>=24.0.0` | build and install only; the package itself runs in a browser or a webview. Current + latest Node only — no legacy targets |
-| `@capacitor/core` | `^7.4.2 \|\| ^8.0.0` | **required** peer — the published bundle registers the Capacitor plugin, so install it even for a web-only build |
+| `@capacitor/core` | `^7.4.2 \|\| ^8.0.0` | **required** peer — the native bridge imports it, including in web-only builds |
 | `@capacitor/preferences` | `^6 \|\| ^7 \|\| ^8` | optional peer — only for `CapacitorPreferencesStorage` |
 | `react` | `^16.8 \|\| ^17 \|\| ^18 \|\| ^19` | optional peer — only for `capacitor-auth-manager/react` |
 | `vue` | `^3.0.0` | optional peer — only for `capacitor-auth-manager/vue` |
-| `@angular/core` | `^22` | optional peer — only for `capacitor-auth-manager/angular` |
+| `@angular/core`, `@angular/common`, `@angular/router` | `^22` | optional peers — Angular adapter |
+| `rxjs` | `^7` | optional peer — Angular observables |
+| Native build tools | JDK 21; iOS 15+ with CocoaPods | Android and iOS consumers |
 
 You also need Google OAuth client IDs: a **Web** client for every platform, plus an **Android** client
 registered with your signing fingerprints and an **iOS** client if you ship those platforms.
@@ -146,18 +144,18 @@ yarn add capacitor-auth-manager @capacitor/core
 For the native plugin, sync it into the platform projects. Without this step iOS and Android never load it:
 
 ```bash
-npx cap sync
+yarn cap sync
 ```
 
 Then finish the per-platform OAuth setup, which cannot be done from JavaScript:
 
-- **Android** — add your `google-services.json`, register the app's SHA-1 and SHA-256 fingerprints against an
+- **Android** — register the app's SHA-1 and SHA-256 fingerprints against an
   Android OAuth client, and pass your **Web** client ID as `serverClientId`. Credential Manager will not
-  return an `idToken` without it. The plugin adds no manifest permissions of its own.
+  return an `idToken` without it. The plugin declares only `INTERNET`, without SMS or biometric permissions. It does not require a Firebase native SDK or `google-services.json` of its own.
 - **iOS** — add `GIDClientID` to `Info.plist` (or pass `iosClientId`), and add the reversed client ID as a URL
   scheme under `CFBundleURLTypes`.
 
-The bundled [command-line helper](#command-line) can write most of this for you.
+The [AI integration guide](https://github.com/aoneahsan/capacitor-auth-manager/blob/main/AI-INTEGRATION-GUIDE.md) covers the full React/Firebase setup. The bundled [command-line helper](#command-line) creates new JavaScript configuration files and prints native setup instructions.
 
 <a id="quick-start"></a>
 ## 🚀 Quick Start&nbsp;[#](#quick-start)
@@ -218,14 +216,19 @@ Call `auth.signOut()` and Firebase `signOut()` when signing out of the app.
 
 ### React
 
+These hooks reflect the local Google session. For Firebase login and protected routes, use the [AI integration guide](https://github.com/aoneahsan/capacitor-auth-manager/blob/main/AI-INTEGRATION-GUIDE.md). Catch event-handler rejections and translate displayed messages through your app’s i18n.
+
 ```tsx
 import { useAuth, AuthProvider } from 'capacitor-auth-manager/react';
 
 function LoginButton() {
-  const { user, signIn, signOut, isLoading } = useAuth();
+  const { user, signIn, signOut, isLoading, error } = useAuth();
   if (isLoading) return <span>Checking…</span>;
-  if (user) return <button onClick={() => signOut()}>Sign out {user.email}</button>;
-  return <button onClick={() => signIn(AuthProvider.GOOGLE)}>Sign in with Google</button>;
+  if (user) return <button onClick={() => { void signOut().catch(() => undefined); }}>Sign out {user.email}</button>;
+  return <>
+    <button onClick={() => { void signIn(AuthProvider.GOOGLE).catch(() => undefined); }}>Sign in with Google</button>
+    {error && <p role="alert">{error.message}</p>}
+  </>;
 }
 ```
 
@@ -349,15 +352,15 @@ interface StorageInterface {
 <a id="command-line"></a>
 ## 💻 Command Line&nbsp;[#](#command-line)
 
-An interactive helper that writes the platform OAuth wiring described in [Installation](#installation).
+An interactive Google-only helper for new configuration files; native OAuth wiring remains an app setup step.
 
 ```bash
-npx capacitor-auth-configure
+yarn exec capacitor-auth-configure --help
+yarn exec capacitor-auth-configure --dry-run
+yarn exec capacitor-auth-configure
 ```
 
-It asks which platforms you target and which client IDs you hold, then updates `capacitor.config`,
-`Info.plist` and the Android configuration accordingly. It takes no flags and prompts for every answer, so
-run it in a real terminal rather than in CI.
+It asks for Web/iOS OAuth client IDs and creates `capacitor-auth.config.json` plus `src/auth-init.ts` only when neither exists. It prints native setup instructions and never rewrites native projects. `--dry-run` prints configuration without writing; `--help` is non-interactive. Run configuration in a real terminal; AI agents should follow the packaged integration guide.
 
 <a id="advanced-features"></a>
 ## 🎛️ Advanced Features&nbsp;[#](#advanced-features)
@@ -398,7 +401,7 @@ run it in a real terminal rather than in CI.
 | `USER_CANCELLED` / `POPUP_CLOSED_BY_USER` | the user closed One-Tap or the popup | Expected — show your own "try again" |
 | No Google account offered on Android | the bottom sheet has no authorized account | The default `androidFlow: 'auto'` falls back to the Sign in with Google button flow, which can add an account |
 | `Cannot find module '@capacitor/core'` | the peer is not installed | `yarn add @capacitor/core` — it is a required peer |
-| Native plugin never runs | `npx cap sync` was not run after install | Run it, then rebuild the native project |
+| Native plugin never runs | `yarn cap sync` was not run after install | Run it, then rebuild the native project |
 
 <a id="limitations"></a>
 ## 🚧 Limitations&nbsp;[#](#limitations)
@@ -407,11 +410,10 @@ Stated as plainly as the features, because each one otherwise costs an afternoon
 
 - **Google is the only working provider.** Fourteen others exist in the source and throw
   `PROVIDER_NOT_ENABLED` when called.
-- **`@capacitor/core` is a required peer.** The published bundle registers the Capacitor plugin even in a
-  web-only build, so the dependency is declared honestly rather than as optional.
+- **`@capacitor/core` is a required peer.** The native bridge imports it even in a web-only build.
 - **Web returns one token per flow.** One-Tap yields an `idToken` and no `accessToken`; the OAuth2 popup
   yields an `accessToken` and no `idToken`. Firebase accepts either
-  (`GoogleAuthProvider.credential(idToken ?? null, accessToken)`); your own backend must accept both.
+  (`GoogleAuthProvider.credential(idToken ?? null, accessToken)`); an ID-token-only backend must explicitly select One-Tap and reject a missing ID token.
 - **Android returns an `idToken` only.** Access tokens and `serverAuthCode` come from the separate Google
   Authorization API, not from Credential Manager sign-in. Only iOS returns everything.
 - **No id-token verification in the browser.** Signature and claim checks belong to your server, or Firebase.
@@ -423,15 +425,14 @@ Stated as plainly as the features, because each one otherwise costs an afternoon
 ## ❓ FAQ&nbsp;[#](#faq)
 
 **Do I need Firebase to use this?**
-No. It returns a raw `idToken` and never imports `firebase`. Handing that token to Firebase is one supported
+No. It returns Google ID or access tokens and never imports `firebase`. Handing that token to Firebase is one supported
 option among several.
 
 **Can I use it on the web only, without a native build?**
-Yes — skip `npx cap sync`. You still need `@capacitor/core` installed, because the published bundle imports it.
+Yes — skip `yarn cap sync`. You still need `@capacitor/core` installed, because the published bundle imports it.
 
-**Why is there no `accessToken` on web?**
-The web path uses the Google Identity Services id-token flow, which is what lets it work with no client secret
-and no backend. To call Google APIs from the browser, use the GIS token client alongside this package.
+**Which token does web return?**
+One-Tap returns `idToken`; popup returns `accessToken`. The default auto flow can return either. Firebase accepts both fields through `GoogleAuthProvider.credential(idToken ?? null, accessToken ?? null)`.
 
 **Which client ID goes where?**
 The **Web** client ID is used as `clientId` on web and as `serverClientId` on Android. The iOS client ID is
@@ -441,8 +442,7 @@ separate. This catches nearly everyone once.
 One at a time, each verified on a device first. See [Roadmap](#roadmap).
 
 **Is it safe to use in a Next.js or Nuxt app?**
-Only in client components, or behind a dynamic import. A top-level server import throws — see
-[Limitations](#limitations).
+Server imports are safe. Configure/prepare/sign in in browser code or client components; a server import does not make interactive Google sign-in available on the server.
 
 <a id="documentation"></a>
 ## 📚 Documentation&nbsp;[#](#documentation)
