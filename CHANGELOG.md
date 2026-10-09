@@ -5,7 +5,39 @@ All notable changes to `capacitor-auth-manager` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.5.0] - 2026-09-08
+## [3.0.0] — 2026-10-09
+
+### Breaking changes
+
+- Node installation/tooling floor is now 24; iOS requires 15 and GoogleSignIn 10.x. Angular adapters support 22.x; older unverified ranges are removed.
+- Web auto sign-in may return a popup access token instead of an ID token. Firebase handoff must use `GoogleAuthProvider.credential(idToken ?? null, accessToken ?? null)`.
+- Default native storage no longer duplicates bearer credentials on disk. The Android legacy credential store and iOS credential copies are removed on upgrade; reauthentication may be required.
+
+### Added
+
+- `auth.prepare(provider)` initializes the SDK before a click without opening a sign-in prompt.
+- A packaged AI integration guide for React/Firebase, native setup, exact imports, error handling, and session ownership.
+- Google-flow, storage, provider initialization, and sign-out race regression tests; tarball smoke loads every public JavaScript entry in both formats.
+
+### Fixed
+
+- Missing requested nonce, expiry, subject, and Workspace-domain claims are rejected in the web ID-token path.
+- Duplicate Google calls fail explicitly; provider initialization is coalesced and invalidated safely on disposal.
+- A late session restore cannot authenticate after sign-out; disabled providers are excluded from the supported-provider list.
+- One-Tap and popup waits are bounded; sign-out/disposal settles outstanding requests and late callbacks are ignored. Userinfo requests have a network deadline.
+- Google web provider construction accepts the documented options shape.
+- The packed Android manifest declares only INTERNET; consumer R8 rules preserve reflected plugin entry points.
+- Native Swift/Java sources are included in the packed artifact. CommonJS root/framework adapters share one auth singleton, and providers/web exports its Google class.
+- iOS credential copies no longer enter UserDefaults. Android removes deprecated security-crypto and keeps credentials in memory.
+
+### Changed
+
+- Direct dependencies updated to current stable versions, retaining the documented TypeScript 6 ecosystem pin.
+- Android uses Credential Manager 1.6.0 and googleid 1.1.1; GoogleSignIn is 10.x.
+- Yarn owns local build/test scripts. Trapeze tooling is retained for native configuration.
+
+
+## [2.5.0] — unpublished source changes, 2026-09-08
 
 Google sign-in hardened on every layer. Closes all five entries that `2.4.3` documented in
 `docs/REPORTED-ISSUES.md`, fixes the runtime defects found while reviewing the native bridge, and gives the

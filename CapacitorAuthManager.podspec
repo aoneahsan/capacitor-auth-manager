@@ -11,13 +11,13 @@ Pod::Spec.new do |s|
   s.author = package['author']
   s.source = { :git => package['repository']['url'], :tag => s.version.to_s }
   s.source_files = 'ios/Plugin/**/*.{swift,h,m,c,cc,mm,cpp}'
-  s.ios.deployment_target  = '14.0'
+  s.ios.deployment_target  = '15.0'
   s.swift_version = '5.9'
-  s.dependency 'Capacitor'
+  s.dependency 'Capacitor', '>= 7.4.2', '< 9.0'
 
   # Google Sign-In — the only enabled provider as of 2.4.x (Firebase-agnostic). Pure-Swift SDK,
   # no Objective-C bridging header required.
-  s.dependency 'GoogleSignIn', '~> 7.1'
+  s.dependency 'GoogleSignIn', '~> 10.0'
 
   # NOTE: Google-first build. The Facebook (FBSDKLoginKit) and Microsoft (MSAL) pod dependencies were
   # removed so this plugin no longer pulls heavy auth SDKs into every consumer app. Those providers'

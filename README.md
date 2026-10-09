@@ -13,31 +13,31 @@
 [![bundle size](https://img.shields.io/bundlephobia/minzip/capacitor-auth-manager.svg)](https://bundlephobia.com/package/capacitor-auth-manager)
 [![node](https://img.shields.io/node/v/capacitor-auth-manager.svg)](https://nodejs.org)
 
-[Docs](https://capacitor-auth-manager-docs.aoneahsan.com) · [npm](https://www.npmjs.com/package/capacitor-auth-manager) · [GitHub](https://github.com/aoneahsan/capacitor-auth-manager) · [Changelog](https://github.com/aoneahsan/capacitor-auth-manager/blob/main/CHANGELOG.md) · [Support](https://github.com/aoneahsan/capacitor-auth-manager/issues)
+[Docs](https://capacitor-auth-manager-docs.aoneahsan.com) · [npm](https://www.npmjs.com/package/capacitor-auth-manager) · [GitHub](https://github.com/aoneahsan/capacitor-auth-manager) · [Changelog](https://github.com/aoneahsan/capacitor-auth-manager/blob/main/CHANGELOG.md) · [AI Guide](https://github.com/aoneahsan/capacitor-auth-manager/blob/main/AI-INTEGRATION-GUIDE.md) · [Support](https://github.com/aoneahsan/capacitor-auth-manager/issues)
 
 </div>
 
 > [!IMPORTANT]
-> - **Google is the only enabled provider in `2.5.x`.** The other fourteen are present in the source but
+> - **Google is the only enabled provider in `3.x`.** The other fourteen are present in the source but
 >   un-registered — calling one throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. They are re-enabled one at a
 >   time, each verified on a device first.
-> - **`@capacitor/core` is a required peer** as of `2.5.0` — the published bundle registers the Capacitor
->   plugin even for a web-only build. Bare Node ESM and server-side imports work since `2.5.0`.
+> - **`@capacitor/core` is a required peer** as of `3.0.0` — the published bundle registers the Capacitor
+>   plugin even for a web-only build. Bare Node ESM and server-side imports work since `3.0.0`.
 
 Capacitor Auth Manager gives a Capacitor app one Google sign-in call that behaves the same on web, iOS and
-Android, and hands back a raw `idToken` to use as you like. It pulls in no `firebase` dependency, so it fits
+Android, and hands back a Google ID token or web popup access token to use as you like. It pulls in no `firebase` dependency, so it fits
 apps built on Firebase Auth and apps built on their own backend equally well. Typed React, Vue and Angular
 adapters ship with it, so the sign-in button is a few lines in whichever framework you already use.
 
 | | |
 |---|---|
-| **Version** | `2.5.0` |
+| **Version** | `3.0.0` |
 | **License** | MIT |
 | **Node** | `>=24.0.0` |
 | **Platforms** | Web · iOS · Android |
-| **Install size** | 264 kB tarball · ~17.4 kB min+gzip for the root entry |
+| **Install size** | See the npm tarball and bundle-size badge for current measurements |
 | **Types** | Bundled `.d.ts` (ESM + CJS) |
-| **Status** | Google provider in production use · remaining providers staged |
+| **Status** | Google enabled; verify OAuth setup and runtime sign-in in your app |
 
 <a id="table-of-contents"></a>
 ## 🧭 Table of Contents&nbsp;[#](#table-of-contents)
@@ -77,7 +77,7 @@ handling.
 
 This package collapses that into `auth.signIn(AuthProvider.GOOGLE)`. It routes to Google Identity Services on
 the web, the GoogleSignIn SDK on iOS and Credential Manager on Android, and returns the same
-`{ user, credential }` shape from all three. What you do with the `idToken` afterwards — hand it to Firebase,
+`{ user, credential }` shape from all three. What you do with the returned credential afterwards — hand it to Firebase,
 or verify it on your own server — stays your decision.
 
 | | `capacitor-auth-manager` | Firebase popup + a separate native plugin |
@@ -96,7 +96,7 @@ Firebase-popup web flow that works and no native build to support.
 ## ✨ Features&nbsp;[#](#features)
 
 - **One call per platform** — the same `signIn` on web, iOS and Android, returning the same shape.
-- **Firebase-agnostic** — returns a raw `idToken`, and pulls no `firebase` package into your tree.
+- **Firebase-agnostic** — returns Google credentials, and pulls no `firebase` package into your tree.
 - **Modern native SDKs** — Android Credential Manager and iOS GoogleSignIn rather than deprecated APIs.
 - **Typed framework adapters** — a `useAuth` hook for React, composables for Vue, an injectable
   `AuthService` and route guards for Angular.
@@ -113,8 +113,8 @@ Firebase-popup web flow that works and no native build to support.
 |---|---|---|
 | Web | ✅ | Google Identity Services. One-Tap / FedCM returns an `idToken`; the OAuth2 popup fallback returns an `accessToken` (`webFlow`). |
 | Android | ✅ | Credential Manager bottom sheet, falling back to the Sign in with Google button flow (`androidFlow`). `serverClientId` is required to receive an `idToken`. |
-| iOS | ✅ | GoogleSignIn 7.x. Returns `idToken`, `accessToken`, and `serverAuthCode` when configured. |
-| Node / SSR | ✅ import | Importing is side-effect free since `2.5.0`; sign-in itself still needs a browser or a device. |
+| iOS | ✅ | GoogleSignIn 10.x; iOS 15+. Returns `idToken`, `accessToken`, and `serverAuthCode` when configured. |
+| Node / SSR | ✅ import | Importing is side-effect free since `3.0.0`; sign-in itself still needs a browser or a device. |
 
 Native sources for both platforms compile in a clean Capacitor 8 app, verified with Gradle `assembleDebug`
 and `pod lib lint`. A successful compile is not a runtime test — sign in once on a real device before rolling
@@ -131,7 +131,7 @@ repository (a Capacitor app wired to a Firebase project).
 | `@capacitor/preferences` | `^6 \|\| ^7 \|\| ^8` | optional peer — only for `CapacitorPreferencesStorage` |
 | `react` | `^16.8 \|\| ^17 \|\| ^18 \|\| ^19` | optional peer — only for `capacitor-auth-manager/react` |
 | `vue` | `^3.0.0` | optional peer — only for `capacitor-auth-manager/vue` |
-| `@angular/core` | `^12` – `^22` | optional peer — only for `capacitor-auth-manager/angular` |
+| `@angular/core` | `^22` | optional peer — only for `capacitor-auth-manager/angular` |
 
 You also need Google OAuth client IDs: a **Web** client for every platform, plus an **Android** client
 registered with your signing fingerprints and an **iOS** client if you ship those platforms.
@@ -179,7 +179,8 @@ auth.configure({
 });
 
 const result = await auth.signIn(AuthProvider.GOOGLE);
-console.log(result.user.email, result.credential.idToken);
+// Hand credential.idToken OR credential.accessToken to Firebase; see Usage.
+// Never log credential tokens.
 ```
 
 `AuthProvider.GOOGLE` is the typo-safe form of the string `'google'`; either works.
@@ -189,19 +190,20 @@ console.log(result.user.email, result.credential.idToken);
 
 ### Hand the credential to Firebase
 
-Identical on web, iOS and Android — the `idToken` is all Firebase needs.
+Firebase accepts the One-Tap/native ID token or the web popup access token. Initialize Firebase in your app first.
 
 ```ts
 import { getAuth, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 
 const result = await auth.signIn(AuthProvider.GOOGLE);
-await signInWithCredential(getAuth(), GoogleAuthProvider.credential(result.credential.idToken));
+await signInWithCredential(getAuth(), GoogleAuthProvider.credential(result.credential.idToken ?? null, result.credential.accessToken ?? null));
 ```
 
 ### Verify on your own backend instead
 
 ```ts
 const { credential } = await auth.signIn(AuthProvider.GOOGLE);
+if (!credential.idToken) throw new Error('This backend requires an ID token; use webFlow one-tap');
 await fetch('/api/session', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
@@ -210,6 +212,9 @@ await fetch('/api/session', {
 ```
 
 Always verify the token's signature server-side. This package does not verify it in the browser.
+Use Firebase state for app sessions and protected routes; the package's state describes only the local Google flow.
+Call `await auth.prepare(AuthProvider.GOOGLE)` during browser startup before enabling a sign-in button.
+Call `auth.signOut()` and Firebase `signOut()` when signing out of the app.
 
 ### React
 
@@ -370,6 +375,8 @@ run it in a real terminal rather than in CI.
   const google = new GoogleAuthProviderWeb({ clientId: import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID });
   // renderButton initializes the provider on demand; options default to { theme: 'outline', size: 'large' }
   await google.renderButton(document.getElementById('google-btn')!);
+  // Arm the credential promise before clicking the rendered button:
+  const result = await google.signIn({ options: { webFlow: 'one-tap' } });
   ```
 
   The button shares the One-Tap credential callback, so a click resolves the same
@@ -384,9 +391,9 @@ run it in a real terminal rather than in CI.
 | Symptom | Cause | Fix |
 |---|---|---|
 | `idToken` is `null` on Android | `serverClientId` missing, or the SHA fingerprint is not registered | Pass your **Web** client ID as `serverClientId` and register the app's SHA-1/SHA-256 on the Android OAuth client |
-| `PROVIDER_NOT_ENABLED` | that provider is not enabled yet in `2.5.x` | Only Google is available today — see [Roadmap](#roadmap) |
-| `window is not defined` on the server | you are on `< 2.5.0` | Upgrade — the singleton is lazy and storage is guarded since `2.5.0` |
-| `Cannot find module '…/core/auth-manager'` under Node | you are on `< 2.5.0` | Upgrade — every relative specifier carries its `.js` extension since `2.5.0` |
+| `PROVIDER_NOT_ENABLED` | that provider is not enabled yet in `3.x` | Only Google is available today — see [Roadmap](#roadmap) |
+| `window is not defined` on the server | you are on `< 3.0.0` | Upgrade — the singleton is lazy and storage is guarded since `3.0.0` |
+| `Cannot find module '…/core/auth-manager'` under Node | you are on `< 3.0.0` | Upgrade — every relative specifier carries its `.js` extension since `3.0.0` |
 | `POPUP_BLOCKED` on web with `webFlow: 'one-tap'` | One-Tap is suppressed (cooldown, FedCM opt-out, third-party cookies) | Use the default `webFlow: 'auto'` (falls back to the popup) or `'popup'`, or draw Google's button with `GoogleAuthProviderWeb.renderButton` — see [Advanced Features](#advanced-features) |
 | `USER_CANCELLED` / `POPUP_CLOSED_BY_USER` | the user closed One-Tap or the popup | Expected — show your own "try again" |
 | No Google account offered on Android | the bottom sheet has no authorized account | The default `androidFlow: 'auto'` falls back to the Sign in with Google button flow, which can add an account |
@@ -455,7 +462,7 @@ Only in client components, or behind a dynamic import. A top-level server import
 <a id="changelog"></a>
 ## 🔄 Changelog&nbsp;[#](#changelog)
 
-Latest release: **`2.4.4`** — documentation only: the at-a-glance table above reported the previous version, because it is a static duplicate of `package.json`. Full history in the changelog.
+Latest release: **`3.0.0`** — Google-flow hardening, corrected native packaging and shared CommonJS state, updated dependencies, and the packaged AI integration guide. See the changelog for breaking requirements.
 
 Full history: [CHANGELOG.md](https://github.com/aoneahsan/capacitor-auth-manager/blob/main/CHANGELOG.md).
 
@@ -464,7 +471,7 @@ Full history: [CHANGELOG.md](https://github.com/aoneahsan/capacitor-auth-manager
 
 - Re-enable the remaining providers one at a time, each hardened and then verified on a device.
 - Android access-token and `serverAuthCode` support through the Google Authorization API.
-- A `3.0.0` once every provider works again.
+- Additional providers only after their own native and web verification.
 
 Dates are deliberately absent; each item ships when it is verified rather than when it is scheduled.
 

@@ -21,6 +21,21 @@ const external = [
   'rxjs/operators',
 ];
 
+// CommonJS adapters and the root entry share the core bundle's auth singleton.
+// The standalone browser IIFE remains self-contained.
+const sharedCore = {
+  name: 'shared-auth-core',
+  resolveId(source) {
+    if (
+      source.endsWith('/core/auth-manager.js') ||
+      source.endsWith('/capacitor-plugin.js')
+    ) {
+      return { id: 'capacitor-auth-manager/core', external: true };
+    }
+    return null;
+  },
+};
+
 // Base configuration
 const baseConfig = {
   external,
@@ -34,28 +49,38 @@ const baseConfig = {
 
 // Check if framework modules exist before adding them to the build
 const configs = [
-  // Main entry point
   {
     ...baseConfig,
     input: 'dist/esm/index.js',
-    output: [
-      {
-        file: 'dist/plugin.js',
-        format: 'iife',
-        name: 'CapacitorAuthManager',
-        globals: {
-          '@capacitor/core': 'capacitorExports',
-        },
-        sourcemap: false,
-        inlineDynamicImports: true,
-      },
-      {
-        file: 'dist/plugin.cjs.js',
-        format: 'cjs',
-        sourcemap: false,
-        inlineDynamicImports: true,
-      },
-    ],
+    output: {
+      file: 'dist/plugin.js',
+      format: 'iife',
+      name: 'CapacitorAuthManager',
+      globals: { '@capacitor/core': 'capacitorExports' },
+      sourcemap: false,
+      inlineDynamicImports: true,
+    },
+  },
+  {
+    ...baseConfig,
+    plugins: [...baseConfig.plugins, sharedCore],
+    input: 'dist/esm/index.js',
+    output: {
+      file: 'dist/plugin.cjs.js',
+      format: 'cjs',
+      sourcemap: false,
+      inlineDynamicImports: true,
+    },
+  },
+  {
+    ...baseConfig,
+    input: 'dist/esm/providers/web/index.js',
+    output: {
+      file: 'dist/providers-web.cjs.js',
+      format: 'cjs',
+      sourcemap: false,
+      inlineDynamicImports: true,
+    },
   },
   // Core module
   {
@@ -76,6 +101,7 @@ const configs = [
 if (existsSync('dist/esm/react/index.js')) {
   configs.push({
     ...baseConfig,
+    plugins: [...baseConfig.plugins, sharedCore],
     input: 'dist/esm/react/index.js',
     output: [
       {
@@ -92,6 +118,7 @@ if (existsSync('dist/esm/react/index.js')) {
 if (existsSync('dist/esm/vue/index.js')) {
   configs.push({
     ...baseConfig,
+    plugins: [...baseConfig.plugins, sharedCore],
     input: 'dist/esm/vue/index.js',
     output: [
       {
@@ -108,6 +135,7 @@ if (existsSync('dist/esm/vue/index.js')) {
 if (existsSync('dist/esm/angular/index.js')) {
   configs.push({
     ...baseConfig,
+    plugins: [...baseConfig.plugins, sharedCore],
     input: 'dist/esm/angular/index.js',
     output: [
       {

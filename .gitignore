@@ -72,3 +72,6 @@ project-record-ignore/
 # Nested sub-project Yarn artifacts (examples/*) — never commit install state/cache
 **/.yarn/install-state.gz
 **/.yarn/cache
+
+*.tsbuildinfo
+pnpm-lock.yaml

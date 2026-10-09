@@ -138,7 +138,9 @@ class AuthStorage {
     }
 
     func deleteCredential(for provider: AuthProvider) {
-        remove("credential_\(provider.rawValue)")
+        let key = "credential_\(provider.rawValue)"
+        UserDefaults.standard.removeObject(forKey: keyPrefix + key)
+        deleteFromKeychain(key: keyPrefix + key)
     }
 
     // MARK: - Keychain Helpers

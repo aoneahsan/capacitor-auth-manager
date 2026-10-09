@@ -35,8 +35,8 @@ corepack yarn smoke:tarball     # packs the tarball, installs it in a scratch di
 corepack yarn prettier          # format
 ```
 
-The only automated test is the tarball smoke test (`test/tarball-smoke.test.js`, node:test) — it guards the
-Node ESM / SSR import path that no repo build exercises. Auth flows are validated manually on real devices:
+Google/auth behavior tests run with `yarn test`. The tarball smoke test (`test/tarball-smoke.test.js`, node:test) — it guards the
+Node ESM / SSR import path that no repo build exercises. Real Google auth flows are validated manually on devices:
 the native code compiles in a clean Capacitor 8 app, but a green build is not a runtime test — verify Google
 sign-in on a device before rolling a version out.
 
@@ -58,6 +58,10 @@ sign-in on a device before rolling a version out.
 
 Open defects: [`docs/REPORTED-ISSUES.md`](docs/REPORTED-ISSUES.md) — check it at session start; fixed entries
 move to [`docs/RESOLVED-ISSUES.md`](docs/RESOLVED-ISSUES.md) with date and version.
+
+## Release guidance
+
+`AI-INTEGRATION-GUIDE.md` is the consumer integration contract. Keep it version-aligned with the independent docs site and include it in the packed artifact. Run `yarn test`, `yarn smoke:tarball`, and `yarn smoke:native android` / `ios` for release validation. Never claim a compile check verifies real OAuth sign-in.
 
 ## Links
 

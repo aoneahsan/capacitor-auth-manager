@@ -1,0 +1,3 @@
+# Consumer app IDs, OAuth clients, and platform settings belong in the consuming app.
+# This library has no native application target to modify.
+platforms: {}

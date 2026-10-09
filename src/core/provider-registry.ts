@@ -1,6 +1,10 @@
 import type { AuthProviderInterface, ProviderManifest } from './types.js';
 import { PlatformDetector } from './platform.js';
-import { AuthProvider, AuthPersistence, AuthErrorCode } from '../definitions.js';
+import {
+  AuthProvider,
+  AuthPersistence,
+  AuthErrorCode,
+} from '../definitions.js';
 import type { ProviderOptions } from '../definitions.js';
 import { AuthError } from '../utils/auth-error.js';
 import { WebStorage } from '../utils/storage.js';
@@ -28,6 +32,8 @@ export interface ProviderDeps {
 
 export class ProviderRegistry {
   private static providers = new Map<string, AuthProviderInterface>();
+  private static pending = new Map<string, Promise<AuthProviderInterface>>();
+  private static generation = 0;
   private static loaders = new Map<string, ProviderLoader>();
   private static manifests = new Map<string, ProviderManifest>();
 
@@ -126,6 +132,26 @@ export class ProviderRegistry {
     deps?: ProviderDeps
   ): Promise<AuthProviderInterface> {
     const key = this.canonicalName(name);
+    const existing = this.providers.get(key);
+    if (existing) return existing;
+    const pending = this.pending.get(key);
+    if (pending) return pending;
+    const promise = this.createProvider(name, options, deps);
+    this.pending.set(key, promise);
+    try {
+      return await promise;
+    } finally {
+      if (this.pending.get(key) === promise) this.pending.delete(key);
+    }
+  }
+
+  private static async createProvider(
+    name: string,
+    options?: ProviderOptions,
+    deps?: ProviderDeps
+  ): Promise<AuthProviderInterface> {
+    const generation = this.generation;
+    const key = this.canonicalName(name);
 
     // Check if already loaded
     const existing = this.providers.get(key);
@@ -205,6 +231,13 @@ export class ProviderRegistry {
       if (provider.initialize) {
         await provider.initialize();
       }
+      if (generation !== this.generation) {
+        provider.dispose?.();
+        throw new AuthError(
+          AuthErrorCode.OPERATION_NOT_ALLOWED,
+          'Provider configuration changed during initialization'
+        );
+      }
 
       // Cache the provider under its canonical key
       this.providers.set(key, provider);
@@ -232,7 +265,9 @@ export class ProviderRegistry {
   }
 
   static clearProvider(name: string): void {
+    this.generation++;
     const key = this.canonicalName(name);
+    this.pending.delete(key);
     const provider = this.providers.get(key);
     if (provider?.dispose) {
       provider.dispose();
@@ -241,6 +276,8 @@ export class ProviderRegistry {
   }
 
   static clearAll(): void {
+    this.generation++;
+    this.pending.clear();
     for (const [, provider] of this.providers) {
       if (provider.dispose) {
         provider.dispose();
@@ -258,6 +295,7 @@ export class ProviderRegistry {
     const supported: string[] = [];
 
     for (const [name, manifest] of this.manifests) {
+      if (!this.loaders.has(name)) continue;
       if (
         !manifest.platforms ||
         manifest.platforms.includes(

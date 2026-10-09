@@ -235,7 +235,9 @@ export function useAuthState(): UseAuthStateReturn {
  */
 export function useAuthProvider(provider: string): UseAuthProviderReturn {
   const [isSupported, setIsSupported] = useState(false);
-  const [isConfigured, setIsConfigured] = useState(false);
+  const [isConfigured, setIsConfigured] = useState(() =>
+    auth.isProviderConfigured(provider)
+  );
   const [error, setError] = useState<Error | null>(null);
   const mountedRef = useRef(true);
 

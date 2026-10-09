@@ -146,8 +146,8 @@ public class GoogleAuthProvider implements BaseAuthProvider {
         logger.info("Initializing Google auth provider (Credential Manager)");
         try {
             // Credential Manager has no "last signed-in account" concept, so restore any persisted
-            // user from secure storage to keep getCurrentUser() working after a cold start.
-            JSObject storedUser = storage.getCredential(STORAGE_USER_KEY);
+            // profile metadata from storage to keep getCurrentUser() working after a cold start.
+            JSObject storedUser = storage.getUser(STORAGE_USER_KEY);
             if (storedUser != null) {
                 currentUser = storedUser;
                 logger.info("Restored previous Google session from storage");
@@ -213,7 +213,7 @@ public class GoogleAuthProvider implements BaseAuthProvider {
     @Override
     public void getCurrentUser(CapacitorAuthManager.AuthCallback<JSObject> callback) {
         if (currentUser == null) {
-            currentUser = storage.getCredential(STORAGE_USER_KEY);
+            currentUser = storage.getUser(STORAGE_USER_KEY);
         }
         callback.onResult(CapacitorAuthManager.AuthResult.success(currentUser));
     }
@@ -258,7 +258,7 @@ public class GoogleAuthProvider implements BaseAuthProvider {
             JSObject storedCredential = storage.getCredential(STORAGE_CREDENTIAL_KEY);
             if (storedCredential != null) {
                 String idToken = storedCredential.getString("idToken");
-                if (idToken != null && !idToken.isEmpty()) {
+                if (idToken != null && !idToken.isEmpty() && isFreshIdToken(idToken)) {
                     JSObject result = new JSObject();
                     result.put("token", idToken);
                     callback.onResult(CapacitorAuthManager.AuthResult.success(result));
@@ -286,6 +286,14 @@ public class GoogleAuthProvider implements BaseAuthProvider {
                         "No Google ID token available. Re-authentication required.")));
             }
         });
+    }
+
+    private boolean isFreshIdToken(String idToken) {
+        try {
+            return parseIdTokenClaims(idToken).optLong("exp", 0) > System.currentTimeMillis() / 1000;
+        } catch (Exception invalidToken) {
+            return false;
+        }
     }
 
     @Override
@@ -543,7 +551,7 @@ public class GoogleAuthProvider implements BaseAuthProvider {
         String displayName = cred.getDisplayName();
         Uri photoUri = cred.getProfilePictureUri();
         String photoURL = photoUri != null ? photoUri.toString() : null;
-        String phoneNumber = cred.getPhoneNumber();
+        String phoneNumber = null; // Google ID tokens do not provide a phone number.
 
         String uid = null;
         boolean emailVerified = true;
@@ -618,7 +626,7 @@ public class GoogleAuthProvider implements BaseAuthProvider {
     private void persistSession(JSObject user, JSObject credential) {
         try {
             storage.saveCredential(STORAGE_CREDENTIAL_KEY, credential);
-            storage.saveCredential(STORAGE_USER_KEY, user);
+            storage.saveUser(STORAGE_USER_KEY, user);
         } catch (Exception e) {
             logger.warn("Failed to persist Google session");
         }
@@ -627,7 +635,7 @@ public class GoogleAuthProvider implements BaseAuthProvider {
     private void clearSession() {
         currentUser = null;
         storage.deleteCredential(STORAGE_CREDENTIAL_KEY);
-        storage.deleteCredential(STORAGE_USER_KEY);
+        storage.deleteUser(STORAGE_USER_KEY);
     }
 
     private void warnIfUnsupportedOptions() {

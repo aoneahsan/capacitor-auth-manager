@@ -23,6 +23,7 @@ class GoogleAuthProvider: BaseAuthProvider {
     private var serverClientId: String?
     private var hostedDomain: String?
     private var loginHint: String?
+    private var nonce: String?
     private var offlineAccess: Bool = false
     private var scopes: [String] = []
 
@@ -38,12 +39,14 @@ class GoogleAuthProvider: BaseAuthProvider {
         if let value = config.options["serverClientId"] as? String { self.serverClientId = value }
         if let value = config.options["hostedDomain"] as? String { self.hostedDomain = value }
         if let value = config.options["loginHint"] as? String { self.loginHint = value }
+        if let value = config.options["nonce"] as? String { self.nonce = value }
         if let value = config.options["offlineAccess"] as? Bool { self.offlineAccess = value }
         if let value = config.options["scopes"] as? [String] { self.scopes = value }
     }
 
     func initialize(completion: @escaping (Error?) -> Void) {
         logger.info("Initializing Google auth provider")
+        storage.deleteCredential(for: provider)
 
         // A client id must be resolvable from options or the app's Info.plist (`GIDClientID`).
         guard resolveClientId() != nil else {
@@ -97,7 +100,8 @@ class GoogleAuthProvider: BaseAuthProvider {
             GIDSignIn.sharedInstance.signIn(
                 withPresenting: presentingVC,
                 hint: self.loginHint,
-                additionalScopes: additionalScopes
+                additionalScopes: additionalScopes,
+                nonce: self.nonce
             ) { [weak self] result, error in
                 guard let self = self else { return }
 
@@ -124,8 +128,7 @@ class GoogleAuthProvider: BaseAuthProvider {
                 // present when a serverClientID is configured.
                 let credential = self.makeCredential(from: gidUser, serverAuthCode: result.serverAuthCode)
 
-                // Persist credential for later restore (serverAuthCode is single-use and not persisted).
-                self.storage.saveCredential(credential, for: self.provider)
+                // GoogleSignIn owns token persistence in its SDK Keychain.
 
                 let authResult = AuthResult(
                     user: authUser,
@@ -282,7 +285,7 @@ class GoogleAuthProvider: BaseAuthProvider {
 
             // serverAuthCode is only returned by the interactive sign-in, not on refresh.
             let credential = self.makeCredential(from: refreshedUser, serverAuthCode: nil)
-            self.storage.saveCredential(credential, for: self.provider)
+            // Keep refreshed credentials in the SDK, not UserDefaults.
 
             let authResult = AuthResult(
                 user: authUser,

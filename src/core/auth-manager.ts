@@ -4,7 +4,11 @@ import { WebStorage, StorageInterface } from '../utils/storage.js';
 import { AuthError } from '../utils/auth-error.js';
 import { ProviderRegistry } from './provider-registry.js';
 import type { ProviderDeps } from './provider-registry.js';
-import type { AuthManagerConfig, AuthState, AuthStateListener } from './types.js';
+import type {
+  AuthManagerConfig,
+  AuthState,
+  AuthStateListener,
+} from './types.js';
 import type {
   AuthUser,
   AuthCredential,
@@ -17,7 +21,11 @@ import type {
   UpdateProfileOptions,
   DeleteAccountOptions,
 } from '../definitions.js';
-import { AuthProvider, AuthErrorCode, AuthPersistence } from '../definitions.js';
+import {
+  AuthProvider,
+  AuthErrorCode,
+  AuthPersistence,
+} from '../definitions.js';
 
 /**
  * Maps the config's persistence literal to the {@link AuthPersistence} enum WebStorage expects.
@@ -55,6 +63,7 @@ class AuthManagerCore {
   private tokenRefreshTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private initPromise: Promise<void> | null = null;
   private currentPersistence: string | undefined;
+  private sessionRevision = 0;
 
   constructor() {
     this.logger = new Logger({
@@ -159,6 +168,8 @@ class AuthManagerCore {
 
   async signIn(providerOrOptions: string | SignInOptions): Promise<AuthResult> {
     await this.ensureInitialized();
+    this.assertIdle();
+    this.sessionRevision++;
 
     let providerName: string;
     let signInOptions: {
@@ -244,8 +255,16 @@ class AuthManagerCore {
     }
   }
 
+  /** Load the provider SDK before a user gesture, without opening a sign-in prompt. */
+  async prepare(provider: string): Promise<void> {
+    await this.ensureInitialized();
+    await this.resolveProvider(provider);
+  }
+
   async signOut(options?: SignOutOptions): Promise<void> {
     await this.ensureInitialized();
+    this.assertIdle();
+    this.sessionRevision++;
 
     const provider = options?.provider || this.state.provider;
     if (!provider) {
@@ -437,7 +456,10 @@ class AuthManagerCore {
     try {
       await providerInstance.revokeAccess(token);
     } catch (error) {
-      this.logger.error(`Access revocation failed for ${targetProvider}`, error);
+      this.logger.error(
+        `Access revocation failed for ${targetProvider}`,
+        error
+      );
       throw AuthError.fromError(error);
     }
   }
@@ -541,9 +563,8 @@ class AuthManagerCore {
     }
     const provider = await this.resolveProvider(targetProvider);
 
-    const deleteFn = (
-      provider as { deleteAccount?: () => Promise<void> }
-    ).deleteAccount;
+    const deleteFn = (provider as { deleteAccount?: () => Promise<void> })
+      .deleteAccount;
     if (typeof deleteFn !== 'function') {
       throw new AuthError(
         AuthErrorCode.OPERATION_NOT_ALLOWED,
@@ -608,7 +629,11 @@ class AuthManagerCore {
   }
 
   private getProviderDeps(): ProviderDeps {
-    return { storage: this.storage, logger: this.logger };
+    return {
+      storage: this.storage,
+      logger: this.logger,
+      persistence: toAuthPersistence(this.config.persistence),
+    };
   }
 
   /**
@@ -655,6 +680,7 @@ class AuthManagerCore {
   }
 
   private async restoreAuthState(): Promise<void> {
+    const revision = this.sessionRevision;
     try {
       const stored = await this.storage.get<{
         user?: AuthUser;
@@ -673,7 +699,7 @@ class AuthManagerCore {
             );
             const currentUser = await provider.getCurrentUser();
 
-            if (currentUser) {
+            if (currentUser && revision === this.sessionRevision) {
               this.updateState({
                 user: currentUser,
                 isAuthenticated: true,
@@ -690,7 +716,8 @@ class AuthManagerCore {
             }
           } catch (error) {
             this.logger.warn('Failed to restore auth session:', error);
-            await this.storage.remove('auth_state');
+            if (revision === this.sessionRevision)
+              await this.storage.remove('auth_state');
           }
         }
       }
@@ -699,7 +726,19 @@ class AuthManagerCore {
     }
   }
 
-  private setupTokenRefresh(provider: string, credential: AuthResult['credential']): void {
+  private assertIdle(): void {
+    if (this.state.isLoading) {
+      throw new AuthError(
+        AuthErrorCode.OPERATION_NOT_ALLOWED,
+        'An authentication operation is already in progress'
+      );
+    }
+  }
+
+  private setupTokenRefresh(
+    provider: string,
+    credential: AuthResult['credential']
+  ): void {
     this.clearTokenRefresh(provider);
 
     if (!credential.expiresAt || !credential.refreshToken) {
@@ -763,6 +802,7 @@ class AuthManagerCore {
   }
 
   dispose(): void {
+    this.sessionRevision++;
     // Clear all timers
     for (const timer of this.tokenRefreshTimers.values()) {
       clearTimeout(timer);

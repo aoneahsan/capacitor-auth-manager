@@ -2,16 +2,12 @@ package com.aoneahsan.capacitor_auth_manager;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import androidx.security.crypto.EncryptedSharedPreferences;
-import androidx.security.crypto.MasterKey;
 
 import com.getcapacitor.JSObject;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,15 +16,8 @@ public class AuthStorage {
     private static final String KEY_PREFIX = "cap_auth_";
     
     private final Context context;
-    private final AuthLogger logger = new AuthLogger("AuthStorage");
 
-    /**
-     * Encrypted preferences, or {@code null} when the Android keystore refused to produce a master
-     * key. In that case {@link #memoryStore} takes over: a session that cannot be encrypted is kept
-     * in memory for the life of the process rather than written to disk in the clear. ID tokens are
-     * bearer credentials, so plaintext {@code MODE_PRIVATE} preferences are not an acceptable
-     * fallback (any process with the app's uid, and any backup or rooted device, can read them).
-     */
+    // Disk storage holds profile metadata only. Credentials stay in process memory.
     private SharedPreferences sharedPreferences;
     private final Map<String, String> memoryStore = new HashMap<>();
     private String persistence = "local";
@@ -55,45 +44,25 @@ public class AuthStorage {
     }
     
     private void initializeStorage() {
-        try {
-            // Use encrypted shared preferences for secure storage
-            MasterKey masterKey = new MasterKey.Builder(context)
-                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                    .build();
-            
-            sharedPreferences = EncryptedSharedPreferences.create(
-                    context,
-                    PREFS_NAME,
-                    masterKey,
-                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-            );
-        } catch (GeneralSecurityException | IOException e) {
-            // The keystore is unavailable (a locked device-protected storage, a corrupted master
-            // key, an OEM keystore bug). Degrade to memory-only rather than writing tokens in the
-            // clear; the user simply has to sign in again after the process dies.
-            sharedPreferences = null;
-            memoryStore.clear();
-            logger.error(
-                    "Encrypted storage unavailable; the auth session will be kept in memory only "
-                            + "and will not survive app restarts", e);
-        }
+        // Remove the old encrypted credential store when upgrading to the metadata-only layout.
+        context.deleteSharedPreferences(PREFS_NAME);
+        sharedPreferences = context.getSharedPreferences("cap_auth_metadata", Context.MODE_PRIVATE);
     }
-    
+
     public void setPersistence(String persistence) {
         this.persistence = persistence;
     }
     
-    /** True when values are written to encrypted preferences rather than kept in memory only. */
+    /** Metadata storage is not encrypted; bearer credentials are never written here. */
     public boolean isEncrypted() {
-        return sharedPreferences != null;
+        return false;
     }
 
     public String get(String key) {
         if (persistence.equals(Persistence.NONE.getValue())) {
             return null;
         }
-        if (sharedPreferences == null) {
+        if (sharedPreferences == null || persistence.equals(Persistence.SESSION.getValue())) {
             return memoryStore.get(KEY_PREFIX + key);
         }
         return sharedPreferences.getString(KEY_PREFIX + key, null);
@@ -103,7 +72,7 @@ public class AuthStorage {
         if (persistence.equals(Persistence.NONE.getValue())) {
             return;
         }
-        if (sharedPreferences == null) {
+        if (sharedPreferences == null || persistence.equals(Persistence.SESSION.getValue())) {
             memoryStore.put(KEY_PREFIX + key, value);
             return;
         }
@@ -111,7 +80,7 @@ public class AuthStorage {
     }
     
     public void remove(String key) {
-        if (sharedPreferences == null) {
+        if (sharedPreferences == null || persistence.equals(Persistence.SESSION.getValue())) {
             memoryStore.remove(KEY_PREFIX + key);
             return;
         }
@@ -119,8 +88,8 @@ public class AuthStorage {
     }
     
     public void clear() {
-        if (sharedPreferences == null) {
-            memoryStore.clear();
+        memoryStore.clear();
+        if (sharedPreferences == null || persistence.equals(Persistence.SESSION.getValue())) {
             return;
         }
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -160,16 +129,29 @@ public class AuthStorage {
         return null;
     }
 
+    // Profile metadata respects the configured persistence; credentials remain in memory.
+    public void saveUser(String provider, JSObject user) {
+        if (user != null) set("user_" + provider, user.toString());
+    }
+
+    public JSObject getUser(String provider) {
+        String json = get("user_" + provider);
+        try { return json == null ? null : JSObject.fromJSONObject(new JSONObject(json)); }
+        catch (JSONException invalidProfile) { return null; }
+    }
+
+    public void deleteUser(String provider) { remove("user_" + provider); }
+
     // Credential storage methods
 
     public void saveCredential(String provider, JSObject credential) {
         if (credential != null) {
-            set("credential_" + provider, credential.toString());
+            memoryStore.put("credential_" + provider, credential.toString());
         }
     }
 
     public JSObject getCredential(String provider) {
-        String jsonString = get("credential_" + provider);
+        String jsonString = memoryStore.get("credential_" + provider);
         if (jsonString != null) {
             try {
                 return JSObject.fromJSONObject(new JSONObject(jsonString));
@@ -181,7 +163,8 @@ public class AuthStorage {
     }
 
     public void deleteCredential(String provider) {
-        remove("credential_" + provider);
+        memoryStore.remove("credential_" + provider);
+        sharedPreferences.edit().remove(KEY_PREFIX + "credential_" + provider).apply();
     }
 
     public boolean hasCredential(String provider) {

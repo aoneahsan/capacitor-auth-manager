@@ -18,9 +18,9 @@ const path = require('node:path');
 const packageRoot = path.resolve(__dirname, '..');
 const isWindows = process.platform === 'win32';
 
-/** Runs npm (a .cmd shim on Windows, so it needs a shell there). */
-function npm(args, cwd) {
-  return execFileSync(isWindows ? 'npm.cmd' : 'npm', args, {
+/** Runs Yarn (a .cmd shim on Windows, so it needs a shell there). */
+function yarn(args, cwd) {
+  return execFileSync(isWindows ? 'yarn.cmd' : 'yarn', args, {
     cwd,
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -40,19 +40,78 @@ function node(scriptPath, cwd) {
 test('the packed tarball imports under bare Node (ESM + CJS) with no DOM', () => {
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'cam-tarball-smoke-'));
   try {
-    const packOutput = npm(['pack', '--pack-destination', scratch, '--silent'], packageRoot);
-    const tarball = packOutput.trim().split(/\r?\n/).pop();
-    assert.ok(tarball && tarball.endsWith('.tgz'), `npm pack produced no tarball: ${packOutput}`);
+    const registryVersion = process.env.CAM_SMOKE_REGISTRY_VERSION;
+    const packOutput = registryVersion
+      ? 'registry verification'
+      : yarn(
+          ['pack', '--out', path.join(scratch, 'candidate.tgz')],
+          packageRoot
+        );
+    const tarball = 'candidate.tgz';
+    assert.ok(
+      tarball && tarball.endsWith('.tgz'),
+      `Yarn pack produced no tarball: ${packOutput}`
+    );
 
     fs.writeFileSync(
       path.join(scratch, 'package.json'),
-      JSON.stringify({ name: 'cam-smoke', private: true, version: '0.0.0' })
+      JSON.stringify({
+        name: 'cam-smoke',
+        private: true,
+        version: '0.0.0',
+        packageManager: 'yarn@4.17.1',
+      })
     );
-    npm(
-      ['install', '--no-audit', '--no-fund', '--silent', '@capacitor/core', 'react', path.join(scratch, tarball)],
+    fs.writeFileSync(
+      path.join(scratch, '.yarnrc.yml'),
+      'nodeLinker: node-modules\nnpmMinimalAgeGate: 0\n'
+    );
+    yarn(
+      [
+        'add',
+        '@capacitor/core',
+        '@capacitor/preferences',
+        'react',
+        'react-dom',
+        'vue',
+        '@angular/core',
+        '@angular/common',
+        '@angular/router',
+        '@angular/platform-browser',
+        '@angular/compiler',
+        'rxjs',
+        'typescript@~6.0.3',
+        '@types/react',
+        'firebase',
+        'esbuild',
+        registryVersion
+          ? `capacitor-auth-manager@${registryVersion}`
+          : `capacitor-auth-manager@file:${path.join(scratch, tarball)}`,
+      ],
       scratch
     );
 
+    const manifest = fs.readFileSync(
+      path.join(
+        scratch,
+        'node_modules/capacitor-auth-manager/android/src/main/AndroidManifest.xml'
+      ),
+      'utf8'
+    );
+    assert.deepEqual(
+      [...manifest.matchAll(/<uses-permission\s+android:name="([^"]+)"/g)].map(
+        (match) => match[1]
+      ),
+      ['android.permission.INTERNET']
+    );
+    assert.ok(
+      fs.existsSync(
+        path.join(
+          scratch,
+          'node_modules/capacitor-auth-manager/android/consumer-rules.pro'
+        )
+      )
+    );
     const installed = fs.readdirSync(path.join(scratch, 'node_modules'));
     assert.ok(installed.includes('capacitor-auth-manager'));
     assert.ok(
@@ -60,36 +119,130 @@ test('the packed tarball imports under bare Node (ESM + CJS) with no DOM', () =>
       'a disabled provider dependency must not be installed for every consumer (ISSUE-004)'
     );
 
+    for (const file of [
+      'android/src/main/AndroidManifest.xml',
+      'android/src/main/java/com/aoneahsan/capacitor_auth_manager/GoogleAuthProvider.java',
+      'ios/Plugin/GoogleAuthProvider.swift',
+      'AI-INTEGRATION-GUIDE.md',
+    ]) {
+      assert.ok(
+        fs.existsSync(
+          path.join(scratch, 'node_modules/capacitor-auth-manager', file)
+        ),
+        `Tarball missing ${file}`
+      );
+    }
+    const pkg = JSON.parse(
+      fs.readFileSync(
+        path.join(scratch, 'node_modules/capacitor-auth-manager/package.json')
+      )
+    );
+    for (const [subpath, conditions] of Object.entries(pkg.exports)) {
+      for (const target of typeof conditions === 'string'
+        ? [conditions]
+        : Object.values(conditions)) {
+        assert.ok(
+          fs.existsSync(
+            path.join(scratch, 'node_modules/capacitor-auth-manager', target)
+          ),
+          `${subpath}: missing ${target}`
+        );
+      }
+    }
+    const specifiers = Object.keys(pkg.exports)
+      .filter((p) => p !== './package.json')
+      .map((p) => (p === '.' ? pkg.name : pkg.name + p.slice(1)));
     const cjsCheck = path.join(scratch, 'check.cjs');
     fs.writeFileSync(
       cjsCheck,
       [
-        "const m = require('capacitor-auth-manager');",
-        "const r = require('capacitor-auth-manager/react');",
-        "console.log(typeof m.auth, typeof m.AuthProvider, typeof r.useAuth);",
+        "require('@angular/compiler');",
+        ...specifiers.map(
+          (s) =>
+            `if (!Object.keys(require('${s}')).length) throw new Error('${s} empty');`
+        ),
+        "if (require('capacitor-auth-manager').auth !== require('capacitor-auth-manager/core').auth) throw new Error('CJS auth singleton split');",
+        "if (typeof require('capacitor-auth-manager/providers/web').GoogleAuthProviderWeb !== 'function') throw new Error('CJS Google export missing');",
+        "require('capacitor-auth-manager').auth.configure({providers:{google:{clientId:'test'}}});",
+        "const React=require('react'); const {renderToString}=require('react-dom/server'); const {useAuthProvider}=require('capacitor-auth-manager/react');",
+        "function App(){return React.createElement('span',null,String(useAuthProvider('google').isConfigured));}",
+        "if (renderToString(React.createElement(App)) !== '<span>true</span>') throw new Error('CJS React lost configured auth');",
+        "console.log('ok');",
       ].join('\n')
     );
-    assert.equal(
-      node(cjsCheck, scratch),
-      'object object function',
-      'CJS require must not touch window at import time (ISSUE-002)'
-    );
-
+    assert.equal(node(cjsCheck, scratch), 'ok');
     const esmCheck = path.join(scratch, 'check.mjs');
     fs.writeFileSync(
       esmCheck,
       [
-        "const m = await import('capacitor-auth-manager');",
-        "const c = await import('capacitor-auth-manager/core');",
-        "const w = await import('capacitor-auth-manager/providers/web');",
-        "console.log(typeof m.auth, typeof c.PlatformDetector, typeof w.GoogleAuthProviderWeb);",
+        "await import('@angular/compiler');",
+        ...specifiers.map(
+          (s) =>
+            `if (!Object.keys(await import('${s}')).length) throw new Error('${s} empty');`
+        ),
+        "console.log('ok');",
       ].join('\n')
     );
-    assert.equal(
-      node(esmCheck, scratch),
-      'object function function',
-      'ESM import must resolve every relative specifier (ISSUE-001)'
+    assert.equal(node(esmCheck, scratch), 'ok');
+    const guide = fs.readFileSync(
+      path.join(
+        scratch,
+        'node_modules/capacitor-auth-manager/AI-INTEGRATION-GUIDE.md'
+      ),
+      'utf8'
     );
+    const blocks = [...guide.matchAll(/```ts\n([\s\S]*?)```/g)].map(
+      (match) => match[1]
+    );
+    // Compile each complete example as its own module, using the installed declarations.
+    for (let i = 0; i < blocks.length; i++)
+      fs.writeFileSync(path.join(scratch, `example-${i}.ts`), blocks[i]);
+    fs.writeFileSync(
+      path.join(scratch, 'react.ts'),
+      "import { useAuth } from 'capacitor-auth-manager/react'; export type State = ReturnType<typeof useAuth>;\n"
+    );
+    fs.writeFileSync(
+      path.join(scratch, 'tsconfig.json'),
+      JSON.stringify({
+        compilerOptions: {
+          strict: true,
+          noEmit: true,
+          target: 'ES2022',
+          module: 'ESNext',
+          moduleResolution: 'bundler',
+          skipLibCheck: true,
+        },
+        include: ['*.ts'],
+      })
+    );
+    yarn(['tsc', '--project', 'tsconfig.json'], scratch);
+    fs.writeFileSync(
+      path.join(scratch, 'browser.ts'),
+      "import { auth, AuthProvider } from 'capacitor-auth-manager'; import { useAuth } from 'capacitor-auth-manager/react'; export { auth, AuthProvider, useAuth };\n"
+    );
+    yarn(
+      [
+        'esbuild',
+        'browser.ts',
+        '--bundle',
+        '--platform=browser',
+        '--format=esm',
+        '--outfile=browser.js',
+      ],
+      scratch
+    );
+    const help = execFileSync(
+      process.execPath,
+      [
+        path.join(
+          scratch,
+          'node_modules/capacitor-auth-manager/scripts/configure.js'
+        ),
+        '--help',
+      ],
+      { cwd: scratch, encoding: 'utf8' }
+    );
+    assert.match(help, /Usage:/);
   } finally {
     fs.rmSync(scratch, { recursive: true, force: true });
   }

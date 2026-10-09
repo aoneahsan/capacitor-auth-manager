@@ -16,10 +16,10 @@ jobs:
         # engines.node is ">=24.0.0" (current + latest only, owner decision 2026-09-03); this matrix backs the claim.
         node: [24, 26]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node }}
 
@@ -40,8 +40,40 @@ jobs:
       - name: Lint
         run: corepack yarn lint
 
+      - name: Google regression tests
+        run: corepack yarn test
+
       - name: Tarball smoke (bare Node ESM + CJS import of the packed package)
         run: corepack yarn smoke:tarball
 
       - name: Pack (verify tarball contents)
-        run: npm pack --dry-run
+        run: corepack yarn pack --out /tmp/candidate.tgz
+
+  native:
+    name: Native consumer (${{ matrix.platform }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: android
+            os: ubuntu-latest
+          - platform: ios
+            os: macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - uses: actions/setup-java@v5
+        if: matrix.platform == 'android'
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Enable Corepack
+        run: |
+          npm install -g corepack
+          corepack enable
+      - run: yarn install --immutable
+      - run: yarn build
+      - run: yarn smoke:native ${{ matrix.platform }}

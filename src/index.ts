@@ -36,6 +36,10 @@ export {
   PasswordStrengthRequirements,
   UsernameRequirements,
   AuthCredentials,
+  GoogleAuthOptions,
+  GoogleWebFlow,
+  GoogleAndroidFlow,
+  DeleteAccountOptions,
 } from './definitions.js';
 
 export { PlatformDetector } from './core/platform.js';

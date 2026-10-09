@@ -45,6 +45,7 @@ export class GoogleNativeProvider extends BaseAuthProvider {
       // Hand the Google config (clientId / serverClientId / iosClientId / scopes) to the native side
       // once; subsequent signIn() calls only pass per-request SignInProviderOptions.
       await CapacitorAuthManager.initialize({
+        persistence: this.persistence,
         providers: [
           {
             provider: AuthProvider.GOOGLE,

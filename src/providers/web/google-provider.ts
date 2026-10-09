@@ -10,7 +10,7 @@ import {
   AuthErrorCode,
   AuthUser,
 } from '../../definitions.js';
-import { BaseAuthProvider, BaseProviderConfig } from '../base-provider.js';
+import { BaseAuthProvider, resolveProviderConfig } from '../base-provider.js';
 import { AuthError } from '../../utils/auth-error.js';
 
 /** Decoded subset of a Google ID-token (JWT) payload / userinfo response we read. */
@@ -139,9 +139,13 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
   private currentNonce?: string;
   /** Last credential issued in this page session (tokens are deliberately not persisted). */
   private lastCredential: AuthCredential | null = null;
+  private signingIn = false;
+  private pendingTimer: ReturnType<typeof setTimeout> | null = null;
+  private requestRevision = 0;
+  private pendingPopupReject: ((error: AuthError) => void) | null = null;
 
-  constructor(config: BaseProviderConfig) {
-    super(config);
+  constructor(config?: unknown) {
+    super(resolveProviderConfig(AuthProvider.GOOGLE, config));
   }
 
   get name(): string {
@@ -165,29 +169,41 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
   }
 
   async signIn(options?: SignInOptions): Promise<AuthResult> {
-    if (!this.isInitialized) {
-      await this.initialize();
+    if (this.signingIn) {
+      throw new AuthError(
+        AuthErrorCode.OPERATION_NOT_ALLOWED,
+        'A Google sign-in is already in progress',
+        AuthProvider.GOOGLE
+      );
     }
-    // AuthManagerCore spreads per-call options to the top level; direct callers nest them under
-    // `options`. Read both shapes.
-    const perCall = (options ?? {}) as Partial<SignInOptions> & {
-      webFlow?: GoogleWebFlow;
-      loginHint?: string;
-    };
-    const flow: GoogleWebFlow =
-      perCall.options?.webFlow ??
-      perCall.webFlow ??
-      (this.options as GoogleAuthOptions).webFlow ??
-      'auto';
-    const loginHint =
-      perCall.options?.loginHint ??
-      perCall.loginHint ??
-      (this.options as GoogleAuthOptions).loginHint;
+    this.signingIn = true;
+    try {
+      if (!this.isInitialized) {
+        await this.initialize();
+      }
+      // AuthManagerCore spreads per-call options to the top level; direct callers nest them under
+      // `options`. Read both shapes.
+      const perCall = (options ?? {}) as Partial<SignInOptions> & {
+        webFlow?: GoogleWebFlow;
+        loginHint?: string;
+      };
+      const flow: GoogleWebFlow =
+        perCall.options?.webFlow ??
+        perCall.webFlow ??
+        (this.options as GoogleAuthOptions).webFlow ??
+        'auto';
+      const loginHint =
+        perCall.options?.loginHint ??
+        perCall.loginHint ??
+        (this.options as GoogleAuthOptions).loginHint;
 
-    if (flow === 'popup') {
-      return this.signInWithPopup(loginHint);
+      if (flow === 'popup') {
+        return await this.signInWithPopup(loginHint);
+      }
+      return await this.signInWithOneTap(flow === 'auto', loginHint);
+    } finally {
+      this.signingIn = false;
     }
-    return this.signInWithOneTap(flow === 'auto', loginHint);
   }
 
   /**
@@ -207,6 +223,24 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
   }
 
   async signOut(_options?: SignOutOptions): Promise<void> {
+    this.requestRevision++;
+    this.pendingPopupReject?.(
+      new AuthError(
+        AuthErrorCode.USER_CANCELLED,
+        'Google sign-in was cancelled',
+        AuthProvider.GOOGLE
+      )
+    );
+    if (this.pendingReject) {
+      this.rejectPending(
+        new AuthError(
+          AuthErrorCode.USER_CANCELLED,
+          'Google sign-in was cancelled by sign-out',
+          AuthProvider.GOOGLE
+        )
+      );
+      window.google?.accounts?.id?.cancel();
+    }
     try {
       window.google?.accounts?.id?.disableAutoSelect();
     } catch (error) {
@@ -243,7 +277,10 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
         AuthProvider.GOOGLE
       );
     }
-    const result = await this.signInWithOneTap(false);
+    const result = await this.signIn({
+      provider: AuthProvider.GOOGLE,
+      options: { webFlow: 'one-tap' },
+    });
     if (!result.credential.idToken) {
       throw new AuthError(
         AuthErrorCode.NO_AUTH_SESSION,
@@ -305,6 +342,16 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     return new Promise<AuthResult>((resolve, reject) => {
       this.pendingResolve = resolve;
       this.pendingReject = (e) => reject(e);
+      this.pendingTimer = setTimeout(() => {
+        this.rejectPending(
+          new AuthError(
+            AuthErrorCode.POPUP_BLOCKED,
+            'Google One-Tap did not return a credential. Retry from a click with webFlow "popup", or use the Google button.',
+            AuthProvider.GOOGLE
+          )
+        );
+        window.google?.accounts?.id?.cancel();
+      }, 120_000);
 
       const fallback = (reason: string) => {
         this.logger.info(
@@ -313,6 +360,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
         // Drop the One-Tap resolvers so a late credential callback cannot double-resolve.
         this.pendingResolve = null;
         this.pendingReject = null;
+        this.clearPendingTimer();
         this.signInWithPopup(loginHint).then(resolve, reject);
       };
 
@@ -372,6 +420,8 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
   private async handleCredential(
     response: GoogleCredentialResponse
   ): Promise<void> {
+    // Ignore a late callback after cancellation, timeout, or popup fallback.
+    if (!this.pendingResolve) return;
     if (response.error || !response.credential) {
       this.rejectPending(
         new AuthError(
@@ -408,6 +458,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
   // --- OAuth2 popup flow ---------------------------------------------------------------------------
 
   private async signInWithPopup(loginHint?: string): Promise<AuthResult> {
+    const revision = this.requestRevision;
     const options = this.options as GoogleAuthOptions;
     const clientId = this.requireClientId();
     await this.loadGsi();
@@ -426,6 +477,34 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
 
     const tokenResponse = await new Promise<GoogleTokenResponse>(
       (resolve, reject) => {
+        let settled = false;
+        const cleanup = () => {
+          settled = true;
+          clearTimeout(timer);
+          this.pendingPopupReject = null;
+        };
+        const resolveToken = (response: GoogleTokenResponse) => {
+          if (settled) return;
+          cleanup();
+          resolve(response);
+        };
+        const rejectToken = (error: unknown) => {
+          if (settled) return;
+          cleanup();
+          reject(error);
+        };
+        const timer = setTimeout(
+          () =>
+            rejectToken(
+              new AuthError(
+                AuthErrorCode.POPUP_BLOCKED,
+                'Google sign-in popup did not return a credential. Retry from a click.',
+                AuthProvider.GOOGLE
+              )
+            ),
+          120_000
+        );
+        this.pendingPopupReject = rejectToken;
         try {
           const client = oauth2.initTokenClient({
             client_id: clientId,
@@ -435,7 +514,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
             include_granted_scopes: options.includeGrantedScopes ?? true,
             callback: (response) => {
               if (response.error) {
-                reject(
+                rejectToken(
                   new AuthError(
                     response.error === 'access_denied'
                       ? AuthErrorCode.USER_CANCELLED
@@ -446,11 +525,11 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
                 );
                 return;
               }
-              resolve(response);
+              resolveToken(response);
             },
             error_callback: (error) => {
               const type = error?.type ?? 'unknown';
-              reject(
+              rejectToken(
                 new AuthError(
                   type === 'popup_closed'
                     ? AuthErrorCode.POPUP_CLOSED_BY_USER
@@ -467,7 +546,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
             prompt: options.autoSelectEnabled ? '' : 'select_account',
           });
         } catch (error) {
-          reject(AuthError.fromError(error, AuthProvider.GOOGLE));
+          rejectToken(AuthError.fromError(error, AuthProvider.GOOGLE));
         }
       }
     );
@@ -482,6 +561,20 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     }
 
     const profile = await this.fetchUserInfo(accessToken);
+    if (revision !== this.requestRevision) {
+      throw new AuthError(
+        AuthErrorCode.USER_CANCELLED,
+        'Google sign-in was cancelled',
+        AuthProvider.GOOGLE
+      );
+    }
+    if (typeof profile.sub !== 'string' || !profile.sub) {
+      throw new AuthError(
+        AuthErrorCode.INVALID_TOKEN,
+        'Google userinfo is missing a subject',
+        AuthProvider.GOOGLE
+      );
+    }
     if (options.hostedDomain && profile.hd !== options.hostedDomain) {
       throw new AuthError(
         AuthErrorCode.SIGN_IN_FAILED,
@@ -514,6 +607,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     try {
       response = await fetch(USERINFO_ENDPOINT, {
         headers: { Authorization: `Bearer ${accessToken}` },
+        signal: AbortSignal.timeout(15_000),
       });
     } catch (error) {
       throw new AuthError(
@@ -585,7 +679,18 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
   }
 
   private validateIdToken(idToken: string): GoogleProfileClaims {
-    const claims = decodeJwtPayload(idToken);
+    let claims: GoogleProfileClaims;
+    try {
+      claims = decodeJwtPayload(idToken);
+      if (!claims || typeof claims !== 'object' || Array.isArray(claims))
+        throw new Error('Invalid claims');
+    } catch {
+      throw new AuthError(
+        AuthErrorCode.INVALID_TOKEN,
+        'Malformed Google ID token',
+        AuthProvider.GOOGLE
+      );
+    }
     const options = this.options as GoogleAuthOptions;
 
     const validIssuers = ['accounts.google.com', 'https://accounts.google.com'];
@@ -603,7 +708,19 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
         AuthProvider.GOOGLE
       );
     }
-    if (typeof claims.exp === 'number' && claims.exp * 1000 <= Date.now()) {
+    if (
+      typeof claims.exp !== 'number' ||
+      !Number.isFinite(claims.exp) ||
+      typeof claims.sub !== 'string' ||
+      !claims.sub
+    ) {
+      throw new AuthError(
+        AuthErrorCode.INVALID_TOKEN,
+        'Google ID token is missing required exp or sub claims',
+        AuthProvider.GOOGLE
+      );
+    }
+    if (claims.exp * 1000 <= Date.now()) {
       throw new AuthError(
         AuthErrorCode.TOKEN_EXPIRED,
         'Google ID token has expired',
@@ -611,10 +728,17 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
       );
     }
     // Validate nonce only when the consumer supplied one (avoids hashing ambiguity otherwise).
-    if (this.currentNonce && claims.nonce && claims.nonce !== this.currentNonce) {
+    if (this.currentNonce && claims.nonce !== this.currentNonce) {
       throw new AuthError(
         AuthErrorCode.INVALID_NONCE,
         'ID token nonce does not match the requested nonce',
+        AuthProvider.GOOGLE
+      );
+    }
+    if (options.hostedDomain && claims.hd !== options.hostedDomain) {
+      throw new AuthError(
+        AuthErrorCode.INVALID_TOKEN,
+        'Google ID token does not match the required Workspace domain',
         AuthProvider.GOOGLE
       );
     }
@@ -659,6 +783,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
   }
 
   private resolvePending(result: AuthResult): void {
+    this.clearPendingTimer();
     const resolve = this.pendingResolve;
     this.pendingResolve = null;
     this.pendingReject = null;
@@ -666,6 +791,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
   }
 
   private rejectPending(error: AuthError): void {
+    this.clearPendingTimer();
     const reject = this.pendingReject;
     this.pendingResolve = null;
     this.pendingReject = null;
@@ -674,6 +800,34 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     } else {
       this.logger.error('Google sign-in error with no pending request', error);
     }
+  }
+
+  private clearPendingTimer(): void {
+    if (this.pendingTimer !== null) clearTimeout(this.pendingTimer);
+    this.pendingTimer = null;
+  }
+
+  override dispose(): void {
+    this.requestRevision++;
+    this.pendingPopupReject?.(
+      new AuthError(
+        AuthErrorCode.USER_CANCELLED,
+        'Google sign-in was cancelled',
+        AuthProvider.GOOGLE
+      )
+    );
+    if (this.pendingReject) {
+      this.rejectPending(
+        new AuthError(
+          AuthErrorCode.USER_CANCELLED,
+          'Google sign-in was disposed',
+          AuthProvider.GOOGLE
+        )
+      );
+      window.google?.accounts?.id?.cancel();
+    }
+    this.lastCredential = null;
+    super.dispose();
   }
 
   private loadGsi(): Promise<void> {
@@ -687,30 +841,40 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
       const existing = document.querySelector<HTMLScriptElement>(
         `script[src="${GSI_SRC}"]`
       );
-      const onReady = () =>
-        window.google?.accounts?.id
-          ? resolve()
-          : reject(new Error('Google Identity Services failed to load'));
-      if (existing) {
-        existing.addEventListener('load', onReady, { once: true });
-        existing.addEventListener(
-          'error',
-          () => reject(new Error('Failed to load Google Identity Services')),
-          { once: true }
-        );
-        if (window.google?.accounts?.id) {
-          resolve();
+      const script = existing ?? document.createElement('script');
+      const cleanup = () => {
+        clearTimeout(timer);
+        script.removeEventListener('load', onReady);
+        script.removeEventListener('error', onError);
+      };
+      const onReady = () => {
+        cleanup();
+        if (window.google?.accounts?.id) resolve();
+        else {
+          if (!existing) script.remove();
+          reject(new Error('Google Identity Services failed to load'));
         }
-        return;
+      };
+      const onError = () => {
+        cleanup();
+        if (!existing) script.remove();
+        reject(
+          new AuthError(
+            AuthErrorCode.NETWORK_ERROR,
+            'Failed to load Google Identity Services',
+            AuthProvider.GOOGLE
+          )
+        );
+      };
+      const timer = setTimeout(onError, 15_000);
+      script.addEventListener('load', onReady, { once: true });
+      script.addEventListener('error', onError, { once: true });
+      if (!existing) {
+        script.src = GSI_SRC;
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
       }
-      const script = document.createElement('script');
-      script.src = GSI_SRC;
-      script.async = true;
-      script.defer = true;
-      script.onload = onReady;
-      script.onerror = () =>
-        reject(new Error('Failed to load Google Identity Services'));
-      document.head.appendChild(script);
     }).finally(() => {
       this.loadPromise = null;
     });
