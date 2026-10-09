@@ -49,7 +49,8 @@ try {
       webDir: 'www',
     })
   );
-  run(yarn, ['install']);
+  // This generated consumer has no lockfile yet; the repository install stays immutable.
+  run(yarn, ['install', '--no-immutable']);
   run(yarn, [
     'cap',
     'add',
