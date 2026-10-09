@@ -33,3 +33,5 @@ Remote ISSUE-006 arrived during execution and was merged without losing its inst
 The minified Android check exposed googleid 1.2.1 Kotlin metadata incompatibility with the Capacitor 8 template lint. Keep supported googleid 1.1.1 with a recorded recheck gate. Modernized own Gradle DSL assignments, removed inherited abortOnError suppression, and separated native profile metadata from memory-only credentials to preserve configured cold-start behavior.
 
 Final local Android debug and R8-minified release both passed (281 Gradle tasks) with googleid 1.1.1 and no package deprecation/Kotlin metadata errors. Root coordination now ignores and records the owner-cloned independent package checkout; it will be fast-forwarded to the pushed release without moving either checkout.
+
+First CI run failed before install: setup-node v5 automatically invoked runner Yarn 1 for caching before Corepack. Use its supported package-manager-cache:false setting; Corepack then activates the pinned Yarn 4. No checks are skipped.

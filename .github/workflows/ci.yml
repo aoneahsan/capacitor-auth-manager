@@ -22,6 +22,7 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node }}
+          package-manager-cache: false # Corepack must be enabled before invoking pinned Yarn.
 
       - name: Enable corepack (Yarn 4 is pinned via packageManager)
         run: |
@@ -65,6 +66,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 24
+          package-manager-cache: false
       - uses: actions/setup-java@v5
         if: matrix.platform == 'android'
         with:
