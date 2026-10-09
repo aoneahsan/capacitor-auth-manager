@@ -54,6 +54,11 @@ sign-in on a device before rolling a version out.
   its native dependency, harden it, and verify the build + on device.
 - **No production source maps.** Conventional-commit messages.
 
+## Issue queue
+
+Open defects: [`docs/REPORTED-ISSUES.md`](docs/REPORTED-ISSUES.md) — check it at session start; fixed entries
+move to [`docs/RESOLVED-ISSUES.md`](docs/RESOLVED-ISSUES.md) with date and version.
+
 ## Links
 
 - [Contributing](./.github/CONTRIBUTING.md) · [Security](./.github/SECURITY.md) · [Support](./.github/SUPPORT.md)
