@@ -2,6 +2,13 @@
 
 Contributor + AI-assistant guide for this MIT-licensed Capacitor authentication plugin.
 
+**Context checked:** 2026-10-13. This public `main` repository lives in the parent
+`../` private coordination root beside `capacitor-auth-manager-docs/`; remote `o` pushes the
+package. The parent `project-root` branch is independent and must never merge into this branch.
+The next routine context pass is eligible 2026-11-12. Read the target file and only the
+matching native/source/docs guide. The active fleet state is at
+`/home/ahsan/Documents/01-code/docs/tracking/fleet-maintenance-tracker.json`.
+
 ## What this is
 
 Firebase-agnostic **Google authentication** for Capacitor + web — a drop-in alternative to
@@ -28,7 +35,7 @@ one at a time.
 
 ```bash
 corepack enable                 # Yarn 4.17.1 is pinned via "packageManager" (Node >= 24)
-corepack yarn install
+corepack yarn install --immutable
 corepack yarn build             # clean + tsc + rollup → dist (ESM + CJS + browser)
 corepack yarn lint              # eslint — must be 0 errors / 0 warnings
 corepack yarn smoke:tarball     # packs the tarball, installs it in a scratch dir, imports it under bare Node
