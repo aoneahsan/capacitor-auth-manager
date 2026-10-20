@@ -1,6 +1,10 @@
 # Package inventory
 
-Last Updated: 2026-10-09
+Last Updated: 2026-10-20
+
+Package manager: Yarn 4.18.1. The committed lock resolves the current compatible patch releases inside the
+declared ranges; the production package version remains 3.0.0 because this pass changes development tooling
+and dependency resolution only. The recursive package audit reports zero advisories.
 
 | Dependency | Range | Purpose |
 |---|---|---|

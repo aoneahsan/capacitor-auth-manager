@@ -36,7 +36,7 @@ one at a time.
 ## Local development
 
 ```bash
-corepack enable                 # Yarn 4.17.1 is pinned via "packageManager" (Node >= 24)
+corepack enable                 # Yarn 4.18.1 is pinned via "packageManager" (Node >= 24)
 corepack yarn install --immutable
 corepack yarn build             # clean + tsc + rollup → dist (ESM + CJS + browser)
 corepack yarn lint              # eslint — must be 0 errors / 0 warnings

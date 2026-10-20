@@ -23,7 +23,7 @@ try {
       name: 'cam-native-smoke',
       private: true,
       version: '0.0.0',
-      packageManager: 'yarn@4.17.1',
+      packageManager: 'yarn@4.18.1',
       dependencies: {
         '@capacitor/core': version,
         [`@capacitor/${platform}`]: version,
