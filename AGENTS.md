@@ -1,5 +1,7 @@
 # AGENTS.md — capacitor-auth-manager
 
+**Last Updated:** 2026-10-20
+
 Contributor + AI-assistant guide for this MIT-licensed Capacitor authentication plugin.
 
 **Context checked:** 2026-10-13. This public `main` repository lives in the parent
@@ -75,3 +77,9 @@ move to [`docs/RESOLVED-ISSUES.md`](docs/RESOLVED-ISSUES.md) with date and versi
 - [Contributing](./.github/CONTRIBUTING.md) · [Security](./.github/SECURITY.md) · [Support](./.github/SUPPORT.md)
 - Docs: https://github.com/aoneahsan/capacitor-auth-manager-docs
 - Author: Ahsan Mahmood — aoneahsan@gmail.com — https://aoneahsan.com
+
+## Stop-work Git gate
+
+<!-- RULE:stop-work-git-gate v2026-10-20 -->
+
+Before stopping, commit every legitimate change and work-progress checkpoint in this repository and each independent nested repository, fetch and merge the designated upstream, push the documented working branch, then verify an empty worktree and `0 0` ahead/behind. Never stash, discard, reset, rebase, or force-push. If synchronization is blocked, report the exact repository, branch, blocker, and next action instead of calling the work complete. The full workflow remains authoritative in `~/.claude/rules/git-workflow.md`.
