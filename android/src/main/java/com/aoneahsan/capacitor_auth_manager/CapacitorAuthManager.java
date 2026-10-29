@@ -21,6 +21,7 @@ public class CapacitorAuthManager {
     private final Map<String, AuthStateListener> authStateListeners;
     private String currentProvider;
     private boolean isInitialized;
+    private ActivityLauncher activityLauncher;
 
     public CapacitorAuthManager(Context context, Activity activity) {
         this.context = context;
@@ -30,6 +31,11 @@ public class CapacitorAuthManager {
         this.logger = new AuthLogger(TAG);
         this.authStateListeners = new HashMap<>();
         this.isInitialized = false;
+    }
+
+    /** Lets providers start an Activity for a result through the plugin (legacy GoogleSignIn). */
+    public void setActivityLauncher(ActivityLauncher activityLauncher) {
+        this.activityLauncher = activityLauncher;
     }
 
     public void initialize(JSObject options, AuthCallback<Void> callback) {
@@ -108,7 +114,7 @@ public class CapacitorAuthManager {
     private void registerProviderFromConfig(String providerName, JSObject configObj) {
         try {
             BaseAuthProvider provider = ProviderFactory.createProvider(
-                    providerName, context, activity, storage, logger, configObj);
+                    providerName, context, activity, storage, logger, configObj, activityLauncher);
             if (provider != null) {
                 providers.put(providerName, provider);
                 logger.info("Registered provider: " + providerName);
@@ -307,7 +313,7 @@ public class CapacitorAuthManager {
 
         try {
             BaseAuthProvider authProvider = ProviderFactory.createProvider(
-                    provider, context, activity, storage, logger, options);
+                    provider, context, activity, storage, logger, options, activityLauncher);
 
             if (authProvider != null) {
                 providers.put(provider, authProvider);

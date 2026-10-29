@@ -5,6 +5,30 @@ All notable changes to `capacitor-auth-manager` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] — 2026-10-29
+
+### Fixed
+
+- **Android Google sign-in failed on Play-installed builds with no account picker.** 3.0.0 ran Credential
+  Manager alone, which refused the request before showing any UI, while the same OAuth clients and SHA-1s
+  worked through GoogleSignIn in the apps' previous releases. The default `androidFlow: 'auto'` now runs
+  GoogleSignIn first — the exact path `@codetrix-studio/capacitor-google-auth` used, with the result
+  delivered through Capacitor's `@ActivityCallback` — and falls back to Credential Manager on any failure
+  except a cancel.
+- **Android errors no longer hide Google's own cause.** Every rejection carries Google's exception class and
+  message (`[28444] …`, status codes); configuration errors add the installed package and signing SHA-1.
+- **R8 keep rules now reach consuming apps.** They lived in `proguard-rules.pro`, which only applies to the
+  library's own unminified build; they are now in `consumer-rules.pro`.
+
+### Added
+
+- `androidFlow` values `'legacy'` (GoogleSignIn only) and `'credential-manager'` (the 3.0.0 behaviour).
+
+### Changed
+
+- Android depends on `com.google.android.gms:play-services-auth` **21.6.0**, pinned because 22.0.0 removed
+  GoogleSignIn. `googleid` stays on 1.1.1 (see `docs/PACKAGES.md`).
+
 ## [3.0.0] — 2026-10-09
 
 ### Breaking changes

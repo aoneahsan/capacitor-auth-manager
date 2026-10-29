@@ -2,102 +2,73 @@ package com.aoneahsan.capacitor_auth_manager;
 
 import android.app.Activity;
 import android.content.Context;
-import android.net.Uri;
-import android.util.Base64;
-
-import androidx.core.content.ContextCompat;
-
-import androidx.credentials.ClearCredentialStateRequest;
-import androidx.credentials.Credential;
-import androidx.credentials.CredentialManager;
-import androidx.credentials.CredentialManagerCallback;
-import androidx.credentials.CustomCredential;
-import androidx.credentials.GetCredentialRequest;
-import androidx.credentials.GetCredentialResponse;
-import androidx.credentials.exceptions.ClearCredentialException;
-import androidx.credentials.exceptions.GetCredentialCancellationException;
-import androidx.credentials.exceptions.GetCredentialException;
-import androidx.credentials.exceptions.GetCredentialInterruptedException;
-import androidx.credentials.exceptions.NoCredentialException;
 
 import com.getcapacitor.JSObject;
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
-import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
-import java.util.concurrent.Executor;
 
 /**
- * Android native Google sign-in built on the modern <b>Credential Manager</b> API
- * ({@code androidx.credentials}) + the Google Identity {@code GetGoogleIdOption}.
+ * Android native Google sign-in: legacy <b>GoogleSignIn</b> first, <b>Credential Manager</b> as the fallback.
  *
- * <p>This replaces the deprecated {@code com.google.android.gms.auth.api.signin.GoogleSignIn} +
- * {@code startActivityForResult(...)} flow, which relied on an {@code onActivityResult} callback the
- * plugin never forwarded (so interactive sign-in hung forever). Credential Manager uses an async
- * callback ({@link CredentialManagerCallback}) — no {@code onActivityResult} — so that bug class is gone.</p>
+ * <p>{@code androidFlow: 'auto'} (the default) runs {@link GoogleLegacySignIn} — the exact path
+ * {@code @codetrix-studio/capacitor-google-auth} ran — and falls back to {@link GoogleCredentialManagerSignIn}
+ * (bottom sheet, then the "Sign in with Google" button) when GoogleSignIn fails for any reason other than
+ * the user cancelling. 3.0.0 ran Credential Manager alone, and Play-installed builds of every production
+ * app were refused before any account picker appeared, while the same OAuth clients and SHA-1s had worked
+ * through GoogleSignIn in the previous release (2026-10-29). On Android 14+ Credential Manager goes
+ * through the system credential service, which can fail with no UI when Google is not an enabled
+ * credential provider on the device; GoogleSignIn never touches that service. {@code 'legacy'},
+ * {@code 'credential-manager'}, {@code 'bottom-sheet'} and {@code 'button'} pin one path.</p>
  *
- * <p>The package is Firebase-agnostic: this provider returns a credential
- * {@code { idToken, ... }} to JS and the app performs its own Firebase
- * {@code signInWithCredential(GoogleAuthProvider.credential(idToken))} (or anything else) later.</p>
+ * <p>Every error keeps Google's own exception class and message, and configuration errors name the
+ * installed package + signing SHA-1 ({@link SigningDiagnostics}), so the cause is readable on the device.</p>
  *
- * <p><b>Limitations of Credential Manager Google sign-in (intentional):</b></p>
- * <ul>
- *   <li>Only an <b>idToken</b> is returned. There is no OAuth access token and no serverAuthCode,
- *       so {@code credential.accessToken} / {@code credential.serverAuthCode} are intentionally absent.
- *       Use the Google Authorization API if you need an access token / extra scopes.</li>
- *   <li>{@code GetGoogleIdOption} does not request additional OAuth scopes, nor honor
- *       {@code hostedDomain} / {@code loginHint}. Those config values are accepted for API parity but
- *       are not enforced here.</li>
- *   <li>There is no server-side revoke; {@code revokeAccess} clears local + Credential Manager state only.</li>
- * </ul>
+ * <p>The package is Firebase-agnostic: it returns {@code { idToken, ... }} and the app signs in with it.
+ * Neither path returns an OAuth access token; extra scopes, server-side revoke and refresh tokens are out
+ * of scope for this provider.</p>
  */
 public class GoogleAuthProvider implements BaseAuthProvider {
-    private static final String TAG = "GoogleAuthProvider";
-    private static final String PROVIDER_ID = "google.com";
     private static final String STORAGE_CREDENTIAL_KEY = "google";
     private static final String STORAGE_USER_KEY = "google_user";
 
-    private final Context context;
-    private final Activity activity;
     private final AuthStorage storage;
     private final AuthLogger logger;
+    private final GoogleLegacySignIn legacy;
+    private final GoogleCredentialManagerSignIn credentialManager;
+    private ActivityLauncher activityLauncher;
 
     private String clientId;
     private String serverClientId;
-    // Retained for API parity. Credential Manager's GetGoogleIdOption only returns an ID token and
-    // cannot request additional OAuth scopes, so non-default scopes are surfaced as a warning only.
+    // Retained for API parity: neither Android path requests extra OAuth scopes.
     private List<String> scopes;
     private boolean filterByAuthorizedAccounts = false;
     private boolean autoSelectEnabled = false;
     private String nonce;
     private String hostedDomain;
     private String loginHint;
-    /** "auto" (bottom sheet, then button on NoCredentialException) | "bottom-sheet" | "button". */
+    /** "auto" | "legacy" | "credential-manager" | "bottom-sheet" | "button". */
     private String androidFlow = "auto";
 
     private JSObject currentUser;
 
     public GoogleAuthProvider(Context context, Activity activity, AuthStorage storage, AuthLogger logger) {
-        this.context = context;
-        this.activity = activity;
         this.storage = storage;
         this.logger = logger;
+        this.legacy = new GoogleLegacySignIn(context, activity, logger);
+        this.credentialManager = new GoogleCredentialManagerSignIn(context, activity, logger);
         this.scopes = new ArrayList<>();
         this.scopes.add("email");
         this.scopes.add("profile");
     }
 
     // ---- Configuration (populated by ProviderFactory from the google provider options) ----
+
+    public void setActivityLauncher(ActivityLauncher activityLauncher) {
+        this.activityLauncher = activityLauncher;
+    }
 
     public void setClientId(String clientId) {
         this.clientId = clientId;
@@ -143,10 +114,8 @@ public class GoogleAuthProvider implements BaseAuthProvider {
 
     @Override
     public void initialize(CapacitorAuthManager.AuthCallback<Void> callback) {
-        logger.info("Initializing Google auth provider (Credential Manager)");
+        logger.info("Initializing Google auth provider (GoogleSignIn + Credential Manager fallback)");
         try {
-            // Credential Manager has no "last signed-in account" concept, so restore any persisted
-            // profile metadata from storage to keep getCurrentUser() working after a cold start.
             JSObject storedUser = storage.getUser(STORAGE_USER_KEY);
             if (storedUser != null) {
                 currentUser = storedUser;
@@ -170,43 +139,114 @@ public class GoogleAuthProvider implements BaseAuthProvider {
                 flow = perCall;
             }
         }
-        logger.info("Starting Google sign-in (Credential Manager, flow=" + flow + ")");
-
-        if ("button".equals(flow)) {
-            requestSignInWithGoogleButton(callback);
+        logger.info("Starting Google sign-in (flow=" + flow + ")");
+        if (resolvedServerClientId() == null) {
+            callback.onResult(missingClientId());
             return;
         }
+        warnIfUnsupportedOptions();
+        switch (flow) {
+            case "legacy":
+                runLegacy(profileCallback(callback));
+                return;
+            case "credential-manager":
+                runCredentialManager(profileCallback(callback));
+                return;
+            case "bottom-sheet":
+                credentialManager.requestBottomSheet(resolvedServerClientId(), nonce, filterByAuthorizedAccounts,
+                        autoSelectEnabled, profileCallback(callback));
+                return;
+            case "button":
+                credentialManager.requestButton(resolvedServerClientId(), nonce, hostedDomain, profileCallback(callback));
+                return;
+            default:
+                runAuto(profileCallback(callback));
+        }
+    }
 
-        final boolean fallbackToButton = !"bottom-sheet".equals(flow);
-        requestGoogleCredential(filterByAuthorizedAccounts, autoSelectEnabled, new CapacitorAuthManager.AuthCallback<JSObject>() {
+    /** GoogleSignIn first; Credential Manager when it fails for any reason other than a cancel. */
+    private void runAuto(final GoogleProfileCallback callback) {
+        runLegacy(new GoogleProfileCallback() {
             @Override
-            public void onResult(CapacitorAuthManager.AuthResult<JSObject> result) {
-                if (result.isSuccess() || !fallbackToButton || !(result.getError() instanceof NoGoogleCredentialException)) {
-                    callback.onResult(result);
+            public void onSuccess(GoogleResultMapper.Profile profile) {
+                callback.onSuccess(profile);
+            }
+
+            @Override
+            public void onError(final AuthException legacyError) {
+                if (isCancellation(legacyError)) {
+                    callback.onError(legacyError);
                     return;
                 }
-                // No authorized Google account was offered by the bottom sheet: the explicit
-                // "Sign in with Google" button flow lets the user pick or add an account.
-                logger.info("No Google credential from the bottom sheet; falling back to the Sign in with Google button flow");
-                requestSignInWithGoogleButton(callback);
+                logger.warn("Legacy GoogleSignIn failed; trying Credential Manager: " + legacyError.getMessage());
+                runCredentialManager(new GoogleProfileCallback() {
+                    @Override
+                    public void onSuccess(GoogleResultMapper.Profile profile) {
+                        callback.onSuccess(profile);
+                    }
+
+                    @Override
+                    public void onError(AuthException cmError) {
+                        if (isCancellation(cmError)) {
+                            callback.onError(cmError);
+                            return;
+                        }
+                        logger.error("Google sign-in failed on both paths", cmError);
+                        callback.onError(new AuthException(legacyError.getCode(), legacyError.getMessage()
+                                + " | Credential Manager: " + cmError.getMessage(), legacyError));
+                    }
+                });
             }
         });
     }
 
-    /**
-     * Marker so signIn() can distinguish "no account offered" from every other failure. It extends
-     * {@link AuthException} because it also reaches JS unchanged when the caller pinned
-     * {@code androidFlow: 'bottom-sheet'}, in which case no button fallback runs.
-     */
-    private static class NoGoogleCredentialException extends AuthException {
-        NoGoogleCredentialException(String message) {
-            super(AuthErrorCodes.SIGN_IN_FAILED, message);
-        }
+    private void runLegacy(GoogleProfileCallback callback) {
+        legacy.signIn(resolvedServerClientId(), hostedDomain, loginHint, activityLauncher, callback);
+    }
+
+    /** Credential Manager: bottom sheet, then the button flow when no account is offered. */
+    private void runCredentialManager(final GoogleProfileCallback callback) {
+        credentialManager.requestBottomSheet(resolvedServerClientId(), nonce, filterByAuthorizedAccounts, autoSelectEnabled,
+                new GoogleProfileCallback() {
+                    @Override
+                    public void onSuccess(GoogleResultMapper.Profile profile) {
+                        callback.onSuccess(profile);
+                    }
+
+                    @Override
+                    public void onError(AuthException error) {
+                        if (!(error instanceof GoogleCredentialManagerSignIn.NoGoogleCredentialException)) {
+                            callback.onError(error);
+                            return;
+                        }
+                        logger.info("No Google credential from the bottom sheet; trying the Sign in with Google button flow");
+                        credentialManager.requestButton(resolvedServerClientId(), nonce, hostedDomain, callback);
+                    }
+                });
+    }
+
+    private static boolean isCancellation(AuthException error) {
+        return AuthErrorCodes.USER_CANCELLED.equals(error.getCode());
+    }
+
+    /** Adapts a path's profile result to the bridge result, persisting the session on success. */
+    private GoogleProfileCallback profileCallback(final CapacitorAuthManager.AuthCallback<JSObject> callback) {
+        return new GoogleProfileCallback() {
+            @Override
+            public void onSuccess(GoogleResultMapper.Profile profile) {
+                callback.onResult(CapacitorAuthManager.AuthResult.success(completeSignIn(profile)));
+            }
+
+            @Override
+            public void onError(AuthException error) {
+                callback.onResult(CapacitorAuthManager.AuthResult.error(error));
+            }
+        };
     }
 
     @Override
     public void signOut(JSObject options, CapacitorAuthManager.AuthCallback<Void> callback) {
-        logger.info("Signing out from Google (clearing Credential Manager state)");
+        logger.info("Signing out from Google (GoogleSignIn + Credential Manager state)");
         clearCredentialState(callback);
     }
 
@@ -220,19 +260,15 @@ public class GoogleAuthProvider implements BaseAuthProvider {
 
     @Override
     public void refreshToken(JSObject options, final CapacitorAuthManager.AuthCallback<JSObject> callback) {
-        logger.info("Refreshing Google ID token (silent Credential Manager attempt)");
-        // A silent attempt only succeeds when exactly one previously-authorized account exists.
-        requestGoogleCredential(true, true, new CapacitorAuthManager.AuthCallback<JSObject>() {
-            @Override
-            public void onResult(CapacitorAuthManager.AuthResult<JSObject> result) {
-                if (result.isSuccess()) {
-                    callback.onResult(result);
-                } else {
-                    callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
-                            AuthErrorCodes.TOKEN_REFRESH_FAILED,
-                            "Re-authentication required: could not silently refresh the Google ID token. "
-                                    + "Prompt the user to sign in again.")));
-                }
+        logger.info("Refreshing Google ID token (silent attempt)");
+        silentSignIn(result -> {
+            if (result.isSuccess()) {
+                callback.onResult(result);
+            } else {
+                callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
+                        AuthErrorCodes.TOKEN_REFRESH_FAILED,
+                        "Re-authentication required: could not silently refresh the Google ID token. "
+                                + "Prompt the user to sign in again.")));
             }
         });
     }
@@ -256,380 +292,97 @@ public class GoogleAuthProvider implements BaseAuthProvider {
     public void getIdToken(boolean forceRefresh, final CapacitorAuthManager.AuthCallback<JSObject> callback) {
         if (!forceRefresh) {
             JSObject storedCredential = storage.getCredential(STORAGE_CREDENTIAL_KEY);
-            if (storedCredential != null) {
-                String idToken = storedCredential.getString("idToken");
-                if (idToken != null && !idToken.isEmpty() && isFreshIdToken(idToken)) {
-                    JSObject result = new JSObject();
-                    result.put("token", idToken);
-                    callback.onResult(CapacitorAuthManager.AuthResult.success(result));
+            String idToken = storedCredential != null ? storedCredential.getString("idToken") : null;
+            if (idToken != null && !idToken.isEmpty() && isFreshIdToken(idToken)) {
+                JSObject result = new JSObject();
+                result.put("token", idToken);
+                callback.onResult(CapacitorAuthManager.AuthResult.success(result));
+                return;
+            }
+        }
+        silentSignIn(result -> {
+            if (result.isSuccess() && result.getData() != null) {
+                JSObject credential = result.getData().getJSObject("credential");
+                String idToken = credential != null ? credential.getString("idToken") : null;
+                if (idToken != null && !idToken.isEmpty()) {
+                    JSObject out = new JSObject();
+                    out.put("token", idToken);
+                    callback.onResult(CapacitorAuthManager.AuthResult.success(out));
                     return;
                 }
             }
-        }
+            callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
+                    AuthErrorCodes.NO_AUTH_SESSION,
+                    "No Google ID token available. Re-authentication required.")));
+        });
+    }
 
-        // No cached token (or forced refresh) → silent Credential Manager attempt.
-        requestGoogleCredential(true, true, new CapacitorAuthManager.AuthCallback<JSObject>() {
+    /** Silent GoogleSignIn, then a silent Credential Manager attempt. Never shows UI. */
+    private void silentSignIn(final CapacitorAuthManager.AuthCallback<JSObject> callback) {
+        if (resolvedServerClientId() == null) {
+            callback.onResult(missingClientId());
+            return;
+        }
+        final GoogleProfileCallback done = profileCallback(callback);
+        legacy.silentSignIn(resolvedServerClientId(), new GoogleProfileCallback() {
             @Override
-            public void onResult(CapacitorAuthManager.AuthResult<JSObject> result) {
-                if (result.isSuccess() && result.getData() != null) {
-                    JSObject credential = result.getData().getJSObject("credential");
-                    String idToken = credential != null ? credential.getString("idToken") : null;
-                    if (idToken != null && !idToken.isEmpty()) {
-                        JSObject out = new JSObject();
-                        out.put("token", idToken);
-                        callback.onResult(CapacitorAuthManager.AuthResult.success(out));
-                        return;
-                    }
-                }
-                callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
-                        AuthErrorCodes.NO_AUTH_SESSION,
-                        "No Google ID token available. Re-authentication required.")));
+            public void onSuccess(GoogleResultMapper.Profile profile) {
+                done.onSuccess(profile);
+            }
+
+            @Override
+            public void onError(AuthException error) {
+                credentialManager.requestBottomSheet(resolvedServerClientId(), nonce, true, true, done);
             }
         });
     }
 
     private boolean isFreshIdToken(String idToken) {
-        try {
-            return parseIdTokenClaims(idToken).optLong("exp", 0) > System.currentTimeMillis() / 1000;
-        } catch (Exception invalidToken) {
-            return false;
-        }
+        JSONObject claims = GoogleResultMapper.parseIdTokenClaims(idToken, logger);
+        return claims != null && claims.optLong("exp", 0) > System.currentTimeMillis() / 1000;
     }
 
     @Override
     public void revokeAccess(String token, CapacitorAuthManager.AuthCallback<Void> callback) {
-        // Credential Manager has no server-side revoke. Clear the locally-selected account state +
-        // the persisted session so the next sign-in re-prompts.
-        logger.info("Revoking Google access (clears local + Credential Manager state only; no server-side revoke)");
+        logger.info("Revoking Google access (clears local, GoogleSignIn and Credential Manager state; no server-side revoke)");
         clearCredentialState(callback);
-    }
-
-    // ---- Credential Manager flow ----
-
-    private void requestGoogleCredential(
-            boolean filterByAuthorized,
-            boolean autoSelect,
-            final CapacitorAuthManager.AuthCallback<JSObject> callback
-    ) {
-        String resolvedServerClientId = (serverClientId != null && !serverClientId.isEmpty())
-                ? serverClientId
-                : clientId;
-
-        if (resolvedServerClientId == null || resolvedServerClientId.isEmpty()) {
-            callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
-                    AuthErrorCodes.MISSING_CONFIGURATION,
-                    "Google sign-in requires a serverClientId (your Web OAuth client id). "
-                            + "Provide 'serverClientId' (or 'clientId') in the google provider options.")));
-            return;
-        }
-
-        if (activity == null) {
-            callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
-                    AuthErrorCodes.PROVIDER_NOT_INITIALIZED,
-                    "Google sign-in requires a foreground Activity.")));
-            return;
-        }
-
-        warnIfUnsupportedOptions();
-
-        try {
-            GetGoogleIdOption.Builder optionBuilder = new GetGoogleIdOption.Builder()
-                    .setServerClientId(resolvedServerClientId)
-                    .setFilterByAuthorizedAccounts(filterByAuthorized)
-                    .setAutoSelectEnabled(autoSelect);
-
-            if (nonce != null && !nonce.isEmpty()) {
-                optionBuilder.setNonce(nonce);
-            }
-
-            GetGoogleIdOption googleIdOption = optionBuilder.build();
-
-            GetCredentialRequest request = new GetCredentialRequest.Builder()
-                    .addCredentialOption(googleIdOption)
-                    .build();
-
-            launchCredentialRequest(request, callback);
-        } catch (Exception e) {
-            logger.error("Failed to start Google Credential Manager request", e);
-            callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
-                    AuthErrorCodes.SIGN_IN_FAILED,
-                    "Failed to start Google sign-in: " + e.getMessage(), e)));
-        }
-    }
-
-    /**
-     * The explicit "Sign in with Google" button flow ({@link GetSignInWithGoogleOption}). Unlike the
-     * bottom sheet it always shows the account chooser and can add a new Google account, so it is the
-     * right fallback when {@code NoCredentialException} is raised. Same result shape (ID token).
-     */
-    private void requestSignInWithGoogleButton(final CapacitorAuthManager.AuthCallback<JSObject> callback) {
-        String resolvedServerClientId = (serverClientId != null && !serverClientId.isEmpty())
-                ? serverClientId
-                : clientId;
-
-        if (resolvedServerClientId == null || resolvedServerClientId.isEmpty()) {
-            callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
-                    AuthErrorCodes.MISSING_CONFIGURATION,
-                    "Google sign-in requires a serverClientId (your Web OAuth client id). "
-                            + "Provide 'serverClientId' (or 'clientId') in the google provider options.")));
-            return;
-        }
-
-        if (activity == null) {
-            callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
-                    AuthErrorCodes.PROVIDER_NOT_INITIALIZED,
-                    "Google sign-in requires a foreground Activity.")));
-            return;
-        }
-
-        try {
-            GetSignInWithGoogleOption.Builder optionBuilder = new GetSignInWithGoogleOption.Builder(resolvedServerClientId);
-            if (nonce != null && !nonce.isEmpty()) {
-                optionBuilder.setNonce(nonce);
-            }
-            if (hostedDomain != null && !hostedDomain.isEmpty()) {
-                optionBuilder.setHostedDomainFilter(hostedDomain);
-            }
-
-            GetCredentialRequest request = new GetCredentialRequest.Builder()
-                    .addCredentialOption(optionBuilder.build())
-                    .build();
-
-            launchCredentialRequest(request, callback);
-        } catch (Exception e) {
-            logger.error("Failed to start the Sign in with Google button flow", e);
-            callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
-                    AuthErrorCodes.SIGN_IN_FAILED,
-                    "Failed to start the Sign in with Google button flow: " + e.getMessage(), e)));
-        }
-    }
-
-    private void launchCredentialRequest(
-            GetCredentialRequest request,
-            final CapacitorAuthManager.AuthCallback<JSObject> callback
-    ) {
-        CredentialManager credentialManager = CredentialManager.create(context);
-        Executor executor = ContextCompat.getMainExecutor(context);
-
-        credentialManager.getCredentialAsync(
-                activity,
-                request,
-                null,
-                executor,
-                new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
-                    @Override
-                    public void onResult(GetCredentialResponse response) {
-                        handleSignInResponse(response, callback);
-                    }
-
-                    @Override
-                    public void onError(GetCredentialException e) {
-                        handleSignInError(e, callback);
-                    }
-                }
-        );
-    }
-
-    private void handleSignInResponse(
-            GetCredentialResponse response,
-            CapacitorAuthManager.AuthCallback<JSObject> callback
-    ) {
-        try {
-            Credential credential = response.getCredential();
-            if (credential instanceof CustomCredential
-                    && GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL.equals(credential.getType())) {
-
-                GoogleIdTokenCredential googleCredential =
-                        GoogleIdTokenCredential.createFrom(((CustomCredential) credential).getData());
-
-                JSONObject claims = parseIdTokenClaims(googleCredential.getIdToken());
-
-                JSObject user = createUserObject(googleCredential, claims);
-                JSObject credentialObj = createCredentialObject(googleCredential);
-
-                currentUser = user;
-                persistSession(user, credentialObj);
-
-                JSObject result = new JSObject();
-                result.put("user", user);
-                result.put("credential", credentialObj);
-
-                JSObject additionalUserInfo = new JSObject();
-                additionalUserInfo.put("isNewUser", false);
-                additionalUserInfo.put("providerId", PROVIDER_ID);
-                if (googleCredential.getId() != null) {
-                    additionalUserInfo.put("username", googleCredential.getId());
-                }
-                result.put("additionalUserInfo", additionalUserInfo);
-                result.put("operationType", "signIn");
-
-                logger.info("Google sign-in successful (Credential Manager)");
-                callback.onResult(CapacitorAuthManager.AuthResult.success(result));
-            } else {
-                String type = credential != null ? credential.getType() : "null";
-                logger.error("Unexpected credential type from Credential Manager: " + type, null);
-                callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
-                        AuthErrorCodes.INVALID_CREDENTIALS,
-                        "Unexpected credential type returned from Google sign-in: " + type)));
-            }
-        } catch (Exception e) {
-            // Covers a malformed credential / ID-token parse failure. (googleid 1.1.1's
-            // GoogleIdTokenCredential.createFrom does not declare a checked exception.)
-            logger.error("Unexpected error handling Google credential", e);
-            callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
-                    AuthErrorCodes.INVALID_CREDENTIALS,
-                    "Could not read the Google credential: " + e.getMessage(), e)));
-        }
-    }
-
-    private void handleSignInError(
-            GetCredentialException e,
-            CapacitorAuthManager.AuthCallback<JSObject> callback
-    ) {
-        if (e instanceof GetCredentialCancellationException) {
-            logger.info("Google sign-in cancelled by user");
-            callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
-                    AuthErrorCodes.USER_CANCELLED, "User cancelled Google sign-in")));
-            return;
-        }
-        if (e instanceof GetCredentialInterruptedException) {
-            // Transient: Play services restarted or the device lost connectivity mid-request.
-            logger.warn("Google sign-in interrupted; the caller may retry");
-            callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
-                    AuthErrorCodes.NETWORK_ERROR,
-                    "Google sign-in was interrupted. Check the connection and try again.")));
-            return;
-        }
-        if (e instanceof NoCredentialException) {
-            logger.warn("No Google credentials available for sign-in");
-            callback.onResult(CapacitorAuthManager.AuthResult.error(new NoGoogleCredentialException(
-                    "No Google account available. Add a Google account to the device, or ensure "
-                            + "Google Play services is up to date and the SHA-1 fingerprint is registered.")));
-            return;
-        }
-        logger.error("Google sign-in failed: " + e.getClass().getSimpleName(), e);
-        callback.onResult(CapacitorAuthManager.AuthResult.error(new AuthException(
-                AuthErrorCodes.SIGN_IN_FAILED,
-                "Google sign-in failed: " + e.getMessage(), e)));
-    }
-
-    private void clearCredentialState(final CapacitorAuthManager.AuthCallback<Void> callback) {
-        try {
-            CredentialManager credentialManager = CredentialManager.create(context);
-            Executor executor = ContextCompat.getMainExecutor(context);
-            credentialManager.clearCredentialStateAsync(
-                    new ClearCredentialStateRequest(),
-                    null,
-                    executor,
-                    new CredentialManagerCallback<Void, ClearCredentialException>() {
-                        @Override
-                        public void onResult(Void unused) {
-                            clearSession();
-                            callback.onResult(CapacitorAuthManager.AuthResult.success(null));
-                        }
-
-                        @Override
-                        public void onError(ClearCredentialException e) {
-                            logger.error("Failed to clear Credential Manager state", e);
-                            // Still clear local session so the app reflects a signed-out state.
-                            clearSession();
-                            callback.onResult(CapacitorAuthManager.AuthResult.success(null));
-                        }
-                    }
-            );
-        } catch (Exception e) {
-            logger.error("Error clearing Credential Manager state", e);
-            clearSession();
-            callback.onResult(CapacitorAuthManager.AuthResult.success(null));
-        }
-    }
-
-    // ---- Result building ----
-
-    private JSObject createUserObject(GoogleIdTokenCredential cred, JSONObject claims) {
-        String email = cred.getId();
-        String displayName = cred.getDisplayName();
-        Uri photoUri = cred.getProfilePictureUri();
-        String photoURL = photoUri != null ? photoUri.toString() : null;
-        String phoneNumber = null; // Google ID tokens do not provide a phone number.
-
-        String uid = null;
-        boolean emailVerified = true;
-        if (claims != null) {
-            String sub = claims.optString("sub", null);
-            if (sub != null && !sub.isEmpty()) {
-                uid = sub;
-            }
-            if (claims.has("email_verified")) {
-                emailVerified = claims.optBoolean("email_verified", true);
-            }
-            if (email == null) {
-                email = claims.optString("email", null);
-            }
-            if (displayName == null) {
-                displayName = claims.optString("name", null);
-            }
-            if (photoURL == null) {
-                String picture = claims.optString("picture", null);
-                if (picture != null && !picture.isEmpty()) {
-                    photoURL = picture;
-                }
-            }
-        }
-        if (uid == null || uid.isEmpty()) {
-            // Credential Manager doesn't expose the Google `sub` directly; fall back to the email id.
-            uid = email;
-        }
-
-        JSObject user = new JSObject();
-        user.put("uid", uid);
-        user.put("email", email);
-        user.put("emailVerified", emailVerified);
-        user.put("displayName", displayName);
-        user.put("photoURL", photoURL);
-        user.put("phoneNumber", phoneNumber);
-        user.put("isAnonymous", false);
-        // tenantId / refreshToken intentionally omitted (not available from Credential Manager).
-
-        JSONArray providerData = new JSONArray();
-        JSObject providerEntry = new JSObject();
-        providerEntry.put("providerId", PROVIDER_ID);
-        providerEntry.put("uid", uid);
-        providerEntry.put("displayName", displayName);
-        providerEntry.put("email", email);
-        providerEntry.put("phoneNumber", phoneNumber);
-        providerEntry.put("photoURL", photoURL);
-        providerData.put(providerEntry);
-        user.put("providerData", providerData);
-
-        JSObject metadata = new JSObject();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        metadata.put("lastSignInTime", sdf.format(new Date()));
-        user.put("metadata", metadata);
-
-        return user;
-    }
-
-    private JSObject createCredentialObject(GoogleIdTokenCredential cred) {
-        JSObject credential = new JSObject();
-        credential.put("providerId", PROVIDER_ID);
-        credential.put("signInMethod", PROVIDER_ID);
-        credential.put("idToken", cred.getIdToken());
-        // accessToken and serverAuthCode are NOT provided by Credential Manager sign-in (ID token only) —
-        // intentionally absent. Consumers feed credential.idToken into their own signInWithCredential(...).
-        return credential;
     }
 
     // ---- Helpers ----
 
-    private void persistSession(JSObject user, JSObject credential) {
+    private String resolvedServerClientId() {
+        if (serverClientId != null && !serverClientId.isEmpty()) {
+            return serverClientId;
+        }
+        return clientId != null && !clientId.isEmpty() ? clientId : null;
+    }
+
+    private static CapacitorAuthManager.AuthResult<JSObject> missingClientId() {
+        return CapacitorAuthManager.AuthResult.error(new AuthException(
+                AuthErrorCodes.MISSING_CONFIGURATION,
+                "Google sign-in requires a serverClientId (your Web OAuth client id). "
+                        + "Provide 'serverClientId' (or 'clientId') in the google provider options."));
+    }
+
+    private void clearCredentialState(final CapacitorAuthManager.AuthCallback<Void> callback) {
+        legacy.signOut();
+        credentialManager.clearState(() -> {
+            clearSession();
+            callback.onResult(CapacitorAuthManager.AuthResult.success(null));
+        });
+    }
+
+    /** Builds the shared result shape, keeps the user in memory and persists the session. */
+    private JSObject completeSignIn(GoogleResultMapper.Profile profile) {
+        JSObject result = GoogleResultMapper.buildResult(profile, logger);
+        currentUser = result.getJSObject("user");
         try {
-            storage.saveCredential(STORAGE_CREDENTIAL_KEY, credential);
-            storage.saveUser(STORAGE_USER_KEY, user);
+            storage.saveCredential(STORAGE_CREDENTIAL_KEY, result.getJSObject("credential"));
+            storage.saveUser(STORAGE_USER_KEY, currentUser);
         } catch (Exception e) {
             logger.warn("Failed to persist Google session");
         }
+        return result;
     }
 
     private void clearSession() {
@@ -639,43 +392,11 @@ public class GoogleAuthProvider implements BaseAuthProvider {
     }
 
     private void warnIfUnsupportedOptions() {
-        if (hostedDomain != null || loginHint != null) {
-            logger.warn("hostedDomain/loginHint are not enforced by Android Credential Manager "
-                    + "(GetGoogleIdOption) and will be ignored");
-        }
-        if (scopes != null && !scopes.isEmpty()) {
-            for (String scope : scopes) {
-                if (scope != null
-                        && !scope.equals("email")
-                        && !scope.equals("profile")
-                        && !scope.equals("openid")) {
-                    logger.warn("Additional OAuth scopes are ignored by Android Credential Manager Google "
-                            + "sign-in (ID token only). Use the Google Authorization API for extra scopes.");
-                    break;
-                }
+        for (String scope : scopes) {
+            if (scope != null && !scope.equals("email") && !scope.equals("profile") && !scope.equals("openid")) {
+                logger.warn("Additional OAuth scopes are ignored by Android Google sign-in (ID token only).");
+                break;
             }
-        }
-    }
-
-    /**
-     * Best-effort decode of the (unverified) ID-token JWT payload to read claims such as {@code sub}
-     * and {@code email_verified}. The token's signature is verified server-side by the consumer's
-     * own {@code signInWithCredential}; this is only used to enrich the user object.
-     */
-    private JSONObject parseIdTokenClaims(String idToken) {
-        if (idToken == null || idToken.isEmpty()) {
-            return null;
-        }
-        try {
-            String[] parts = idToken.split("\\.");
-            if (parts.length < 2) {
-                return null;
-            }
-            byte[] decoded = Base64.decode(parts[1], Base64.URL_SAFE | Base64.NO_PADDING | Base64.NO_WRAP);
-            return new JSONObject(new String(decoded, StandardCharsets.UTF_8));
-        } catch (Exception e) {
-            logger.warn("Failed to parse Google ID token claims");
-            return null;
         }
     }
 }

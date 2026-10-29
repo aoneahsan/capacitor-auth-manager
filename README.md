@@ -76,7 +76,7 @@ code path with a different result shape. The branch then leaks into your UI, you
 handling.
 
 This package collapses that into `auth.signIn(AuthProvider.GOOGLE)`. It routes to Google Identity Services on
-the web, the GoogleSignIn SDK on iOS and Credential Manager on Android, and returns the same
+the web, the GoogleSignIn SDK on iOS and GoogleSignIn with a Credential Manager fallback on Android, and returns the same
 `{ user, credential }` shape from all three. What you do with the returned credential afterwards — hand it to Firebase,
 or verify it on your own server — stays your decision.
 
@@ -97,7 +97,7 @@ Firebase-popup web flow that works and no native build to support.
 
 - **One call per platform** — the same `signIn` on web, iOS and Android, returning the same shape.
 - **Firebase-agnostic** — returns Google credentials, and pulls no `firebase` package into your tree.
-- **Modern native SDKs** — Android Credential Manager and iOS GoogleSignIn rather than deprecated APIs.
+- **Proven native SDKs** — GoogleSignIn on iOS and Android (the same Android path `@codetrix-studio/capacitor-google-auth` used), with Android Credential Manager as the automatic fallback.
 - **Typed framework adapters** — a `useAuth` hook for React, composables for Vue, an injectable
   `AuthService` and route guards for Angular.
 - **Observable auth state** — subscribe once with `onAuthStateChange` and let the UI follow.
@@ -111,7 +111,7 @@ Firebase-popup web flow that works and no native build to support.
 | Platform | Supported | Notes |
 |---|---|---|
 | Web | ✅ | Google Identity Services. One-Tap / FedCM returns an `idToken`; the OAuth2 popup fallback returns an `accessToken` (`webFlow`). |
-| Android | ✅ | Credential Manager bottom sheet, falling back to the Sign in with Google button flow (`androidFlow`). `serverClientId` is required to receive an `idToken`. |
+| Android | ✅ | GoogleSignIn account chooser, falling back to Credential Manager (bottom sheet, then the Sign in with Google button) — `androidFlow`. `serverClientId` is required to receive an `idToken`. |
 | iOS | ✅ | GoogleSignIn 10.x; iOS 15+. Returns `idToken`, `accessToken`, and `serverAuthCode` when configured. |
 | Node / SSR | ✅ import | Importing is side-effect free since `3.0.0`; sign-in itself still needs a browser or a device. |
 
@@ -150,8 +150,9 @@ yarn cap sync
 Then finish the per-platform OAuth setup, which cannot be done from JavaScript:
 
 - **Android** — register the app's SHA-1 and SHA-256 fingerprints against an
-  Android OAuth client, and pass your **Web** client ID as `serverClientId`. Credential Manager will not
-  return an `idToken` without it. The plugin declares only `INTERNET`, without SMS or biometric permissions. It does not require a Firebase native SDK or `google-services.json` of its own.
+  Android OAuth client, and pass your **Web** client ID as `serverClientId`; Google returns no `idToken`
+  without it. Register **every** signing key: the debug key, the upload key (locally signed APKs) and the
+  **Play App Signing** key (every Play-installed copy is re-signed with it). The plugin declares only `INTERNET`, without SMS or biometric permissions. It does not require a Firebase native SDK or `google-services.json` of its own.
 - **iOS** — add `GIDClientID` to `Info.plist` (or pass `iosClientId`), and add the reversed client ID as a URL
   scheme under `CFBundleURLTypes`.
 
@@ -276,7 +277,7 @@ Google provider options:
 | Option | Platform | What it does |
 |---|---|---|
 | `clientId` | web (required), Android fallback | Web OAuth client ID; becomes the id token's `aud`. |
-| `serverClientId` | Android (required), iOS | Web OAuth client ID. Credential Manager needs it to return an `idToken`. |
+| `serverClientId` | Android (required), iOS | Web OAuth client ID. Google needs it to return an `idToken`. |
 | `iosClientId` | iOS | iOS OAuth client ID, if not set as `GIDClientID` in `Info.plist`. |
 | `scopes` | all | Extra OAuth scopes. Defaults to `openid email profile`. |
 | `hostedDomain` | all | Restrict sign-in to one Google Workspace domain. |
@@ -285,7 +286,7 @@ Google provider options:
 | `autoSelectEnabled` | Android | Allow one-tap auto-select for returning users. |
 | `nonce` | web | Bind the request to an id-token `nonce` claim, which the package validates. |
 | `webFlow` | web | `'auto'` (default: One-Tap, then the OAuth2 popup if One-Tap is not shown) · `'one-tap'` · `'popup'`. Also accepted per call in `signIn({ options })`. |
-| `androidFlow` | Android | `'auto'` (default: bottom sheet, then the Sign in with Google button flow if no account is offered) · `'bottom-sheet'` · `'button'`. Also accepted per call. |
+| `androidFlow` | Android | `'auto'` (default: GoogleSignIn, then Credential Manager if it fails for any reason other than a cancel) · `'legacy'` · `'credential-manager'` · `'bottom-sheet'` · `'button'`. Also accepted per call. |
 
 The same Google options can live in `capacitor.config` under the plugin block instead of in application code.
 Full reference: [Configuration](https://capacitor-auth-manager-docs.aoneahsan.com/getting-started/configuration).
@@ -399,7 +400,8 @@ It asks for Web/iOS OAuth client IDs and creates `capacitor-auth.config.json` pl
 | `Cannot find module '…/core/auth-manager'` under Node | you are on `< 3.0.0` | Upgrade — every relative specifier carries its `.js` extension since `3.0.0` |
 | `POPUP_BLOCKED` on web with `webFlow: 'one-tap'` | One-Tap is suppressed (cooldown, FedCM opt-out, third-party cookies) | Use the default `webFlow: 'auto'` (falls back to the popup) or `'popup'`, or draw Google's button with `GoogleAuthProviderWeb.renderButton` — see [Advanced Features](#advanced-features) |
 | `USER_CANCELLED` / `POPUP_CLOSED_BY_USER` | the user closed One-Tap or the popup | Expected — show your own "try again" |
-| No Google account offered on Android | the bottom sheet has no authorized account | The default `androidFlow: 'auto'` falls back to the Sign in with Google button flow, which can add an account |
+| Android error names `signing SHA-1=…` | Google has no Android OAuth client for that package + certificate | Register that exact SHA-1 for the app (a Play-installed build reports the Play App Signing key). No new build is needed |
+| Play builds fail with no account picker on `3.0.0` | Credential Manager refused the request (on Android 14+ it depends on the device's credential-provider settings) | Upgrade to `3.1.0`: the default flow uses GoogleSignIn first |
 | `Cannot find module '@capacitor/core'` | the peer is not installed | `yarn add @capacitor/core` — it is a required peer |
 | Native plugin never runs | `yarn cap sync` was not run after install | Run it, then rebuild the native project |
 
@@ -414,8 +416,10 @@ Stated as plainly as the features, because each one otherwise costs an afternoon
 - **Web returns one token per flow.** One-Tap yields an `idToken` and no `accessToken`; the OAuth2 popup
   yields an `accessToken` and no `idToken`. Firebase accepts either
   (`GoogleAuthProvider.credential(idToken ?? null, accessToken)`); an ID-token-only backend must explicitly select One-Tap and reject a missing ID token.
-- **Android returns an `idToken` only.** Access tokens and `serverAuthCode` come from the separate Google
-  Authorization API, not from Credential Manager sign-in. Only iOS returns everything.
+- **Android returns an `idToken` only.** Access tokens come from the separate Google Authorization API.
+  Only iOS returns everything.
+- **Android GoogleSignIn is deprecated by Google** and was removed in `play-services-auth` 22, so the
+  package pins 21.x. Do not force `play-services-auth` 22 in your app, or `'auto'` falls through to Credential Manager.
 - **No id-token verification in the browser.** Signature and claim checks belong to your server, or Firebase.
 - **Native runtime is not covered by CI.** Both platforms are verified to compile, not to sign in. Test a new
   version on one real device before rolling it out widely.

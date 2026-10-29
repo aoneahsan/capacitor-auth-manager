@@ -135,7 +135,9 @@ For authenticated backend requests, get a **Firebase** ID token from `firebaseAu
 `auth.getIdToken({forceRefresh: true})` can prompt again. A popup-only web session has no Google ID token.
 Use Firebase for background app-session refresh; avoid calling Google interactive refresh on a timer.
 `auth.signOut()` clears the package's local session; also sign out Firebase as shown above.
-Android `revokeAccess()` clears local/Credential Manager state, not Google's server-side grant.
+Android `revokeAccess()` clears local, GoogleSignIn and Credential Manager state, not Google's server-side grant.
+
+Android sign-in (`androidFlow`, since 3.1.0): `'auto'` runs GoogleSignIn (the path `@codetrix-studio/capacitor-google-auth` used) and falls back to Credential Manager on any failure except a cancel. A configuration error names the installed package and signing SHA-1 — register that SHA-1 on the app's Android OAuth client. Never force `play-services-auth` 22 (it removed GoogleSignIn).
 Account linking, account deletion, and profile updates in Firebase belong to Firebase's API.
 
 Default JS storage persists profile metadata, never token strings. Android credentials are kept in process memory;

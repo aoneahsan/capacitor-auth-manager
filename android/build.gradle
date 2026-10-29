@@ -55,6 +55,12 @@ dependencies {
     implementation 'androidx.credentials:credentials-play-services-auth:1.6.0'
     implementation 'com.google.android.libraries.identity.googleid:googleid:1.1.1'
 
+    // Legacy GoogleSignIn: the automatic fallback when Credential Manager refuses a request (the API
+    // @codetrix-studio/capacitor-google-auth used). Pinned to 21.x: play-services-auth 22.0.0 REMOVED
+    // com.google.android.gms.auth.api.signin.* (verified 2026-10-29 by listing both AARs' classes).
+    // Re-check when Google ships a 22.x replacement for silent ID-token sign-in, then drop the fallback.
+    implementation 'com.google.android.gms:play-services-auth:21.6.0'
+
     // NOTE: Google-first build (2.4.x). The Facebook SDK + Microsoft MSAL dependencies were removed so
     // this plugin no longer pulls heavy auth SDKs into every consumer app. Their native providers live in
     // android/disabled-native-providers/ (not compiled, not shipped). Re-add a dependency here when its

@@ -130,11 +130,14 @@ export interface GoogleAuthOptions {
    */
   webFlow?: GoogleWebFlow;
   /**
-   * Android only — which Credential Manager flow `signIn()` uses.
-   * - `'auto'` (default): the Google account bottom sheet; if no credential is available fall back to
-   *   the explicit "Sign in with Google" button flow, which can add an account.
-   * - `'bottom-sheet'`: bottom sheet only.
-   * - `'button'`: the "Sign in with Google" button flow only.
+   * Android only — which Google sign-in path `signIn()` uses.
+   * - `'auto'` (default): legacy GoogleSignIn (the account chooser `@codetrix-studio/capacitor-google-auth`
+   *   used); if it fails for any reason other than a cancel, Credential Manager (bottom sheet, then the
+   *   "Sign in with Google" button). Since 3.1.0; 3.0.0 ran Credential Manager alone.
+   * - `'legacy'`: GoogleSignIn only.
+   * - `'credential-manager'`: Credential Manager only (bottom sheet, then the button).
+   * - `'bottom-sheet'`: the Credential Manager bottom sheet only.
+   * - `'button'`: the Credential Manager "Sign in with Google" button flow only.
    */
   androidFlow?: GoogleAndroidFlow;
 }
@@ -143,7 +146,12 @@ export interface GoogleAuthOptions {
 export type GoogleWebFlow = 'auto' | 'one-tap' | 'popup';
 
 /** Android sign-in flow selector for the Google provider. See {@link GoogleAuthOptions.androidFlow}. */
-export type GoogleAndroidFlow = 'auto' | 'bottom-sheet' | 'button';
+export type GoogleAndroidFlow =
+  | 'auto'
+  | 'legacy'
+  | 'credential-manager'
+  | 'bottom-sheet'
+  | 'button';
 
 export interface AppleAuthOptions {
   clientId: string;

@@ -3,6 +3,18 @@
 History of closed entries from [`REPORTED-ISSUES.md`](./REPORTED-ISSUES.md), each with its fix date and
 fixing version. Entries are moved here, never deleted.
 
+### ISSUE-007 — Android Google sign-in fails on Play-installed builds with no account picker (3.0.0)
+
+**Status:** RESOLVED · **Fixed:** 2026-10-29 · **Published version:** 3.1.0 · **Reported:** 2026-10-29 by the owner, every production Android app (LifeWell, Rent Party, AChat, …) · **Affects:** `capacitor-auth-manager@3.0.0`, `android/…/GoogleAuthProvider.java`
+
+**Symptom** — Tapping Google sign-in in a Play-installed release showed an error and never an account chooser. The same apps signed in through `@codetrix-studio/capacitor-google-auth` (legacy GoogleSignIn) in their previous releases, with the same Web client and the same registered SHA-1s (LifeWell: upload `C5:CB:…` and Play App Signing `39:B7:…`, both with Android OAuth clients). Supabase recorded no `grant_type=id_token` request, so the failure was native.
+
+**Cause** — 3.0.0 ran Android Credential Manager alone. It refused the request before any UI; on Android 14+ it routes through the system credential service and depends on the device's credential-provider settings, which GoogleSignIn never touches. A second defect hid the cause: `NoCredentialException` was replaced by the package's own text, so Google's message never reached the app or logcat. The R8 keep rules also sat in `proguard-rules.pro`, which never reaches a consumer.
+
+**Fix** — `androidFlow: 'auto'` runs GoogleSignIn first (the codetrix path, its result through Capacitor's `@ActivityCallback`) and falls back to Credential Manager on any failure except a cancel. Every error carries Google's class + message, and configuration errors add the installed package + signing SHA-1. Keep rules moved to `consumer-rules.pro`. `play-services-auth` pinned to 21.6.0 because 22.0.0 removed GoogleSignIn.
+
+**Verified** — typecheck, lint, build, 30 tests, tarball smoke, and `smoke:native android` (debug + R8-minified release in a clean Capacitor 8 consumer). Real sign-in is a device check, done by the owner with a locally signed APK.
+
 ISSUE-001…005 were fixed in the unpublished **2.5.0** source (2026-09-08) and shipped in **3.0.0** (2026-10-09); their history remains in `CHANGELOG.md`.
 
 ### ISSUE-006 — 2.5.0 is committed but never published: npm `latest` (2.4.4) still merges `READ_SMS` / `RECEIVE_SMS` / `USE_BIOMETRIC`

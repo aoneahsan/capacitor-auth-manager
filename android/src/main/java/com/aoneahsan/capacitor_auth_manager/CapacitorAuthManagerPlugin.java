@@ -1,15 +1,24 @@
 package com.aoneahsan.capacitor_auth_manager;
 
+import android.content.Intent;
+
+import androidx.activity.result.ActivityResult;
+
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
 @CapacitorPlugin(name = "CapacitorAuthManager")
 public class CapacitorAuthManagerPlugin extends Plugin {
 
     private CapacitorAuthManager implementation;
+
+    /** The signIn/linkAccount call in flight; an Activity started for a result attaches to it. */
+    private PluginCall activeSignInCall;
+    private ActivityLauncher.ResultHandler pendingActivityHandler;
 
     /**
      * Reject a call with the {@link AuthErrorCodes} value the failure carries, so JS receives a real
@@ -32,6 +41,42 @@ public class CapacitorAuthManagerPlugin extends Plugin {
     @Override
     public void load() {
         implementation = new CapacitorAuthManager(getContext(), getActivity());
+        implementation.setActivityLauncher(this::launchForResult);
+    }
+
+    /** {@link ActivityLauncher} for providers: Capacitor's result API, delivered to {@link #onProviderActivityResult}. */
+    private boolean launchForResult(Intent intent, ActivityLauncher.ResultHandler handler) {
+        PluginCall call = activeSignInCall;
+        if (call == null) {
+            return false;
+        }
+        pendingActivityHandler = handler;
+        startActivityForResult(call, intent, "onProviderActivityResult");
+        return true;
+    }
+
+    @ActivityCallback
+    private void onProviderActivityResult(PluginCall call, ActivityResult result) {
+        ActivityLauncher.ResultHandler handler = pendingActivityHandler;
+        pendingActivityHandler = null;
+        if (handler != null) {
+            handler.onResult(result.getResultCode(), result.getData());
+        } else if (call != null) {
+            call.reject("Google sign-in result arrived with no pending request", AuthErrorCodes.INTERNAL_ERROR);
+        }
+    }
+
+    /** Settles a sign-in call and releases it if an Activity result saved it on the bridge. */
+    private void settleSignIn(PluginCall call, CapacitorAuthManager.AuthResult<JSObject> result) {
+        if (activeSignInCall == call) {
+            activeSignInCall = null;
+        }
+        if (result.isSuccess()) {
+            call.resolve(result.getData());
+        } else {
+            rejectWith(call, result.getError());
+        }
+        getBridge().releaseCall(call);
     }
 
     @PluginMethod
@@ -73,13 +118,8 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                 return;
             }
 
-            implementation.signIn(provider, credentials, options, result -> {
-                if (result.isSuccess()) {
-                    call.resolve(result.getData());
-                } else {
-                    rejectWith(call, result.getError());
-                }
-            });
+            activeSignInCall = call;
+            implementation.signIn(provider, credentials, options, result -> settleSignIn(call, result));
         } catch (Exception e) {
             call.reject("Sign in failed: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.SIGN_IN_FAILED));
         }
@@ -236,13 +276,8 @@ public class CapacitorAuthManagerPlugin extends Plugin {
                 return;
             }
 
-            implementation.linkAccount(provider, credentials, options, result -> {
-                if (result.isSuccess()) {
-                    call.resolve(result.getData());
-                } else {
-                    rejectWith(call, result.getError());
-                }
-            });
+            activeSignInCall = call;
+            implementation.linkAccount(provider, credentials, options, result -> settleSignIn(call, result));
         } catch (Exception e) {
             call.reject("Account linking failed: " + e.getMessage(), AuthException.codeOf(e, AuthErrorCodes.OPERATION_NOT_ALLOWED));
         }

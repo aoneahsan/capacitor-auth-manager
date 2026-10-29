@@ -35,7 +35,7 @@ and dependency resolution only. The recursive package audit reports zero advisor
 
 ## Native dependencies
 
-Android uses Credential Manager 1.6.0, googleid 1.1.1, AppCompat 1.8.0, JDK 21, and SDK 36. The Gradle plugin stays on the Capacitor 8 template-compatible 8.13.0 line; moving independently to AGP 9 is not supported by that host template. Recheck when Capacitor's stable Android template adopts AGP 9. GoogleSignIn 10.x requires iOS 15. The package removed security-crypto: credentials remain in memory instead of using its deprecated encrypted-preferences API.
+Android uses play-services-auth 21.6.0 (GoogleSignIn, the default path since 3.1.0), Credential Manager 1.6.0, googleid 1.1.1, AppCompat 1.8.0, JDK 21, and SDK 36. The Gradle plugin stays on the Capacitor 8 template-compatible 8.13.0 line; moving independently to AGP 9 is not supported by that host template. Recheck when Capacitor's stable Android template adopts AGP 9. GoogleSignIn 10.x requires iOS 15. The package removed security-crypto: credentials remain in memory instead of using its deprecated encrypted-preferences API.
 
 ## Toolchain pin and temporary transitive fixes
 
@@ -46,3 +46,5 @@ The latest plist 3.1.1 pins vulnerable xmldom 0.9.10; the scoped `plist/@xmldom/
 Runtime dependency is tslib only. Framework/Capacitor peers belong to the consuming application; its lockfile and security audit remain its responsibility. Trapeze's empty apps-config.yaml is intentional: this library has no application IDs or native application targets to rewrite. Consumer apps maintain their own platform configuration.
 
 Googleid remains 1.1.1: 1.2.1 carries Kotlin 2.4 metadata which the current Capacitor 8 AGP 8.13 lint cannot parse. Debug compilation passed with 1.2.1, but minified release validation exposed the mismatch. Recheck when Capacitor adopts a compatible lint/R8 toolchain; update googleid after clean debug and minified-release builds without metadata errors. The stable pin is explicit; no lint suppression is used.
+
+play-services-auth is pinned to **21.6.0**: 22.0.0 removed `com.google.android.gms.auth.api.signin.*` (verified 2026-10-29 by listing the classes in both AARs), and GoogleSignIn is the default Android path since 3.1.0 because Credential Manager alone refused Play-installed builds. `credentials-play-services-auth` 1.6.0 pulls 21.1.1, so Gradle resolves the pin. Recheck when Google ships a supported 22.x replacement for silent ID-token sign-in; then the legacy path and this pin go together.

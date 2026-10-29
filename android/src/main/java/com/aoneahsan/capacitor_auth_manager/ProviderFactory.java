@@ -27,7 +27,8 @@ public class ProviderFactory {
             Activity activity,
             AuthStorage storage,
             AuthLogger logger,
-            JSObject config
+            JSObject config,
+            ActivityLauncher activityLauncher
     ) {
         if (providerType == null) {
             return null;
@@ -36,7 +37,7 @@ public class ProviderFactory {
         switch (providerType.toLowerCase()) {
             case "google":
             case "google.com":
-                return createGoogleProvider(context, activity, storage, logger, config);
+                return createGoogleProvider(context, activity, storage, logger, config, activityLauncher);
 
             default:
                 // Every non-Google provider is disabled in the Google-first build. The JS layer already
@@ -51,9 +52,11 @@ public class ProviderFactory {
             Activity activity,
             AuthStorage storage,
             AuthLogger logger,
-            JSObject config
+            JSObject config,
+            ActivityLauncher activityLauncher
     ) {
         GoogleAuthProvider provider = new GoogleAuthProvider(context, activity, storage, logger);
+        provider.setActivityLauncher(activityLauncher);
 
         if (config != null) {
             String clientId = config.getString("clientId");
