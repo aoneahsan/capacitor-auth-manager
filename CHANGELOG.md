@@ -5,6 +5,15 @@ All notable changes to `capacitor-auth-manager` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.1] — 2026-10-29
+
+### Fixed
+
+- **Android sign-in failures now reach logcat on release builds.** The native logger was off unless logging
+  was enabled, and the JS layer never forwards `enableLogging` to native, so a failed Google sign-in left
+  nothing in logcat. Warnings and errors are now always written (tag `CapacitorAuthManager`); debug and info
+  stay opt-in. They carry codes, the package name and the signing SHA-1 — never an email address or token.
+
 ## [3.1.0] — 2026-10-29
 
 ### Fixed

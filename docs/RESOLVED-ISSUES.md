@@ -5,13 +5,15 @@ fixing version. Entries are moved here, never deleted.
 
 ### ISSUE-007 — Android Google sign-in fails on Play-installed builds with no account picker (3.0.0)
 
-**Status:** RESOLVED · **Fixed:** 2026-10-29 · **Published version:** 3.1.0 · **Reported:** 2026-10-29 by the owner, every production Android app (LifeWell, Rent Party, AChat, …) · **Affects:** `capacitor-auth-manager@3.0.0`, `android/…/GoogleAuthProvider.java`
+**Status:** RESOLVED · **Fixed:** 2026-10-29 · **Published version:** 3.1.0 (logcat: 3.1.1) · **Reported:** 2026-10-29 by the owner, every production Android app (LifeWell, Rent Party, AChat, …) · **Affects:** `capacitor-auth-manager@3.0.0`, `android/…/GoogleAuthProvider.java`
 
 **Symptom** — Tapping Google sign-in in a Play-installed release showed an error and never an account chooser. The same apps signed in through `@codetrix-studio/capacitor-google-auth` (legacy GoogleSignIn) in their previous releases, with the same Web client and the same registered SHA-1s (LifeWell: upload `C5:CB:…` and Play App Signing `39:B7:…`, both with Android OAuth clients). Supabase recorded no `grant_type=id_token` request, so the failure was native.
 
 **Cause** — 3.0.0 ran Android Credential Manager alone. It refused the request before any UI; on Android 14+ it routes through the system credential service and depends on the device's credential-provider settings, which GoogleSignIn never touches. A second defect hid the cause: `NoCredentialException` was replaced by the package's own text, so Google's message never reached the app or logcat. The R8 keep rules also sat in `proguard-rules.pro`, which never reaches a consumer.
 
 **Fix** — `androidFlow: 'auto'` runs GoogleSignIn first (the codetrix path, its result through Capacitor's `@ActivityCallback`) and falls back to Credential Manager on any failure except a cancel. Every error carries Google's class + message, and configuration errors add the installed package + signing SHA-1. Keep rules moved to `consumer-rules.pro`. `play-services-auth` pinned to 21.6.0 because 22.0.0 removed GoogleSignIn.
+
+**Logcat** — 3.1.1 writes native warnings and errors on release builds (`adb logcat -s CapacitorAuthManager`), so a device test shows the exact cause.
 
 **Verified** — typecheck, lint, build, 30 tests, tarball smoke, and `smoke:native android` (debug + R8-minified release in a clean Capacitor 8 consumer). Real sign-in is a device check, done by the owner with a locally signed APK.
 

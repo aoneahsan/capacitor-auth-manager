@@ -73,10 +73,12 @@ public class AuthLogger {
         log(LogLevel.WARN, message, args);
     }
     
+    /**
+     * Always written, like {@link #warn}: a failed sign-in must be readable in logcat on a release build,
+     * where the JS side never enables native logging. Messages carry codes, the package name and the
+     * signing SHA-1 — never an email address or a token.
+     */
     public void error(String message, Throwable throwable) {
-        if (!isEnabled || LogLevel.ERROR.getValue() < logLevel.getValue()) {
-            return;
-        }
         
         if (throwable != null) {
             Log.e(tag, formatMessage(message), throwable);
@@ -86,7 +88,9 @@ public class AuthLogger {
     }
     
     private void log(LogLevel level, String message, Object... args) {
-        if (!isEnabled || level.getValue() < logLevel.getValue()) {
+        // WARN and ERROR always reach logcat (see error()); DEBUG and INFO follow enableLogging/logLevel.
+        boolean alwaysLogged = level.getValue() >= LogLevel.WARN.getValue();
+        if (!alwaysLogged && (!isEnabled || level.getValue() < logLevel.getValue())) {
             return;
         }
         
