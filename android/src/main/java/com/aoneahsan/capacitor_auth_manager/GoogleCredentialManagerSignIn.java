@@ -131,7 +131,7 @@ final class GoogleCredentialManagerSignIn {
                     && GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL.equals(credential.getType())) {
                 GoogleIdTokenCredential google = GoogleIdTokenCredential.createFrom(((CustomCredential) credential).getData());
                 Uri photo = google.getProfilePictureUri();
-                logger.info("Google sign-in successful (Credential Manager)");
+                logger.googleSignInDiagnostic("credential-manager", "success");
                 callback.onSuccess(new GoogleResultMapper.Profile(google.getIdToken(), google.getId(),
                         google.getDisplayName(), photo != null ? photo.toString() : null, null, null));
             } else {
@@ -149,6 +149,7 @@ final class GoogleCredentialManagerSignIn {
 
     /** Keeps Google's own class + message ({@code [28444] …}) and names the package + signing SHA-1. */
     private AuthException mapError(GetCredentialException e) {
+        logger.googleSignInDiagnostic("credential-manager", e.getClass().getSimpleName());
         if (e instanceof GetCredentialCancellationException) {
             logger.info("Google sign-in cancelled by user");
             return new AuthException(AuthErrorCodes.USER_CANCELLED, "User cancelled Google sign-in", e);

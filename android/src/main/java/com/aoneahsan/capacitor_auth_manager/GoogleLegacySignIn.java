@@ -98,7 +98,7 @@ final class GoogleLegacySignIn {
                 return;
             }
             String photo = account.getPhotoUrl() != null ? account.getPhotoUrl().toString() : null;
-            logger.info("Legacy Google Sign-In successful");
+            logger.googleSignInDiagnostic("legacy", "success");
             callback.onSuccess(new GoogleResultMapper.Profile(account.getIdToken(), account.getEmail(),
                     account.getDisplayName(), photo, account.getId(), account.getServerAuthCode()));
         } catch (ApiException e) {

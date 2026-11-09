@@ -74,14 +74,15 @@ export abstract class OAuthProvider extends BaseAuthProvider {
       let codeVerifier: string | undefined;
       let codeChallenge: string | undefined;
       if (config.pkceEnabled !== false) {
-        if (typeof crypto !== 'undefined' && crypto.subtle) {
-          codeVerifier = this.generateCodeVerifier();
-          codeChallenge = await this.generateCodeChallenge(codeVerifier);
-        } else {
-          this.logger.warn(
-            `PKCE skipped for ${this.provider}: Web Crypto 'subtle' is unavailable (insecure context). Serve over HTTPS to enable PKCE.`
+        if (typeof crypto === 'undefined' || !crypto.subtle) {
+          throw new AuthError(
+            AuthErrorCode.OPERATION_NOT_SUPPORTED,
+            'OAuth sign-in requires Web Crypto for PKCE. Serve the app over HTTPS or localhost.',
+            this.provider
           );
         }
+        codeVerifier = this.generateCodeVerifier();
+        codeChallenge = await this.generateCodeChallenge(codeVerifier);
       }
 
       // Store state, nonce, and PKCE verifier for validation

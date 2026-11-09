@@ -31,7 +31,7 @@ adapters ship with it, so the sign-in button is a few lines in whichever framewo
 
 | | |
 |---|---|
-| **Version** | `3.0.0` |
+| **Version** | `3.1.1` |
 | **License** | MIT |
 | **Node** | `>=24.0.0` |
 | **Platforms** | Web · iOS · Android |
@@ -115,7 +115,7 @@ Firebase-popup web flow that works and no native build to support.
 | iOS | ✅ | GoogleSignIn 10.x; iOS 15+. Returns `idToken`, `accessToken`, and `serverAuthCode` when configured. |
 | Node / SSR | ✅ import | Importing is side-effect free since `3.0.0`; sign-in itself still needs a browser or a device. |
 
-Package CI compiles a clean Capacitor 8 consumer with Android debug/minified-release builds and an iOS simulator build. A compile check is not a runtime test: verify real Google sign-in with your app’s OAuth clients on each deployed platform.
+Local release checks compile a clean Capacitor 8 consumer for Android debug and minified release builds. On macOS, run the iOS simulator compile check. Test sign-in with your app's OAuth clients on deployed devices before rollout.
 
 <a id="requirements"></a>
 ## 📋 Requirements&nbsp;[#](#requirements)
@@ -418,14 +418,13 @@ Stated as plainly as the features, because each one otherwise costs an afternoon
 - **`@capacitor/core` is a required peer.** The native bridge imports it even in a web-only build.
 - **Web returns one token per flow.** One-Tap and the rendered Google button yield an `idToken` and no `accessToken`; the OAuth2 popup
   yields an `accessToken` and no `idToken`. Firebase accepts either
-  (`GoogleAuthProvider.credential(idToken ?? null, accessToken)`); an ID-token-only backend must explicitly select One-Tap and reject a missing ID token.
+  (`GoogleAuthProvider.credential(idToken ?? null, accessToken)`); an ID-token-only backend must explicitly select One-Tap or the rendered button and reject a missing ID token.
 - **Android returns an `idToken` only.** Access tokens come from the separate Google Authorization API.
   Only iOS returns everything.
 - **Android GoogleSignIn is deprecated by Google** and was removed in `play-services-auth` 22, so the
   package pins 21.x. Do not force `play-services-auth` 22 in your app, or `'auto'` falls through to Credential Manager.
 - **No id-token verification in the browser.** Signature and claim checks belong to your server, or Firebase.
-- **Native runtime is not covered by CI.** Both platforms are verified to compile, not to sign in. Test a new
-  version on one real device before rolling it out widely.
+- **Consumer builds check compilation.** Test sign-in on a device before rolling out a new version.
 - **`serverAuthCode` must never be exchanged client-side.** It is returned on iOS for your backend to use.
 
 <a id="faq"></a>
@@ -469,7 +468,9 @@ Server imports are safe. Configure/prepare/sign in in browser code or client com
 <a id="changelog"></a>
 ## 🔄 Changelog&nbsp;[#](#changelog)
 
-See [CHANGELOG.md](https://github.com/aoneahsan/capacitor-auth-manager/blob/main/CHANGELOG.md) for release history and breaking requirements.
+Latest release: **`3.1.1`** — Android sign-in failures now reach logcat in release builds without logging tokens or email addresses. See the changelog for the full history.
+
+Full history: [CHANGELOG.md](https://github.com/aoneahsan/capacitor-auth-manager/blob/main/CHANGELOG.md).
 
 <a id="roadmap"></a>
 ## 🗺️ Roadmap&nbsp;[#](#roadmap)
@@ -483,12 +484,10 @@ Dates are deliberately absent; each item ships when it is verified rather than w
 <a id="contributing"></a>
 ## 🤝 Contributing&nbsp;[#](#contributing)
 
-Fork and open a pull request — see
-[CONTRIBUTING.md](https://github.com/aoneahsan/capacitor-auth-manager/blob/main/.github/CONTRIBUTING.md) for
-setup, standards, and how to request collaborator access. `main` is protected: every change lands through a
-reviewed pull request. Security issues follow
-[SECURITY.md](https://github.com/aoneahsan/capacitor-auth-manager/blob/main/.github/SECURITY.md) rather than
-the public tracker.
+Start with an issue describing the change. The
+[contribution guide](https://github.com/aoneahsan/capacitor-auth-manager/blob/main/.github/CONTRIBUTING.md)
+covers setup and local checks. Report security issues through
+[SECURITY.md](https://github.com/aoneahsan/capacitor-auth-manager/blob/main/.github/SECURITY.md).
 
 <a id="support"></a>
 ## 💬 Support&nbsp;[#](#support)
