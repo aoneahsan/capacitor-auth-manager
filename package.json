@@ -1,7 +1,7 @@
 {
   "name": "capacitor-auth-manager",
   "version": "3.1.1",
-  "description": "Capacitor + web authentication. Firebase-agnostic native & web Google sign-in (idToken/accessToken) for React, Vue, Angular and vanilla JS — a drop-in alternative to @codetrix-studio/capacitor-google-auth. More providers shipping one at a time.",
+  "description": "Capacitor + web authentication. Firebase-agnostic native & web Google sign-in (idToken/accessToken) for React, Vue, Angular and vanilla JS \u2014 a drop-in alternative to @codetrix-studio/capacitor-google-auth. More providers shipping one at a time.",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
@@ -92,7 +92,7 @@
     "prettier": "prettier --write .",
     "prepack": "yarn build",
     "prepublishOnly": "yarn check:release-docs && yarn typecheck && yarn lint && yarn build && yarn test && yarn smoke:tarball",
-    "check:release-docs": "node scripts/check-release-docs.mjs",
+    "check:release-docs": "node -e 'const fs=require(\"node:fs\");const v=require(\"./package.json\").version;const r=fs.readFileSync(\"README.md\",\"utf8\");const g=fs.readFileSync(\"AI-INTEGRATION-GUIDE.md\",\"utf8\");if(!r.includes(\"| **Version** | `\"+v+\"` |\")||!r.includes(\"Latest release: **`\"+v+\"`**\")||!g.includes(\"Release: **\"+v+\"**.\")||!g.includes(\"yarn add capacitor-auth-manager@\"+v+\" \")){process.stderr.write(\"Release documentation version mismatch\\n\");process.exitCode=1}'",
     "swiftlint": "cd ios && swiftlint lint --fix --format --path Plugin --verbose",
     "configure": "node scripts/configure.js",
     "smoke:tarball": "node --test test/tarball-smoke.test.js",
