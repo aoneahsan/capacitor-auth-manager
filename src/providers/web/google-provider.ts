@@ -113,12 +113,14 @@ const DEFAULT_SCOPES = ['openid', 'email', 'profile'];
 /**
  * Web Google provider — the implementation the registry loads on **web / electron**.
  *
- * Two Google Identity Services flows are available, selected by {@link GoogleAuthOptions.webFlow}
+ * Three Google Identity Services flows are available, selected by {@link GoogleAuthOptions.webFlow}
  * (default `'auto'`):
  *
  * 1. **One-Tap / FedCM id-token flow** (`google.accounts.id`): returns a Google **ID token** (JWT) as
  *    `result.credential.idToken` — the same field the native providers populate.
- * 2. **OAuth2 popup flow** (`google.accounts.oauth2.initTokenClient`): a deterministic popup that works
+ * 2. **Rendered-button ID-token flow** (`google.accounts.id.renderButton`): waits for a click on
+ *    Google's button without opening One-Tap; returns `result.credential.idToken`.
+ * 3. **OAuth2 popup flow** (`google.accounts.oauth2.initTokenClient`): a deterministic popup that works
  *    from any click handler and returns an **access token** as `result.credential.accessToken`; the user
  *    profile is read from Google's `userinfo` endpoint. `'auto'` falls back to this whenever the browser
  *    does not display One-Tap (cooldown, FedCM opt-out, third-party-cookie settings).
@@ -128,8 +130,8 @@ const DEFAULT_SCOPES = ['openid', 'email', 'profile'];
  *   const { idToken, accessToken } = result.credential;
  *   await signInWithCredential(getAuth(), GoogleAuthProvider.credential(idToken ?? null, accessToken));
  *
- * Neither flow needs a client secret or a backend. For Google's official button call
- * {@link renderButton}; it shares the One-Tap credential callback.
+ * These flows need no client secret or backend. For Google's official button, call
+ * {@link renderButton}, then {@link signIn} with `webFlow: 'button'` before it is selected.
  */
 export class GoogleAuthProviderWeb extends BaseAuthProvider {
   private loadPromise: Promise<void> | null = null;
@@ -143,6 +145,10 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
   private pendingTimer: ReturnType<typeof setTimeout> | null = null;
   private requestRevision = 0;
   private pendingPopupReject: ((error: AuthError) => void) | null = null;
+  private hasRenderedButton = false;
+  private pendingCredentialFlow: 'one-tap' | 'button' | null = null;
+  private idConfigured = false;
+  private configuredIdHint?: string;
 
   constructor(config?: unknown) {
     super(resolveProviderConfig(AuthProvider.GOOGLE, config));
@@ -200,6 +206,9 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
       if (flow === 'popup') {
         return await this.signInWithPopup(loginHint);
       }
+      if (flow === 'button') {
+        return await this.signInWithButton();
+      }
       return await this.signInWithOneTap(flow === 'auto', loginHint);
     } finally {
       this.signingIn = false;
@@ -208,8 +217,8 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
 
   /**
    * Renders Google's official "Sign in with Google" button into `parent`. Use this when you want
-   * Google's branded button rather than your own. It uses the SAME credential callback, so a click
-   * resolves the most recent (or next) {@link signIn} promise with the ID-token credential.
+   * Google's branded button rather than your own. Call {@link signIn} with `webFlow: 'button'`
+   * before the user clicks it to receive the ID-token credential.
    */
   async renderButton(
     parent: HTMLElement,
@@ -220,6 +229,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     }
     this.configureIdClient();
     this.requireIdApi().renderButton(parent, options);
+    this.hasRenderedButton = true;
   }
 
   async signOut(_options?: SignOutOptions): Promise<void> {
@@ -273,7 +283,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     if (cached && !cached.idToken && !forceRefresh) {
       throw new AuthError(
         AuthErrorCode.NO_AUTH_SESSION,
-        'The popup flow issues an access token, not an ID token. Use result.credential.accessToken, or sign in with webFlow "one-tap".',
+        'The popup flow issues an access token, not an ID token. Use result.credential.accessToken, or sign in with webFlow "one-tap" or "button".',
         AuthProvider.GOOGLE
       );
     }
@@ -333,6 +343,30 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
 
   // --- One-Tap flow --------------------------------------------------------------------------------
 
+  private signInWithButton(): Promise<AuthResult> {
+    if (!this.hasRenderedButton) {
+      throw new AuthError(
+        AuthErrorCode.MISSING_CONFIGURATION,
+        'Render the Google button before starting webFlow "button".',
+        AuthProvider.GOOGLE
+      );
+    }
+    return new Promise<AuthResult>((resolve, reject) => {
+      this.pendingResolve = resolve;
+      this.pendingReject = reject;
+      this.pendingCredentialFlow = 'button';
+      this.pendingTimer = setTimeout(() => {
+        this.rejectPending(
+          new AuthError(
+            AuthErrorCode.POPUP_BLOCKED,
+            'The Google button did not return a credential. Select it again to retry.',
+            AuthProvider.GOOGLE
+          )
+        );
+      }, 120_000);
+    });
+  }
+
   private signInWithOneTap(
     fallbackToPopup: boolean,
     loginHint?: string
@@ -342,6 +376,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     return new Promise<AuthResult>((resolve, reject) => {
       this.pendingResolve = resolve;
       this.pendingReject = (e) => reject(e);
+      this.pendingCredentialFlow = 'one-tap';
       this.pendingTimer = setTimeout(() => {
         this.rejectPending(
           new AuthError(
@@ -354,18 +389,21 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
       }, 120_000);
 
       const fallback = (reason: string) => {
+        if (this.pendingResolve !== resolve) return;
         this.logger.info(
           `Google One-Tap not shown (${reason}); using the popup flow`
         );
         // Drop the One-Tap resolvers so a late credential callback cannot double-resolve.
         this.pendingResolve = null;
         this.pendingReject = null;
+        this.pendingCredentialFlow = null;
         this.clearPendingTimer();
         this.signInWithPopup(loginHint).then(resolve, reject);
       };
 
       try {
         this.requireIdApi().prompt((notification: PromptMomentNotification) => {
+          if (this.pendingResolve !== resolve) return;
           // These moment methods are deprecated under FedCM and may throw — guard every call.
           try {
             const notDisplayed = notification.isNotDisplayed?.() ?? false;
@@ -408,6 +446,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
           }
         });
       } catch (error) {
+        if (this.pendingResolve !== resolve) return;
         if (fallbackToPopup) {
           fallback(error instanceof Error ? error.message : 'prompt failed');
         } else {
@@ -422,6 +461,14 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
   ): Promise<void> {
     // Ignore a late callback after cancellation, timeout, or popup fallback.
     if (!this.pendingResolve) return;
+    // Google labels button responses separately from One-Tap. A late One-Tap result must not
+    // satisfy a newer wait that explicitly required a click on the rendered button.
+    if (
+      this.pendingCredentialFlow === 'button' &&
+      response.select_by !== 'btn' &&
+      response.select_by !== 'btn_confirm'
+    )
+      return;
     if (response.error || !response.credential) {
       this.rejectPending(
         new AuthError(
@@ -656,6 +703,8 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     const options = this.options as GoogleAuthOptions;
     const clientId = this.requireClientId();
     this.currentNonce = options.nonce;
+    const hint = loginHint ?? options.loginHint;
+    if (this.idConfigured && this.configuredIdHint === hint) return;
     const config: GoogleIdConfig = {
       client_id: clientId,
       callback: (response) => this.handleCredential(response),
@@ -668,7 +717,6 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     if (options.nonce) {
       config.nonce = options.nonce;
     }
-    const hint = loginHint ?? options.loginHint;
     if (hint) {
       config.login_hint = hint;
     }
@@ -676,6 +724,8 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
       config.hd = options.hostedDomain;
     }
     this.requireIdApi().initialize(config);
+    this.idConfigured = true;
+    this.configuredIdHint = hint;
   }
 
   private validateIdToken(idToken: string): GoogleProfileClaims {
@@ -787,6 +837,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     const resolve = this.pendingResolve;
     this.pendingResolve = null;
     this.pendingReject = null;
+    this.pendingCredentialFlow = null;
     resolve?.(result);
   }
 
@@ -795,6 +846,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     const reject = this.pendingReject;
     this.pendingResolve = null;
     this.pendingReject = null;
+    this.pendingCredentialFlow = null;
     if (reject) {
       reject(error);
     } else {
@@ -827,6 +879,9 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
       window.google?.accounts?.id?.cancel();
     }
     this.lastCredential = null;
+    this.hasRenderedButton = false;
+    this.idConfigured = false;
+    this.configuredIdHint = undefined;
     super.dispose();
   }
 

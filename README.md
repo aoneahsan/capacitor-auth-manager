@@ -202,7 +202,7 @@ await signInWithCredential(getAuth(), GoogleAuthProvider.credential(result.crede
 
 ```ts
 const { credential } = await auth.signIn(AuthProvider.GOOGLE);
-if (!credential.idToken) throw new Error('This backend requires an ID token; use webFlow one-tap');
+if (!credential.idToken) throw new Error('This backend requires an ID token; use webFlow one-tap or button');
 await fetch('/api/session', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
@@ -285,7 +285,7 @@ Google provider options:
 | `filterByAuthorizedAccounts` | Android | Show only previously authorised accounts. |
 | `autoSelectEnabled` | Android | Allow one-tap auto-select for returning users. |
 | `nonce` | web | Bind the request to an id-token `nonce` claim, which the package validates. |
-| `webFlow` | web | `'auto'` (default: One-Tap, then the OAuth2 popup if One-Tap is not shown) · `'one-tap'` · `'popup'`. Also accepted per call in `signIn({ options })`. |
+| `webFlow` | web | `'auto'` (default: One-Tap, then the OAuth2 popup if One-Tap is not shown) · `'one-tap'` · `'button'` (wait for the rendered Google button's ID token) · `'popup'`. Also accepted per call in `signIn({ options })`. |
 | `androidFlow` | Android | `'auto'` (default: GoogleSignIn, then Credential Manager if it fails for any reason other than a cancel) · `'legacy'` · `'credential-manager'` · `'bottom-sheet'` · `'button'`. Also accepted per call. |
 
 The same Google options can live in `capacitor.config` under the plugin block instead of in application code.
@@ -379,12 +379,15 @@ It asks for Web/iOS OAuth client IDs and creates `capacitor-auth.config.json` pl
   const google = new GoogleAuthProviderWeb({ clientId: import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID });
   // renderButton initializes the provider on demand; options default to { theme: 'outline', size: 'large' }
   await google.renderButton(document.getElementById('google-btn')!);
-  // Arm the credential promise before clicking the rendered button:
-  const result = await google.signIn({ options: { webFlow: 'one-tap' } });
+  // Start waiting before the user selects Google's button:
+  const credentialPromise = google.signIn({ options: { webFlow: 'button' } });
+  // After the user selects it:
+  const result = await credentialPromise;
   ```
 
-  The button shares the One-Tap credential callback, so a click resolves the same
-  `signIn()` promise shape.
+  The button returns an `idToken` through the same credential callback as One-Tap. The `button` flow
+  does not open One-Tap or the OAuth2 popup. It waits up to two minutes; `signOut()` or `dispose()`
+  cancels the wait. Start another `button` sign-in if the wait ends before the user selects Google.
 - **Log level control** — `defaultLogger.setLevel('debug')`, or the `VITE_LOG_LEVEL` / `LOG_LEVEL` build
   variables, without touching `console` directly.
 - **Config in `capacitor.config`** — keep the Google block in native config instead of application code.
@@ -398,7 +401,7 @@ It asks for Web/iOS OAuth client IDs and creates `capacitor-auth.config.json` pl
 | `PROVIDER_NOT_ENABLED` | that provider is not enabled yet in `3.x` | Only Google is available today — see [Roadmap](#roadmap) |
 | `window is not defined` on the server | you are on `< 3.0.0` | Upgrade — the singleton is lazy and storage is guarded since `3.0.0` |
 | `Cannot find module '…/core/auth-manager'` under Node | you are on `< 3.0.0` | Upgrade — every relative specifier carries its `.js` extension since `3.0.0` |
-| `POPUP_BLOCKED` on web with `webFlow: 'one-tap'` | One-Tap is suppressed (cooldown, FedCM opt-out, third-party cookies) | Use the default `webFlow: 'auto'` (falls back to the popup) or `'popup'`, or draw Google's button with `GoogleAuthProviderWeb.renderButton` — see [Advanced Features](#advanced-features) |
+| `POPUP_BLOCKED` on web with `webFlow: 'one-tap'` | One-Tap is suppressed (cooldown, FedCM opt-out, third-party cookies) | Use the default `webFlow: 'auto'` (falls back to the popup) or `'popup'`, or draw Google's button and use `webFlow: 'button'` — see [Advanced Features](#advanced-features) |
 | `USER_CANCELLED` / `POPUP_CLOSED_BY_USER` | the user closed One-Tap or the popup | Expected — show your own "try again" |
 | Android error names `signing SHA-1=…` | Google has no Android OAuth client for that package + certificate | Register that exact SHA-1 for the app (a Play-installed build reports the Play App Signing key). No new build is needed |
 | Play builds fail with no account picker on `3.0.0` | Credential Manager refused the request (on Android 14+ it depends on the device's credential-provider settings) | Upgrade to `3.1.0`: the default flow uses GoogleSignIn first |
@@ -413,9 +416,9 @@ Stated as plainly as the features, because each one otherwise costs an afternoon
 - **Google is the only working provider.** Fourteen others exist in the source and throw
   `PROVIDER_NOT_ENABLED` when called.
 - **`@capacitor/core` is a required peer.** The native bridge imports it even in a web-only build.
-- **Web returns one token per flow.** One-Tap yields an `idToken` and no `accessToken`; the OAuth2 popup
+- **Web returns one token per flow.** One-Tap and the rendered Google button yield an `idToken` and no `accessToken`; the OAuth2 popup
   yields an `accessToken` and no `idToken`. Firebase accepts either
-  (`GoogleAuthProvider.credential(idToken ?? null, accessToken)`); an ID-token-only backend must explicitly select One-Tap and reject a missing ID token.
+  (`GoogleAuthProvider.credential(idToken ?? null, accessToken)`); an ID-token-only backend must explicitly select One-Tap or the rendered button and reject a missing ID token.
 - **Android returns an `idToken` only.** Access tokens come from the separate Google Authorization API.
   Only iOS returns everything.
 - **Android GoogleSignIn is deprecated by Google** and was removed in `play-services-auth` 22, so the
@@ -435,7 +438,7 @@ option among several.
 Yes — skip `yarn cap sync`. You still need `@capacitor/core` installed, because the published bundle imports it.
 
 **Which token does web return?**
-One-Tap returns `idToken`; popup returns `accessToken`. The default auto flow can return either. Firebase accepts both fields through `GoogleAuthProvider.credential(idToken ?? null, accessToken ?? null)`.
+One-Tap and Google's rendered button return `idToken`; popup returns `accessToken`. The default auto flow can return either. Firebase accepts both fields through `GoogleAuthProvider.credential(idToken ?? null, accessToken ?? null)`.
 
 **Which client ID goes where?**
 The **Web** client ID is used as `clientId` on web and as `serverClientId` on Android. The iOS client ID is

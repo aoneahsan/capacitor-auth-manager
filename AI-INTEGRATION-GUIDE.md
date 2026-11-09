@@ -128,6 +128,7 @@ For authenticated backend requests, get a **Firebase** ID token from `firebaseAu
 |---|---|
 | Web `webFlow: 'popup'` | `accessToken`; no `idToken` or refresh token |
 | Web `webFlow: 'one-tap'` | `idToken`; no access token |
+| Web `webFlow: 'button'` | `idToken` from a rendered Google button; no access token or One-Tap prompt |
 | Web `webFlow: 'auto'` (default) | One-Tap ID token or popup access token; suppression may require another click to open a popup |
 | Android | `idToken`; no access token/server auth code from the sign-in call |
 | iOS | `idToken`, `accessToken`, optional `serverAuthCode` when configured |
@@ -164,7 +165,7 @@ promises; never log credentials, tokens, or client secrets. The browser validate
 expiry, a configured nonce, and a configured Workspace domain, but does not verify JWT signatures.
 Google/Firebase/server verification establishes trust. Never send an OAuth access token to an ID-token-only backend.
 
-For a custom ID-token backend, choose the One-Tap/native ID-token path, require `credential.idToken`, verify
+For a custom ID-token backend, choose the One-Tap, rendered-button or native ID-token path, require `credential.idToken`, verify
 signature/issuer/audience/expiry/nonce on the server, and issue your own session. Do not decode a token and trust its claims.
 
 <a id="acceptance"></a>

@@ -5,6 +5,19 @@ All notable changes to `capacitor-auth-manager` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Web `webFlow: 'button'` waits for an ID token from `GoogleAuthProviderWeb.renderButton()` without
+  opening One-Tap or the OAuth2 popup. The wait ends after two minutes and can be cancelled by
+  `signOut()` or `dispose()`.
+
+### Fixed
+
+- The rendered-button example now uses `webFlow: 'button'`. A suppressed One-Tap prompt no longer
+  leaves that example waiting for a credential it cannot receive.
+
 ## [3.1.1] — 2026-10-29
 
 ### Fixed

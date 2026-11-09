@@ -17,15 +17,27 @@ const path = require('node:path');
 
 const packageRoot = path.resolve(__dirname, '..');
 const isWindows = process.platform === 'win32';
+const windowsYarnCli = path.join(
+  path.dirname(process.execPath),
+  'node_modules',
+  'corepack',
+  'dist',
+  'yarn.js'
+);
 
-/** Runs Yarn (a .cmd shim on Windows, so it needs a shell there). */
+/** Runs Yarn without a shell; Node 24 rejects direct .cmd execution on Windows. */
 function yarn(args, cwd) {
-  return execFileSync(isWindows ? 'yarn.cmd' : 'yarn', args, {
-    cwd,
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
-    shell: isWindows,
-  });
+  if (isWindows)
+    assert.ok(fs.existsSync(windowsYarnCli), 'Corepack Yarn entry is missing');
+  return execFileSync(
+    isWindows ? process.execPath : 'yarn',
+    isWindows ? [windowsYarnCli, ...args] : args,
+    {
+      cwd,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }
+  );
 }
 
 /** Runs a script file with the current Node binary — no shell, so nothing needs quoting. */
@@ -244,6 +256,21 @@ test('the packed tarball imports under bare Node (ESM + CJS) with no DOM', () =>
     );
     assert.match(help, /Usage:/);
   } finally {
-    fs.rmSync(scratch, { recursive: true, force: true });
+    const resolvedScratch = fs.realpathSync(scratch);
+    const tempRoot = fs.realpathSync(os.tmpdir());
+    if (
+      path.dirname(resolvedScratch) !== tempRoot ||
+      !path.basename(resolvedScratch).startsWith('cam-tarball-smoke-')
+    ) {
+      throw new Error(
+        `Refusing to remove a tarball smoke directory outside temp: ${scratch}`
+      );
+    }
+    fs.rmSync(resolvedScratch, {
+      recursive: true,
+      force: true,
+      maxRetries: 20,
+      retryDelay: 500,
+    });
   }
 });

@@ -92,7 +92,7 @@
     "prettier": "prettier --write .",
     "prepack": "yarn build",
     "prepublishOnly": "yarn check:release-docs && yarn typecheck && yarn lint && yarn build && yarn test && yarn smoke:tarball",
-    "check:release-docs": "node -e 'const fs=require(\"node:fs\");const v=require(\"./package.json\").version;const r=fs.readFileSync(\"README.md\",\"utf8\");const g=fs.readFileSync(\"AI-INTEGRATION-GUIDE.md\",\"utf8\");if(!r.includes(\"| **Version** | `\"+v+\"` |\")||!r.includes(\"Latest release: **`\"+v+\"`**\")||!g.includes(\"Release: **\"+v+\"**.\")||!g.includes(\"yarn add capacitor-auth-manager@\"+v+\" \")){process.stderr.write(\"Release documentation version mismatch\\n\");process.exitCode=1}'",
+    "check:release-docs": "node scripts/check-release-docs.js",
     "swiftlint": "cd ios && swiftlint lint --fix --format --path Plugin --verbose",
     "configure": "node scripts/configure.js",
     "smoke:tarball": "node --test test/tarball-smoke.test.js",
