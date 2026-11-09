@@ -3,6 +3,10 @@
 History of closed entries from [`REPORTED-ISSUES.md`](./REPORTED-ISSUES.md), each with its fix date and
 fixing version. Entries are moved here, never deleted.
 
+### ISSUE-008 — README version and CI statements were stale
+
+**Status:** RESOLVED in source · **Fixed:** 2026-11-09 · **Source version:** 3.1.1 · **Reported:** 2026-11-03. The README and packaged AI guide now show the package's 3.1.1 release; local release checks replace stale CI and pull-request claims. `yarn check:release-docs` runs before the next npm publish and fails when the README or AI guide version drifts from `package.json`. The published npm README still requires a subsequent verified package release.
+
 ### ISSUE-007 — Android Google sign-in fails on Play-installed builds with no account picker (3.0.0)
 
 **Status:** RESOLVED · **Fixed:** 2026-10-29 · **Published version:** 3.1.0 (logcat: 3.1.1) · **Reported:** 2026-10-29 by the owner, every production Android app (LifeWell, Rent Party, AChat, …) · **Affects:** `capacitor-auth-manager@3.0.0`, `android/…/GoogleAuthProvider.java`
