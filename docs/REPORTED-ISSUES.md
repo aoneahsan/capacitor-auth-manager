@@ -30,4 +30,8 @@ Open entries below. Resolved entries remain in [RESOLVED-ISSUES.md](./RESOLVED-I
   fallback (minor), then remove `GoogleLegacySignIn` and `play-services-auth` in the next major. If it still
   fails without UI, keep the legacy path until Google ships a supported silent ID-token API, and re-check on every
   `play-services-auth` and `androidx.credentials` release.
+- **2026-11-09 progress:** Release-build logcat now records the successful path and the Credential Manager
+  exception class without account identifiers or token values. The packed package built in a clean Capacitor 8
+  consumer for debug and minified release (281 Gradle tasks). The deprecated-API note remains. Play-installed
+  device results are still needed before changing the default path or removing the legacy API.
 - **Priority:** low (build note only; sign-in works). Needs the owner for the Play-installed device test.

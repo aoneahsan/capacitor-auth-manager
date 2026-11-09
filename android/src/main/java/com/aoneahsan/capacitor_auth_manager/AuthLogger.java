@@ -72,6 +72,14 @@ public class AuthLogger {
     public void warn(String message, Object... args) {
         log(LogLevel.WARN, message, args);
     }
+
+    /**
+     * Writes the Google sign-in path and outcome in release builds. Callers pass only fixed path names,
+     * success, or an exception class; never an account identifier, message, credential, or token.
+     */
+    public void googleSignInDiagnostic(String path, String outcome) {
+        Log.i(tag, formatMessage("Google sign-in path=" + path + " outcome=" + outcome));
+    }
     
     /**
      * Always written, like {@link #warn}: a failed sign-in must be readable in logcat on a release build,
