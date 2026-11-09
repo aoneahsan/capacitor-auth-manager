@@ -1,6 +1,6 @@
 # Capacitor Auth Manager: AI integration guide
 
-Release: **3.1.1**. Audience: Claude Code, Codex, and developers integrating Google sign-in.
+Release: **3.2.0**. Audience: Claude Code, Codex, and developers integrating Google sign-in.
 Use this guide from the installed package; the npm README and [documentation](https://capacitor-auth-manager-docs.aoneahsan.com) describe the same release.
 
 <a id="table-of-contents"></a>
@@ -38,7 +38,7 @@ The root exports the `auth` singleton, `AuthProvider`, `AuthErrorCode`, `AuthErr
 ## 📦 Setup&nbsp;[#](#setup)
 
 ```bash
-yarn add capacitor-auth-manager@3.1.1 @capacitor/core firebase
+yarn add capacitor-auth-manager@3.2.0 @capacitor/core firebase
 # Native applications only, after the platform projects exist:
 yarn cap sync
 ```

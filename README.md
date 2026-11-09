@@ -31,7 +31,7 @@ adapters ship with it, so the sign-in button is a few lines in whichever framewo
 
 | | |
 |---|---|
-| **Version** | `3.1.1` |
+| **Version** | `3.2.0` |
 | **License** | MIT |
 | **Node** | `>=24.0.0` |
 | **Platforms** | Web · iOS · Android |
@@ -110,7 +110,7 @@ Firebase-popup web flow that works and no native build to support.
 
 | Platform | Supported | Notes |
 |---|---|---|
-| Web | ✅ | Google Identity Services. One-Tap / FedCM returns an `idToken`; the OAuth2 popup fallback returns an `accessToken` (`webFlow`). |
+| Web | ✅ | Google Identity Services. One-Tap / FedCM and Google's rendered button return an `idToken`; the OAuth2 popup fallback returns an `accessToken` (`webFlow`). |
 | Android | ✅ | GoogleSignIn account chooser, falling back to Credential Manager (bottom sheet, then the Sign in with Google button) — `androidFlow`. `serverClientId` is required to receive an `idToken`. |
 | iOS | ✅ | GoogleSignIn 10.x; iOS 15+. Returns `idToken`, `accessToken`, and `serverAuthCode` when configured. |
 | Node / SSR | ✅ import | Importing is side-effect free since `3.0.0`; sign-in itself still needs a browser or a device. |
@@ -369,9 +369,9 @@ It asks for Web/iOS OAuth client IDs and creates `capacitor-auth.config.json` pl
 - **Custom secure storage** — implement `StorageInterface` over Keychain or Keystore and pass it as
   `storage` instead of the default web storage.
 - **Nonce validation** — supply `nonce` on web and the package checks the returned id token's claim against it.
-- **Google's own button** — when One-Tap is inside its cooldown window you can draw Google's official
-  button yourself. `renderButton` lives on the web provider class rather than on the `auth` singleton,
-  so construct it directly:
+- **Google's own button** — when One-Tap is in its cooldown window, render Google's official button
+  yourself. `renderButton` lives on the web provider class, not on the `auth` singleton, so construct it
+  directly:
 
   ```ts
   import { GoogleAuthProviderWeb } from 'capacitor-auth-manager/providers/web';
@@ -385,9 +385,9 @@ It asks for Web/iOS OAuth client IDs and creates `capacitor-auth.config.json` pl
   const result = await credentialPromise;
   ```
 
-  The button returns an `idToken` through the same credential callback as One-Tap. The `button` flow
-  does not open One-Tap or the OAuth2 popup. It waits up to two minutes; `signOut()` or `dispose()`
-  cancels the wait. Start another `button` sign-in if the wait ends before the user selects Google.
+  The button returns an `idToken`. A `button` sign-in doesn't open One-Tap or the OAuth2 popup, and a
+  One-Tap result that arrives late can't complete it. The wait lasts up to two minutes; `signOut()` or
+  `dispose()` cancels it. If it ends before the user selects the button, start another `button` sign-in.
 - **Log level control** — `defaultLogger.setLevel('debug')`, or the `VITE_LOG_LEVEL` / `LOG_LEVEL` build
   variables, without touching `console` directly.
 - **Config in `capacitor.config`** — keep the Google block in native config instead of application code.
@@ -468,7 +468,7 @@ Server imports are safe. Configure/prepare/sign in in browser code or client com
 <a id="changelog"></a>
 ## 🔄 Changelog&nbsp;[#](#changelog)
 
-Latest release: **`3.1.1`** — Android sign-in failures now reach logcat in release builds without logging tokens or email addresses. See the changelog for the full history.
+Latest release: **`3.2.0`** — web `webFlow: 'button'` waits for an ID token from `GoogleAuthProviderWeb.renderButton()` without opening One-Tap or the OAuth2 popup. See the changelog for the full history.
 
 Full history: [CHANGELOG.md](https://github.com/aoneahsan/capacitor-auth-manager/blob/main/CHANGELOG.md).
 

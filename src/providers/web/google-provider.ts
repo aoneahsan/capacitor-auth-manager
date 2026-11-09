@@ -347,7 +347,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     if (!this.hasRenderedButton) {
       throw new AuthError(
         AuthErrorCode.MISSING_CONFIGURATION,
-        'Render the Google button before starting webFlow "button".',
+        'webFlow "button" needs a rendered Google button. Call renderButton() first.',
         AuthProvider.GOOGLE
       );
     }
@@ -359,7 +359,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
         this.rejectPending(
           new AuthError(
             AuthErrorCode.POPUP_BLOCKED,
-            'The Google button did not return a credential. Select it again to retry.',
+            'The Google button returned no credential within two minutes. Start another webFlow "button" sign-in, then select the button.',
             AuthProvider.GOOGLE
           )
         );

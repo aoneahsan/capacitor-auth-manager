@@ -105,7 +105,9 @@ try {
     run(
       process.platform === 'win32' ? 'cmd.exe' : './gradlew',
       [
-        ...(process.platform === 'win32' ? ['/d', '/c', 'gradlew.bat'] : []),
+        // An explicit .\ path: with NoDefaultCurrentDirectoryInExePath set, cmd will not run a
+        // batch file from the current folder by bare name ("'gradlew.bat' is not recognized").
+        ...(process.platform === 'win32' ? ['/d', '/c', '.\\gradlew.bat'] : []),
         'assembleDebug',
         'assembleRelease',
         '--no-daemon',
