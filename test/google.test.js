@@ -2,7 +2,7 @@
 const { test, before, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert/strict');
 let Google, AuthErrorCode, WebStorage, Logger, AuthProvider;
-let callback, prompt, popup, tokenConfig, provider, saved;
+let callback, prompt, popup, tokenConfig, provider, saved, buttonRendered;
 const claims = (extra = {}) => ({
   iss: 'https://accounts.google.com',
   aud: 'test-client',
@@ -21,6 +21,7 @@ before(async () => {
 });
 beforeEach(() => {
   saved = new Map();
+  buttonRendered = false;
   prompt = () => {};
   popup = () => {};
   global.window = {
@@ -31,6 +32,9 @@ beforeEach(() => {
             callback = c.callback;
           },
           prompt: (notify) => prompt(notify),
+          renderButton: () => {
+            buttonRendered = true;
+          },
           cancel() {},
           disableAutoSelect() {},
         },
@@ -115,6 +119,81 @@ test('cancellation settles the request and permits a retry', async () => {
   });
   deliver(claims());
   assert.ok((await provider.signIn()).credential.idToken);
+});
+test('a suppressed One-Tap can be followed by a rendered button ID token', async () => {
+  prompt = (notify) =>
+    notify({
+      isNotDisplayed: () => true,
+      getNotDisplayedReason: () => 'suppressed',
+    });
+  await assert.rejects(provider.signIn({ options: { webFlow: 'one-tap' } }), {
+    code: AuthErrorCode.POPUP_BLOCKED,
+  });
+  await provider.renderButton({});
+  assert.equal(buttonRendered, true);
+  prompt = () => {
+    throw new Error('button flow must not open One-Tap');
+  };
+  const result = provider.signIn({ options: { webFlow: 'button' } });
+  await new Promise((resolve) => setImmediate(resolve));
+  const token = jwt(claims());
+  await callback({ credential: token });
+  const signedIn = await result;
+  assert.equal(signedIn.credential.idToken, token);
+  assert.equal(signedIn.credential.accessToken, undefined);
+});
+test('late One-Tap status cannot reject a newer button wait', async () => {
+  let oldMoment;
+  prompt = (notify) => {
+    oldMoment = notify;
+    notify({ isSkippedMoment: () => true });
+  };
+  await assert.rejects(provider.signIn({ options: { webFlow: 'one-tap' } }), {
+    code: AuthErrorCode.POPUP_BLOCKED,
+  });
+  await provider.renderButton({});
+  const result = provider.signIn({ options: { webFlow: 'button' } });
+  await new Promise((resolve) => setImmediate(resolve));
+  oldMoment({ isNotDisplayed: () => true });
+  await callback({ credential: jwt(claims()) });
+  assert.ok((await result).credential.idToken);
+});
+test('button flow requires a rendered Google button', async () => {
+  await assert.rejects(provider.signIn({ options: { webFlow: 'button' } }), {
+    code: AuthErrorCode.MISSING_CONFIGURATION,
+  });
+});
+test('rendered button wait expires and permits a retry', async (t) => {
+  await provider.renderButton({});
+  let expire;
+  t.mock.method(global, 'setTimeout', (fn, delay) => {
+    assert.equal(delay, 120_000);
+    expire = fn;
+    return 1;
+  });
+  const result = provider.signIn({ options: { webFlow: 'button' } });
+  await new Promise((resolve) => setImmediate(resolve));
+  const rejection = assert.rejects(result, {
+    code: AuthErrorCode.POPUP_BLOCKED,
+  });
+  expire();
+  await rejection;
+  const retry = provider.signIn({ options: { webFlow: 'button' } });
+  await new Promise((resolve) => setImmediate(resolve));
+  await callback({ credential: jwt(claims()) });
+  assert.ok((await retry).credential.idToken);
+});
+test('sign-out cancels a pending rendered button credential', async () => {
+  await provider.renderButton({});
+  const result = provider.signIn({ options: { webFlow: 'button' } });
+  await new Promise((resolve) => setImmediate(resolve));
+  const rejection = assert.rejects(result, {
+    code: AuthErrorCode.USER_CANCELLED,
+  });
+  await provider.signOut();
+  await rejection;
+  await callback({ credential: jwt(claims()) });
+  assert.equal(saved.size, 0);
 });
 test('overlapping direct calls reject instead of abandoning the first promise', async () => {
   await provider.initialize();

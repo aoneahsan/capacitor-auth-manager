@@ -124,6 +124,8 @@ export interface GoogleAuthOptions {
    * - `'auto'` (default): try One-Tap / FedCM first; if the browser does not display it (cooldown,
    *   FedCM opt-out, third-party-cookie settings) fall back to the OAuth2 popup.
    * - `'one-tap'`: One-Tap only; a suppressed prompt rejects with `POPUP_BLOCKED`.
+   * - `'button'`: wait for the ID token from a button previously drawn with
+   *   `GoogleAuthProviderWeb.renderButton()`; does not open One-Tap or the OAuth2 popup.
    * - `'popup'`: the OAuth2 token popup only — deterministic, works from any click handler.
    * One-Tap yields an `idToken`; the popup yields an `accessToken` (plus the Google profile). Both are
    * accepted by Firebase: `GoogleAuthProvider.credential(idToken ?? null, accessToken)`.
@@ -143,15 +145,11 @@ export interface GoogleAuthOptions {
 }
 
 /** Web sign-in flow selector for the Google provider. See {@link GoogleAuthOptions.webFlow}. */
-export type GoogleWebFlow = 'auto' | 'one-tap' | 'popup';
+export type GoogleWebFlow = 'auto' | 'one-tap' | 'button' | 'popup';
 
 /** Android sign-in flow selector for the Google provider. See {@link GoogleAuthOptions.androidFlow}. */
 export type GoogleAndroidFlow =
-  | 'auto'
-  | 'legacy'
-  | 'credential-manager'
-  | 'bottom-sheet'
-  | 'button';
+  'auto' | 'legacy' | 'credential-manager' | 'bottom-sheet' | 'button';
 
 export interface AppleAuthOptions {
   clientId: string;
@@ -194,10 +192,7 @@ export interface FacebookAuthOptions {
   fields?: string[];
   version?: string;
   loginBehavior?:
-    | 'native_with_fallback'
-    | 'native_only'
-    | 'web_only'
-    | 'web_view_only';
+    'native_with_fallback' | 'native_only' | 'web_only' | 'web_view_only';
   defaultAudience?: 'friends' | 'only_me' | 'everyone';
   limitedLogin?: boolean;
   authType?: string;
