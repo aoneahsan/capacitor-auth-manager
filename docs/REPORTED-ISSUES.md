@@ -2,19 +2,6 @@
 
 Open entries below. Resolved entries remain in [RESOLVED-ISSUES.md](./RESOLVED-ISSUES.md).
 
-### ISSUE-008 — Rendered Google button cannot return its ID token after One-Tap is suppressed
-
-**Status:** Fix prepared; awaiting package release · **Reported:** 2026-11-09 · **Affects:** `capacitor-auth-manager@3.1.1`, Google web provider
-
-**Symptom** — An ID-token-only backend cannot use the OAuth2 popup's access token. After One-Tap is
-suppressed, selecting the rendered Google button does not settle the sign-in promise.
-
-**Cause** — The `one-tap` flow rejects a suppressed prompt and clears its credential resolver. The
-button shares Google's credential callback, which then ignores the later ID token.
-
-**Fix prepared** — `webFlow: 'button'` arms a bounded ID-token wait without opening One-Tap. The
-rendered-button example uses that flow. A regression test covers suppression followed by the button.
-
 ### ISSUE-009 — docs site: wrong web token claim, stale Android FAQ, theme and font not applied
 - **Found:** 2026-11-03, LinkedIn card captures (docs build `main.85291707.js`).
 - `/providers/overview` line 40 says `result.credential.idToken` is populated on web; the web popup returns no ID token.
@@ -25,6 +12,8 @@ rendered-button example uses that flow. A regression test covers suppression fol
 - **2026-11-09 progress:** Corrected token, peer, Android-flow and CI copy. Changed the dark selector to
   `html[data-theme='dark']` so it wins over Infima's equally targeted rule, and bundled Inter's Latin
   weights 400/500/600/700. The docs build passes; browser preview and live verification are still due.
+- **2026-11-10:** the corrected copy is live with the 3.2.0 docs deploy (gh-pages `8674675`, bundle
+  `main.81fd5662.js` = local). Still due: a live check of the dark theme colour and the Inter font.
 - **Priority:** medium for the two content errors (developers copy them), low for theme and font.
 
 ### ISSUE-010 — Android build prints a deprecated-API note from `GoogleLegacySignIn.java`

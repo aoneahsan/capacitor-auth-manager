@@ -3,6 +3,22 @@
 History of closed entries from [`REPORTED-ISSUES.md`](./REPORTED-ISSUES.md), each with its fix date and
 fixing version. Entries are moved here, never deleted.
 
+### ISSUE-011 — Rendered Google button cannot return its ID token after One-Tap is suppressed
+
+**Status:** RESOLVED · **Fixed:** 2026-11-10 · **Published version:** 3.2.0 · **Reported:** 2026-11-09 (filed as a second ISSUE-008; renumbered to the next free id on 2026-11-10) · **Affects:** `capacitor-auth-manager@3.1.1`, Google web provider
+
+**Symptom** — An ID-token-only backend cannot use the OAuth2 popup's access token. After One-Tap is
+suppressed, selecting the rendered Google button does not settle the sign-in promise.
+
+**Cause** — The `one-tap` flow rejects a suppressed prompt and clears its credential resolver. The
+button shares Google's credential callback, which then ignores the later ID token.
+
+**Fix prepared** — `webFlow: 'button'` arms a bounded ID-token wait without opening One-Tap. The
+rendered-button example uses that flow. A regression test covers suppression followed by the button.
+
+**Proof** — 3.2.0 published 2026-11-10 and installed from the registry: CJS and ESM entries load, the web provider subpath loads, the dist carries the new error text; 35 tests, the packed-tarball smoke and a fresh Capacitor 8 consumer (debug + minified release, 281 tasks) pass.
+
+
 ### ISSUE-008 — README version and CI statements were stale
 
 **Status:** RESOLVED in source · **Fixed:** 2026-11-09 · **Source version:** 3.1.1 · **Reported:** 2026-11-03. The README and packaged AI guide now show the package's 3.1.1 release; local release checks replace stale CI and pull-request claims. `yarn check:release-docs` runs before the next npm publish and fails when the README or AI guide version drifts from `package.json`. The published npm README still requires a subsequent verified package release.
