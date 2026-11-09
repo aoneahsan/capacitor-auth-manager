@@ -8,12 +8,47 @@ if (!['android', 'ios'].includes(platform))
   throw new Error('Specify android or ios');
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'cam-native-'));
 const root = path.resolve(__dirname, '..');
-const yarn = process.platform === 'win32' ? 'yarn.cmd' : 'yarn';
+const androidSdk =
+  process.env.ANDROID_HOME ||
+  process.env.ANDROID_SDK_ROOT ||
+  (process.platform === 'win32'
+    ? path.join(
+        process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local'),
+        'Android',
+        'Sdk'
+      )
+    : null);
+const childEnv =
+  platform === 'android' && androidSdk && fs.existsSync(androidSdk)
+    ? { ...process.env, ANDROID_HOME: androidSdk, ANDROID_SDK_ROOT: androidSdk }
+    : process.env;
+// Node 24 rejects direct .cmd execution on Windows (spawnSync EINVAL). Invoke Corepack's
+// JavaScript entry with Node instead, so arguments are passed without a shell.
+const windowsYarnCli = path.join(
+  path.dirname(process.execPath),
+  'node_modules',
+  'corepack',
+  'dist',
+  'yarn.js'
+);
 function run(command, args, cwd = scratch) {
-  execFileSync(command, args, { cwd, stdio: 'inherit' });
+  execFileSync(command, args, { cwd, stdio: 'inherit', env: childEnv });
+}
+function runYarn(args, cwd = scratch) {
+  if (process.platform === 'win32') {
+    if (!fs.existsSync(windowsYarnCli))
+      throw new Error(`Corepack's Yarn entry is missing: ${windowsYarnCli}`);
+    run(process.execPath, [windowsYarnCli, ...args], cwd);
+  } else {
+    run('yarn', args, cwd);
+  }
 }
 try {
-  run(yarn, ['pack', '--out', path.join(scratch, 'candidate.tgz')], root);
+  if (platform === 'android' && childEnv === process.env)
+    throw new Error(
+      'Android SDK not found; set ANDROID_HOME or ANDROID_SDK_ROOT'
+    );
+  runYarn(['pack', '--out', path.join(scratch, 'candidate.tgz')], root);
   const version = require(path.join(root, 'package.json')).devDependencies[
     '@capacitor/core'
   ];
@@ -50,14 +85,14 @@ try {
     })
   );
   // This generated consumer has no lockfile yet; the repository install stays immutable.
-  run(yarn, ['install', '--no-immutable']);
-  run(yarn, [
+  runYarn(['install', '--no-immutable']);
+  runYarn([
     'cap',
     'add',
     platform,
     ...(platform === 'ios' ? ['--packagemanager', 'CocoaPods'] : []),
   ]);
-  run(yarn, ['cap', 'sync', platform]);
+  runYarn(['cap', 'sync', platform]);
   if (platform === 'android') {
     const appBuildPath = path.join(scratch, 'android/app/build.gradle');
     const appBuild = fs.readFileSync(appBuildPath, 'utf8');
@@ -68,8 +103,9 @@ try {
       appBuild.replace('minifyEnabled false', 'minifyEnabled true')
     );
     run(
-      './gradlew',
+      process.platform === 'win32' ? 'cmd.exe' : './gradlew',
       [
+        ...(process.platform === 'win32' ? ['/d', '/c', 'gradlew.bat'] : []),
         'assembleDebug',
         'assembleRelease',
         '--no-daemon',
@@ -101,5 +137,30 @@ try {
   console.error(`Native smoke failed; inspect ${scratch}`);
   process.exitCode = 1;
 } finally {
-  if (!process.exitCode) fs.rmSync(scratch, { recursive: true, force: true });
+  if (!process.exitCode) {
+    const resolvedScratch = fs.realpathSync(scratch);
+    const tempRoot = fs.realpathSync(os.tmpdir());
+    if (
+      path.dirname(resolvedScratch) !== tempRoot ||
+      !path.basename(resolvedScratch).startsWith('cam-native-')
+    ) {
+      throw new Error(
+        `Refusing to remove a smoke directory outside the system temp root: ${scratch}`
+      );
+    }
+    try {
+      // Gradle and Windows virus scanning can briefly hold files after a successful build.
+      fs.rmSync(resolvedScratch, {
+        recursive: true,
+        force: true,
+        maxRetries: 20,
+        retryDelay: 500,
+      });
+    } catch (error) {
+      console.warn(
+        `Native smoke passed, but scratch cleanup needs a retry: ${scratch}`,
+        error
+      );
+    }
+  }
 }

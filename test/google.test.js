@@ -2,7 +2,14 @@
 const { test, before, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert/strict');
 let Google, AuthErrorCode, WebStorage, Logger, AuthProvider;
-let callback, prompt, popup, tokenConfig, provider, saved, buttonRendered;
+let callback,
+  prompt,
+  popup,
+  tokenConfig,
+  provider,
+  saved,
+  buttonRendered,
+  initializeCalls;
 const claims = (extra = {}) => ({
   iss: 'https://accounts.google.com',
   aud: 'test-client',
@@ -22,6 +29,7 @@ before(async () => {
 beforeEach(() => {
   saved = new Map();
   buttonRendered = false;
+  initializeCalls = 0;
   prompt = () => {};
   popup = () => {};
   global.window = {
@@ -29,6 +37,7 @@ beforeEach(() => {
       accounts: {
         id: {
           initialize: (c) => {
+            initializeCalls++;
             callback = c.callback;
           },
           prompt: (notify) => prompt(notify),
@@ -131,13 +140,14 @@ test('a suppressed One-Tap can be followed by a rendered button ID token', async
   });
   await provider.renderButton({});
   assert.equal(buttonRendered, true);
+  assert.equal(initializeCalls, 1);
   prompt = () => {
     throw new Error('button flow must not open One-Tap');
   };
   const result = provider.signIn({ options: { webFlow: 'button' } });
   await new Promise((resolve) => setImmediate(resolve));
   const token = jwt(claims());
-  await callback({ credential: token });
+  await callback({ credential: token, select_by: 'btn' });
   const signedIn = await result;
   assert.equal(signedIn.credential.idToken, token);
   assert.equal(signedIn.credential.accessToken, undefined);
@@ -155,8 +165,11 @@ test('late One-Tap status cannot reject a newer button wait', async () => {
   const result = provider.signIn({ options: { webFlow: 'button' } });
   await new Promise((resolve) => setImmediate(resolve));
   oldMoment({ isNotDisplayed: () => true });
-  await callback({ credential: jwt(claims()) });
-  assert.ok((await result).credential.idToken);
+  const stale = jwt(claims({ sub: 'stale-one-tap' }));
+  await callback({ credential: stale, select_by: 'fedcm' });
+  const button = jwt(claims());
+  await callback({ credential: button, select_by: 'btn_confirm' });
+  assert.equal((await result).credential.idToken, button);
 });
 test('button flow requires a rendered Google button', async () => {
   await assert.rejects(provider.signIn({ options: { webFlow: 'button' } }), {
@@ -180,7 +193,7 @@ test('rendered button wait expires and permits a retry', async (t) => {
   await rejection;
   const retry = provider.signIn({ options: { webFlow: 'button' } });
   await new Promise((resolve) => setImmediate(resolve));
-  await callback({ credential: jwt(claims()) });
+  await callback({ credential: jwt(claims()), select_by: 'btn' });
   assert.ok((await retry).credential.idToken);
 });
 test('sign-out cancels a pending rendered button credential', async () => {
@@ -192,7 +205,7 @@ test('sign-out cancels a pending rendered button credential', async () => {
   });
   await provider.signOut();
   await rejection;
-  await callback({ credential: jwt(claims()) });
+  await callback({ credential: jwt(claims()), select_by: 'btn' });
   assert.equal(saved.size, 0);
 });
 test('overlapping direct calls reject instead of abandoning the first promise', async () => {

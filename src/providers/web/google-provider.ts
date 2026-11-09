@@ -146,6 +146,9 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
   private requestRevision = 0;
   private pendingPopupReject: ((error: AuthError) => void) | null = null;
   private hasRenderedButton = false;
+  private pendingCredentialFlow: 'one-tap' | 'button' | null = null;
+  private idConfigured = false;
+  private configuredIdHint?: string;
 
   constructor(config?: unknown) {
     super(resolveProviderConfig(AuthProvider.GOOGLE, config));
@@ -351,6 +354,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     return new Promise<AuthResult>((resolve, reject) => {
       this.pendingResolve = resolve;
       this.pendingReject = reject;
+      this.pendingCredentialFlow = 'button';
       this.pendingTimer = setTimeout(() => {
         this.rejectPending(
           new AuthError(
@@ -372,6 +376,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     return new Promise<AuthResult>((resolve, reject) => {
       this.pendingResolve = resolve;
       this.pendingReject = (e) => reject(e);
+      this.pendingCredentialFlow = 'one-tap';
       this.pendingTimer = setTimeout(() => {
         this.rejectPending(
           new AuthError(
@@ -391,6 +396,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
         // Drop the One-Tap resolvers so a late credential callback cannot double-resolve.
         this.pendingResolve = null;
         this.pendingReject = null;
+        this.pendingCredentialFlow = null;
         this.clearPendingTimer();
         this.signInWithPopup(loginHint).then(resolve, reject);
       };
@@ -455,6 +461,14 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
   ): Promise<void> {
     // Ignore a late callback after cancellation, timeout, or popup fallback.
     if (!this.pendingResolve) return;
+    // Google labels button responses separately from One-Tap. A late One-Tap result must not
+    // satisfy a newer wait that explicitly required a click on the rendered button.
+    if (
+      this.pendingCredentialFlow === 'button' &&
+      response.select_by !== 'btn' &&
+      response.select_by !== 'btn_confirm'
+    )
+      return;
     if (response.error || !response.credential) {
       this.rejectPending(
         new AuthError(
@@ -689,6 +703,8 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     const options = this.options as GoogleAuthOptions;
     const clientId = this.requireClientId();
     this.currentNonce = options.nonce;
+    const hint = loginHint ?? options.loginHint;
+    if (this.idConfigured && this.configuredIdHint === hint) return;
     const config: GoogleIdConfig = {
       client_id: clientId,
       callback: (response) => this.handleCredential(response),
@@ -701,7 +717,6 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     if (options.nonce) {
       config.nonce = options.nonce;
     }
-    const hint = loginHint ?? options.loginHint;
     if (hint) {
       config.login_hint = hint;
     }
@@ -709,6 +724,8 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
       config.hd = options.hostedDomain;
     }
     this.requireIdApi().initialize(config);
+    this.idConfigured = true;
+    this.configuredIdHint = hint;
   }
 
   private validateIdToken(idToken: string): GoogleProfileClaims {
@@ -820,6 +837,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     const resolve = this.pendingResolve;
     this.pendingResolve = null;
     this.pendingReject = null;
+    this.pendingCredentialFlow = null;
     resolve?.(result);
   }
 
@@ -828,6 +846,7 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
     const reject = this.pendingReject;
     this.pendingResolve = null;
     this.pendingReject = null;
+    this.pendingCredentialFlow = null;
     if (reject) {
       reject(error);
     } else {
@@ -860,6 +879,9 @@ export class GoogleAuthProviderWeb extends BaseAuthProvider {
       window.google?.accounts?.id?.cancel();
     }
     this.lastCredential = null;
+    this.hasRenderedButton = false;
+    this.idConfigured = false;
+    this.configuredIdHint = undefined;
     super.dispose();
   }
 
