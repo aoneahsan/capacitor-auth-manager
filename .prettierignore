@@ -10,3 +10,5 @@ apps-resources
 assets
 project-record
 project-record-ignore
+# Owner skill copies, synced by hash from the notebook: never reformat.
+.claude/skills/
