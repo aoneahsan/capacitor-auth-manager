@@ -5,6 +5,15 @@ All notable changes to `capacitor-auth-manager` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.1] — 2026-11-16
+
+Maintenance release: no API or behaviour change.
+
+### Changed
+
+- Rebuilt with current build tools (Rollup 4.68) on Node 26.13.1 LTS. Development dependencies are at latest
+  stable. The consumer Node requirement is unchanged.
+
 ## [3.2.0] — 2026-11-10
 
 ### Added

@@ -31,7 +31,7 @@ adapters ship with it, so the sign-in button is a few lines in whichever framewo
 
 | | |
 |---|---|
-| **Version** | `3.2.0` |
+| **Version** | `3.2.1` |
 | **License** | MIT |
 | **Node** | `>=24.0.0` |
 | **Platforms** | Web · iOS · Android |
@@ -468,7 +468,7 @@ Server imports are safe. Configure/prepare/sign in in browser code or client com
 <a id="changelog"></a>
 ## 🔄 Changelog&nbsp;[#](#changelog)
 
-Latest release: **`3.2.0`** — web `webFlow: 'button'` waits for an ID token from `GoogleAuthProviderWeb.renderButton()` without opening One-Tap or the OAuth2 popup. See the changelog for the full history.
+Latest release: **`3.2.1`** — maintenance: the library is rebuilt with current build tools on Node 26.13.1 LTS. No API or behaviour change. See the changelog for the full history.
 
 Full history: [CHANGELOG.md](https://github.com/aoneahsan/capacitor-auth-manager/blob/main/CHANGELOG.md).
 
