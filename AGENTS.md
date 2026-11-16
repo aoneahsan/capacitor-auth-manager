@@ -33,10 +33,12 @@ one at a time.
   Manager). `*/disabled-native-providers/` — kept-but-not-built native code for future providers.
 - `dist/` — build output (generated; not committed). `scripts/configure.js` — the published config CLI (`bin`).
 
+<!-- fleet:node-26-13-1 v1 --> Node 26.13.1 LTS (.nvmrc), packages latest — 2026-11-16
+
 ## Local development
 
 ```bash
-corepack enable                 # Yarn 4.18.1 is pinned via "packageManager" (Node >= 24)
+corepack enable                 # Yarn 4.18.1 is pinned via "packageManager"; develop on Node 26.13.1 (.nvmrc), consumers need >= 24
 corepack yarn install --immutable
 corepack yarn build             # clean + tsc + rollup → dist (ESM + CJS + browser)
 corepack yarn lint              # eslint — must be 0 errors / 0 warnings

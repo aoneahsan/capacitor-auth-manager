@@ -1,6 +1,6 @@
 # Package inventory
 
-Last Updated: 2026-11-04 (dependency pass: Capacitor 8.6, `tslib` 2.9.1, ESLint 10.14, Rollup 4.67, typescript-eslint 8.72, Angular 22.2.4; no majors)
+Last Updated: 2026-11-16 (Node 26.13.1 fleet pass: dev `.nvmrc` 24 → 26.13.1, consumer `engines.node >=24.0.0` unchanged; Capacitor 8.6.2, Angular 22.2.6, ESLint 10.15, Prettier 3.10.1, Rollup 4.68.3, typescript-eslint 8.72.2, Vue 3.5.45; no majors). Earlier 2026-11-04 (Capacitor 8.6, `tslib` 2.9.1, ESLint 10.14, Rollup 4.67, typescript-eslint 8.72, Angular 22.2.4)
 
 Package manager: Yarn 4.18.1. The committed lock resolves the current compatible patch releases inside the
 declared ranges; the production package version remains 3.0.0 because this pass changes development tooling
@@ -9,29 +9,29 @@ and dependency resolution only. The recursive package audit reports zero advisor
 | Dependency | Range | Purpose |
 |---|---|---|
 | `tslib` | `^2.9.1` | TypeScript runtime helpers |
-| `@angular/common` | `^22.2.4` | Angular adapter templates/module dependency |
-| `@angular/core` | `^22.2.4` | Angular adapter injection and decorators |
-| `@angular/platform-browser` | `^22.2.4` | Required Angular router peer for build/smoke |
-| `@angular/router` | `^22.2.4` | Angular route guards |
-| `@capacitor/android` | `^8.6.0` | Native Android compile consumer |
-| `@capacitor/cli` | `^8.6.0` | Native consumer setup and sync |
-| `@capacitor/core` | `^8.6.0` | Plugin bridge; required runtime peer |
-| `@capacitor/ios` | `^8.6.0` | Native iOS compile consumer |
+| `@angular/common` | `^22.2.6` | Angular adapter templates/module dependency |
+| `@angular/core` | `^22.2.6` | Angular adapter injection and decorators |
+| `@angular/platform-browser` | `^22.2.6` | Required Angular router peer for build/smoke |
+| `@angular/router` | `^22.2.6` | Angular route guards |
+| `@capacitor/android` | `^8.6.2` | Native Android compile consumer |
+| `@capacitor/cli` | `^8.6.2` | Native consumer setup and sync |
+| `@capacitor/core` | `^8.6.2` | Plugin bridge; required runtime peer |
+| `@capacitor/ios` | `^8.6.2` | Native iOS compile consumer |
 | `@capacitor/preferences` | `^8.0.1` | Optional metadata storage peer |
 | `@rollup/plugin-json` | `^6.1.0` | JSON import support |
 | `@rollup/plugin-node-resolve` | `^16.0.3` | Bundled module resolution |
 | `@trapezedev/configure` | `^7.1.11` | Required native configuration tooling |
 | `@types/node` | `^26.6.6` | Build/test Node declarations |
 | `@types/react` | `^19.3.0` | React adapter declarations |
-| `eslint` | `^10.14.0` | Static lint checks |
-| `prettier` | `^3.9.10` | Formatting |
+| `eslint` | `^10.15.0` | Static lint checks |
+| `prettier` | `^3.10.1` | Formatting |
 | `react` | `^19.3.1` | Optional React adapter peer and smoke checks |
 | `rimraf` | `^6.1.4` | Clean generated artifacts |
-| `rollup` | `^4.67.5` | IIFE and CommonJS output |
+| `rollup` | `^4.68.3` | IIFE and CommonJS output |
 | `rxjs` | `^7.8.2` | Angular observables; optional peer |
 | `typescript` | `~6.0.3` | Compiler; pin ~6.0.3 because TS7 removes toolchain JS APIs |
-| `typescript-eslint` | `^8.72.1` | ESLint TypeScript parser/rules |
-| `vue` | `^3.5.44` | Optional Vue adapter peer |
+| `typescript-eslint` | `^8.72.2` | ESLint TypeScript parser/rules |
+| `vue` | `^3.5.45` | Optional Vue adapter peer |
 
 ## Native dependencies
 
