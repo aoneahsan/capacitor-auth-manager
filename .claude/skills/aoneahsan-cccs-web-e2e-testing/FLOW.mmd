@@ -1,0 +1,53 @@
+%% Web E2E verification — full flow
+%% Pure Mermaid. No Markdown fence.
+
+flowchart TD
+    trigger([Verifying a feature end to end]) --> hook{Does a DEV-only<br/>test-auth hook exist?}
+
+    hook -->|no| build[Add it: window.__xxTestAuth<br/>dynamic-imported ONLY under import.meta.env.DEV]
+    hook -->|yes| real
+
+    build --> real{Does it drive the app's<br/>REAL auth client?}
+    real -->|no| fixreal[Rewrite it. A simulated session<br/>verifies nothing]
+    fixreal --> real
+    real -->|yes| role
+
+    role{Is this a normal user flow?}
+    role -->|yes| plain[🔴 Use a PLAIN account.<br/>An admin passes rules a real user hits.<br/>This exact mistake reported PASS TWICE<br/>on a 100%-broken feature]
+    role -->|"no, genuinely admin-side"| admin[Use the admin account]
+
+    plain --> seed
+    admin --> seed
+
+    seed[SEED server state via the backend admin key<br/>— before asserting anything]
+    seed --> pw[Read the password at RUNTIME<br/>from ~/.secrets, shell → CDP.<br/>Never a tool argument, never echoed]
+
+    pw --> drive[Drive a HEADED controlled profile.<br/>Multi-user = isolated profiles or origins,<br/>one account each]
+
+    drive --> assert{Asserted against the SERVER?}
+    assert -->|"only the UI"| ui[Not enough. The UI can render<br/>optimistically over a write that failed]
+    ui --> assert
+
+    assert -->|yes| rows{Did the probe return ROWS?}
+    rows -->|"200 but zero rows"| vacuous[🔴 Proves NOTHING — zero rows satisfy<br/>any policy vacuously. Seed, then re-probe]
+    vacuous --> seed
+
+    rows -->|yes| sweep[Responsive sweep<br/>320 · 375 · 768 · 1024 · 1440 · 1920]
+    sweep --> clean[Delete what was created.<br/>KILL the dev server]
+
+    clean --> gate{Build gate: grep dist/ for the hook = 0?<br/>No password anywhere in the repo?}
+    gate -->|"hook present"| strip[It must never ship.<br/>Fix the DEV-only import and rebuild]
+    gate -->|"leak found"| rm[Remove it — secrets live in ~/.secrets/]
+    strip --> gate
+    rm --> gate
+
+    gate -->|clean| done([Done: verified as a real non-admin user,<br/>against seeded data, with the server agreeing])
+
+    seed -.roster · password location · per-project hooks.-> reg[(../rules/automation-test-accounts.md)]
+
+    classDef gate fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef stopnode fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+    class hook,real,role,assert,rows,gate gate
+    class trigger,done terminal
+    class plain,vacuous stopnode

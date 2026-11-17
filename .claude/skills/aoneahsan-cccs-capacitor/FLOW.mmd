@@ -1,0 +1,55 @@
+%% aoneahsan-cccs-capacitor — full flow
+flowchart TD
+    trigger([Capacitor work]) --> task{What are you doing?}
+
+    task -->|adding Capacitor| add[yarn add @capacitor/core @capacitor/cli<br/>then npx cap add android]
+    add --> appid[Set appId from the domain reversed<br/>and ANNOTATE it as permanent —<br/>a published id cannot change<br/>without orphaning every user]
+    appid --> ts
+
+    task -->|editing capacitor.config.ts| env[/🔴 THE ENV TRAP/]
+    env --> reads{Does the config read<br/>any VITE_ or env value?}
+    reads -->|yes| loader["Add the process.loadEnvFile loop.<br/>The CLI requires this file in a plain<br/>Node process — Vite never runs during<br/>cap sync, so nothing populates<br/>process.env, and import.meta.env<br/>does not exist there at all"]
+    loader --> order{Is .env.local listed BEFORE .env?}
+    order -->|no| fixorder[Reorder. loadEnvFile is FIRST-WINS,<br/>so the most specific file must<br/>come first to match Vite]
+    order -->|yes| guard{Guarded with existsSync?}
+    fixorder --> guard
+    guard -->|no| addguard[Add it — loadEnvFile throws ENOENT<br/>on a missing file]
+    guard -->|yes| loud
+    addguard --> loud
+    loud[Throw in the config when a required<br/>value is missing — names the VARIABLE,<br/>never the value]
+    reads -->|no| ts
+    loud --> ts
+
+    ts{TypeScript version?}
+    ts -->|7.x| pin[Pin ~6.0.3. cap sync transpiles<br/>this config through the TS JS API,<br/>which TS7 removed]
+    ts -->|6.x| sync
+    pin --> sync
+
+    task -->|running cap sync| sync[npx cap sync android]
+    sync --> verify[/VERIFY THE GENERATED FILE,<br/>not the source/]
+    verify --> check["grep the value in<br/>android/app/src/main/assets/capacitor.config.json"]
+    check --> empty{Is any value empty?}
+    empty -->|yes| back[The env loader is wrong.<br/>typecheck and lint will NOT catch this —<br/>the config is outside tsconfig.include<br/>and the lint ignores]
+    back --> loader
+    empty -->|no| ok[Config is correct]
+
+    task -->|web vs native behaviour| branch["Branch on Capacitor.isNativePlatform<br/>AT THE CALL SITE"]
+    branch --> nosilent[Never inside a helper with a silent<br/>fallback — that is how a web user<br/>clicks Share and nothing happens]
+
+    task -->|content behind the<br/>status/nav bars| insets{How many inset owners?}
+    insets -->|two| conflict[Content renders behind the bars.<br/>Pick ONE]
+    insets -->|zero| conflict
+    insets -->|one| insetok[Correct: either the edge-to-edge plugin<br/>WITH core SystemBars insets disabled,<br/>OR env safe-area-inset with<br/>viewport-fit=cover]
+    conflict --> insetok
+
+    ok --> done
+    nosilent --> done
+    insetok --> done
+    done([Build, then verify on a real device])
+
+    classDef gateNode fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef warn fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+    class task,reads,order,guard,ts,empty,insets gateNode
+    class trigger,done terminal
+    class env,verify,back,conflict warn

@@ -1,0 +1,41 @@
+flowchart TD
+    A[Trigger: copy skills / which skills / new clone / vet a skill] --> B{Library present at sources.json localRoot?}
+    B -- no --> B1[Say so; offer rebuild by cloning every url at its pinned commit] --> Z
+    B -- yes --> C{Mode}
+
+    C -- "new repo in inbox" --> R1[Read README + representative SKILL.md]
+    R1 --> R2[Run security.md scan over the repo]
+    R2 --> R3[Dedupe by content hash; keep shallowest path; skip test/example fixtures]
+    R3 --> R4[Extract frontmatter; invalid name slug falls back to directory name]
+    R4 --> R5[Assign trust tier + stable COPY_SLUG]
+    R5 --> R6[Update CATALOG.json, sources.json, repos.md; re-date security.md]
+    R6 --> R7[mv repo into _reviewed/] --> Z
+
+    C -- "copy into project" --> D[Audit project: stack, UI-heavy?, existing .claude/skills/]
+    D --> E{Project has a UI?}
+    E -- no --> E1[Say it needs no cloned skills] --> Z
+    E -- yes --> F[Match a recipe in recipes.md]
+    F --> G[Drop anything the house aoneahsan-cccs family already covers]
+    G --> H{Codex session?}
+    H -- yes --> J{Trust tier}
+    H -- no --> I[Propose 3-6 skills, one justification each + copyNotes]
+    I --> I1{Owner approves?}
+    I1 -- no --> Z
+    I1 -- yes --> J
+
+    J -- "quarantined / excluded-by-policy" --> J1[PAUSE: owner must name the skill] --> K
+    J -- "official / vendor / community" --> K[Vet each folder against security.md]
+    K --> L{Red flag found?}
+    L -- yes --> L1[Stop that skill; report why] --> Z
+    L -- no --> M[cp -R source to .claude/skills/copyAs]
+
+    M --> N[Trim unused scripts, assets, .git, other-agent copies]
+    N --> O[Rewrite frontmatter name to equal folder name]
+    O --> P[Rewrite every CLAUDE_PLUGIN_ROOT path to skill-relative]
+    P --> Q[VERIFY: name matches, no CLAUDE_PLUGIN_ROOT left, scripts actually run, no secrets copied]
+    Q --> Q1{Retained script runs?}
+    Q1 -- no --> Q2[Report honestly: drop it or keep as prose-only]
+    Q1 -- yes --> S[Write EXTERNAL-SKILLS.md: repo, commit, date, why, fixups]
+    Q2 --> S
+    S --> T[Stage paths; project's one-commit-per-prompt flow carries them]
+    T --> Z([Done])

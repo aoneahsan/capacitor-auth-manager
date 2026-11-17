@@ -1,0 +1,379 @@
+{
+  "_about": "Owner-skill copies in this repo and their versions (rules/project-skill-copies.md). Written by /sync-project-skills and aoneahsan-cccs-codex-skill-gate; edit only `pinned` and `localFixups`.",
+  "kind": "app",
+  "visibility": "PUBLIC",
+  "profile": [
+    "web-frontend",
+    "typescript",
+    "node",
+    "capacitor",
+    "reported-issues"
+  ],
+  "lastChecked": "2026-11-17",
+  "nextDue": "2026-12-02",
+  "notebookHead": "a54e55405cb7",
+  "pinned": [],
+  "localFixups": {},
+  "skills": {
+    "aoneahsan-cccs-analytics": {
+      "sourceHash": "b3fff3758353d073",
+      "copiedHash": "b3fff3758353d073",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-ask-the-owner": {
+      "sourceHash": "33a20bba33702c27",
+      "copiedHash": "33a20bba33702c27",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-brainstorming": {
+      "sourceHash": "4bf0e5b9eb5aa458",
+      "copiedHash": "4bf0e5b9eb5aa458",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-capacitor": {
+      "sourceHash": "901e54125f6a3fcb",
+      "copiedHash": "901e54125f6a3fcb",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-capacitor-packages-setup": {
+      "sourceHash": "1359a43a0e8ca6b5",
+      "copiedHash": "1359a43a0e8ca6b5",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-catalog": {
+      "sourceHash": "15362cf47c7a4f36",
+      "copiedHash": "15362cf47c7a4f36",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-cloned-skills-library": {
+      "sourceHash": "34eca3497cc366e8",
+      "copiedHash": "34eca3497cc366e8",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-cloudflare-platform": {
+      "sourceHash": "9d0b2f253f9bb5a1",
+      "copiedHash": "9d0b2f253f9bb5a1",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-codex-skill-gate": {
+      "sourceHash": "024cdf26ed3ab93f",
+      "copiedHash": "024cdf26ed3ab93f",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-coding-standards": {
+      "sourceHash": "4f67f9dd4076bc93",
+      "copiedHash": "4f67f9dd4076bc93",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-commands": {
+      "sourceHash": "07032c7167345c65",
+      "copiedHash": "07032c7167345c65",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-component-playground": {
+      "sourceHash": "a11b4351ff5ad0ad",
+      "copiedHash": "a11b4351ff5ad0ad",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-copywriting": {
+      "sourceHash": "8b69192ba1232e0a",
+      "copiedHash": "8b69192ba1232e0a",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-custom-made": {
+      "sourceHash": "9c68393ad6f8e471",
+      "copiedHash": "9c68393ad6f8e471",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-debugging": {
+      "sourceHash": "65858de1bc95cd18",
+      "copiedHash": "65858de1bc95cd18",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-design-process": {
+      "sourceHash": "7e14a3f7d62d43ae",
+      "copiedHash": "7e14a3f7d62d43ae",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-design-system": {
+      "sourceHash": "56821fe8041b40cb",
+      "copiedHash": "56821fe8041b40cb",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-documentation": {
+      "sourceHash": "6dd6620dfd04b9de",
+      "copiedHash": "6dd6620dfd04b9de",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-error-tracking": {
+      "sourceHash": "c9026034564be411",
+      "copiedHash": "c9026034564be411",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-feed": {
+      "sourceHash": "a811a149898c36c7",
+      "copiedHash": "a811a149898c36c7",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-fix-reported-issues": {
+      "sourceHash": "4056dff314f9a0fa",
+      "copiedHash": "4056dff314f9a0fa",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-frontend-design": {
+      "sourceHash": "b4d497f9bb89149b",
+      "copiedHash": "b4d497f9bb89149b",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-frontend-development": {
+      "sourceHash": "e6cc3ffeeb5df2d1",
+      "copiedHash": "e6cc3ffeeb5df2d1",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-git-workflow": {
+      "sourceHash": "f44563c88319ff95",
+      "copiedHash": "f44563c88319ff95",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-guided-tours": {
+      "sourceHash": "5e272c40dc06cfc5",
+      "copiedHash": "5e272c40dc06cfc5",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-i18n": {
+      "sourceHash": "e2b801b2239919e5",
+      "copiedHash": "e2b801b2239919e5",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-interaction-feedback": {
+      "sourceHash": "26e79414d4ef1f93",
+      "copiedHash": "26e79414d4ef1f93",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-javascript": {
+      "sourceHash": "be1126bd200abb61",
+      "copiedHash": "be1126bd200abb61",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-markdown": {
+      "sourceHash": "9c93446b369bcea4",
+      "copiedHash": "9c93446b369bcea4",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-mobile-app-feel": {
+      "sourceHash": "3746619abc0ac4d9",
+      "copiedHash": "3746619abc0ac4d9",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-motion": {
+      "sourceHash": "ae97466e76f9c0a8",
+      "copiedHash": "ae97466e76f9c0a8",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-native-update": {
+      "sourceHash": "f9c3cf5682713d43",
+      "copiedHash": "f9c3cf5682713d43",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-nodejs": {
+      "sourceHash": "a0b5b39aef4bcd53",
+      "copiedHash": "a0b5b39aef4bcd53",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-onesignal": {
+      "sourceHash": "fe2730cc731da921",
+      "copiedHash": "fe2730cc731da921",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-packages-up-to-date": {
+      "sourceHash": "7ca446c16c0a8027",
+      "copiedHash": "7ca446c16c0a8027",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-product-audit": {
+      "sourceHash": "c270870435978bb5",
+      "copiedHash": "c270870435978bb5",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-programming-principles": {
+      "sourceHash": "be638303c3542ed5",
+      "copiedHash": "be638303c3542ed5",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-project-completion": {
+      "sourceHash": "0806110173d4372a",
+      "copiedHash": "0806110173d4372a",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-project-understanding": {
+      "sourceHash": "04a96fd3f1304189",
+      "copiedHash": "04a96fd3f1304189",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-pwa-no-cache": {
+      "sourceHash": "0bf7f6a5ac2bb88b",
+      "copiedHash": "0bf7f6a5ac2bb88b",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-react": {
+      "sourceHash": "94a9e9226902c75e",
+      "copiedHash": "94a9e9226902c75e",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-react-accessibility": {
+      "sourceHash": "90d7485f7e862931",
+      "copiedHash": "90d7485f7e862931",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-react-aria": {
+      "sourceHash": "a085891fde3f8298",
+      "copiedHash": "a085891fde3f8298",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-react-components": {
+      "sourceHash": "f76ccd61e71fea08",
+      "copiedHash": "f76ccd61e71fea08",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-react-performance": {
+      "sourceHash": "85fa001cfdbdfca8",
+      "copiedHash": "85fa001cfdbdfca8",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-react-theming": {
+      "sourceHash": "b9eb2e45fa5a878a",
+      "copiedHash": "b9eb2e45fa5a878a",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-react-ui-ux": {
+      "sourceHash": "fc9d6ab442c723ab",
+      "copiedHash": "fc9d6ab442c723ab",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-realtime-not-polling": {
+      "sourceHash": "ce09568031b5ad66",
+      "copiedHash": "ce09568031b5ad66",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-report-project-issues": {
+      "sourceHash": "f5d6aadd0323fbc9",
+      "copiedHash": "f5d6aadd0323fbc9",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-sitemap": {
+      "sourceHash": "250fea97c0293f2c",
+      "copiedHash": "250fea97c0293f2c",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-store-listing-assets": {
+      "sourceHash": "12143bafa1e1be55",
+      "copiedHash": "12143bafa1e1be55",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-store-presence": {
+      "sourceHash": "307ef26d142e987a",
+      "copiedHash": "307ef26d142e987a",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-story-craft": {
+      "sourceHash": "5ecd5936868744b1",
+      "copiedHash": "5ecd5936868744b1",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-story-humanize": {
+      "sourceHash": "144cfc733c284008",
+      "copiedHash": "144cfc733c284008",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-task-planning": {
+      "sourceHash": "c7b69d5607e2acee",
+      "copiedHash": "c7b69d5607e2acee",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-typescript": {
+      "sourceHash": "c655bb445a1d14c5",
+      "copiedHash": "c655bb445a1d14c5",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-update-flow": {
+      "sourceHash": "863c545e87ad2f0c",
+      "copiedHash": "863c545e87ad2f0c",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-url-state-persistence": {
+      "sourceHash": "af5fda9cee690ce6",
+      "copiedHash": "af5fda9cee690ce6",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-verification": {
+      "sourceHash": "cf78507c29890007",
+      "copiedHash": "cf78507c29890007",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    },
+    "aoneahsan-cccs-web-e2e-testing": {
+      "sourceHash": "846fed7489b12576",
+      "copiedHash": "846fed7489b12576",
+      "copiedAt": "2026-11-17",
+      "state": "current"
+    }
+  }
+}

@@ -1,0 +1,50 @@
+%% aoneahsan-cccs-react-theming — full flow
+flowchart TD
+    trigger([Theme work]) --> task{What are you doing?}
+
+    task -->|building the customiser| options[Expose the FULL option set]
+    options --> o1[Appearance: light / dark / system]
+    o1 --> o2[Accent: 8+ swatches, tooltip,<br/>check on the selected one]
+    o2 --> o3[Neutral tone · radius · scaling ·<br/>font size · panel background]
+    o3 --> control{How is each option rendered?}
+    control -->|dropdown| nodrop[NEVER a dropdown — it hides the<br/>thing being chosen]
+    control -->|cards| preview[Cards PREVIEW their own property:<br/>radius cards at their radius,<br/>font cards at their size.<br/>The preview IS the control]
+    nodrop --> preview
+    preview --> access[Reachable from a header palette icon<br/>for SIGNED-OUT users too.<br/>Scroll area + Reset to defaults]
+
+    task -->|appearance = system| media["Resolve via prefers-color-scheme<br/>WITH a live change listener —<br/>follow the OS when it changes,<br/>not only at load"]
+
+    task -->|persisting| who{Is the user signed in?}
+    who -->|no| local[Device storage via the project's<br/>storage layer. NEVER raw localStorage]
+    who -->|yes| remote[Backend user record + device cache]
+    remote --> signin[On sign-in: fetch remote.<br/>REMOTE WINS. Write back to cache]
+    signin --> norow{Did the user have<br/>a stored row?}
+    norow -->|no| push[Push current local prefs up so<br/>the server has a row]
+    norow -->|yes| debounce
+    push --> debounce
+    local --> debounce
+    debounce[Debounce remote writes >=500ms —<br/>dragging through swatches must not<br/>become a write per frame]
+    debounce --> signout[On sign-out: KEEP local values.<br/>The device shows the last choice]
+
+    task -->|app flashes the<br/>wrong theme| gate[/🔴 HYDRATION GATE/]
+    gate --> both{Held until BOTH store rehydrated<br/>AND auth resolved?}
+    both -->|no| addgate[Hold first paint behind the boot loader.<br/>Theme alone is not enough — auth<br/>resolving later causes a second flash]
+    both -->|yes| tokens
+    addgate --> tokens
+
+    access --> tokens
+    media --> tokens
+    signout --> tokens
+    tokens{Does any component read the<br/>theme store to pick a colour,<br/>or hardcode a hex?}
+    tokens -->|yes| fixtokens[Replace with a token.<br/>Hardcoded values are invisible<br/>to every option above]
+    tokens -->|no| verify
+    fixtokens --> verify
+
+    verify([Verify EVERY surface against EVERY<br/>option — each accent, radius and scale,<br/>not just light vs dark])
+
+    classDef gateNode fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef warn fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+    class task,control,who,norow,both,tokens gateNode
+    class trigger,verify terminal
+    class nodrop,gate warn

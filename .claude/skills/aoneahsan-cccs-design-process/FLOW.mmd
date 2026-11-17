@@ -1,0 +1,38 @@
+flowchart TD
+    A[Trigger: new UI, redesign, vague visual request, or generic output] --> B{Artefacts already exist and current?}
+    B -- yes --> B1[Read them; resume at the first incomplete stage]
+    B -- no --> C
+
+    C[1 GRILL: who, what job, success, out of scope, constraints] --> C1{Can you state what and for whom in 2 sentences?}
+    C1 -- no --> C2[Owner-only gap? ask-the-owner and PAUSE] --> C
+    C1 -- yes --> D
+
+    D[2 BRIEF: read codebase first, then audience, tone, references] --> D1[State the one-line DESIGN READ]
+    D1 --> D2{Audience, tone and references named?}
+    D2 -- no --> D
+    D2 -- yes --> E
+
+    E[3 ARCHITECTURE: routes, nav, hierarchy, URL state] --> E1[Each flow: entry, steps, success state, failure state]
+    E1 --> E2{Every screen reachable and every flow has a failure state?}
+    E2 -- no --> E
+    E2 -- yes --> F
+
+    F[4 TOKENS: primitive, then semantic, then component] --> F1[Read palettes/project-palettes.json; claim an UNUSED OKLCH hue]
+    F1 --> F2[Type scale + measure; motion duration/easing; reduced-motion at token layer]
+    F2 --> F3{Contrast passes 4.5:1 in BOTH light and dark?}
+    F3 -- no --> F
+    F3 -- yes --> G
+
+    G[5 TASKS: foundation, core UI, responsive, polish] --> G1{Multi-session or resumable?}
+    G1 -- yes --> G2[Scaffold docs/features/slug/00-tracker.json]
+    G1 -- no --> H
+    G2 --> H
+
+    H[6 BUILD: mobile-first 320 up, tokens only, states built not deferred] --> I
+
+    I[7 REVIEW: RUN the app, do not read the code] --> I1[320/375/768/1024/1440/1920 + keyboard + contrast + empty/loading/error + reduced-motion]
+    I1 --> J{Findings?}
+    J -- yes --> K[Fix, then re-run the checklist] --> I
+    J -- no --> L([Done: artefacts recorded, decisions in their canonical home])
+
+    B1 --> C

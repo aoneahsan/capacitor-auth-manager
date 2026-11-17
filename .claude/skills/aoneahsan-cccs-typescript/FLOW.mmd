@@ -1,0 +1,52 @@
+%% aoneahsan-cccs-typescript — full flow
+flowchart TD
+    trigger([TypeScript work: config, upgrade,<br/>or a typing decision]) --> what{Which?}
+
+    what -->|upgrade proposed| tscheck[/Check the ledger:<br/>~/.claude/rules/package-version-known-issues.md/]
+    tscheck --> live["Live test:<br/>npm view @typescript-eslint/typescript-estree@latest<br/>peerDependencies.typescript"]
+    live --> allowed{Peer range<br/>allows the target?}
+    allowed -->|no| pin[PIN typescript ~6.0.3.<br/>TS7 breaks typescript-eslint AND cap sync.<br/>TS 6.1+ is already out of range]
+    allowed -->|yes| capcheck{Does cap sync transpile<br/>a .ts config under it?}
+    capcheck -->|no| pin
+    capcheck -->|yes| upgrade[Upgrade + run all gates]
+    pin --> migrate
+
+    what -->|configuring tsconfig| migrate[Apply the TS7-ready migration:<br/>drop baseUrl, relative paths,<br/>drop ignoreDeprecations]
+    migrate --> strict[strict: true, no experimental extras<br/>sourceMap/declarationMap/inlineSourceMap: false]
+
+    what -->|typing a value| boundary{Is this a module<br/>boundary?}
+    boundary -->|yes| annotate[Annotate it — exports, API<br/>responses, props]
+    boundary -->|no| infer[Let inference work.<br/>Over-annotating internals drifts]
+    annotate --> derive
+    infer --> derive
+    derive{Does an equivalent type<br/>already exist?}
+    derive -->|yes| reuse["Derive it: z.infer, ReturnType,<br/>keyof, indexed access.<br/>Never hand-maintain a parallel type"]
+    derive -->|no| shape{Multiple states<br/>with different data?}
+    shape -->|yes| union[Discriminated union —<br/>make impossible states unrepresentable]
+    shape -->|no| plain[Plain type]
+
+    what -->|compiler rejects a change| triage{Which is actually true?}
+    triage -->|types right,<br/>code wrong| fixcode[Fix the code]
+    triage -->|type is wrong| fixtype[Fix the type at the boundary, once]
+    triage -->|checker cannot<br/>see what you can| narrow[Narrow explicitly. If asserting,<br/>add a comment saying WHY it is safe.<br/>An unexplained cast is a delayed bug]
+
+    strict --> anyrule
+    reuse --> anyrule
+    union --> anyrule
+    plain --> anyrule
+    fixcode --> anyrule
+    fixtype --> anyrule
+    narrow --> anyrule
+    upgrade --> anyrule
+    anyrule{Any 'any' introduced?}
+    anyrule -->|yes| unknown[Replace with unknown —<br/>force the narrowing at the boundary]
+    anyrule -->|no| done
+    unknown --> done
+    done([Run typecheck + lint + build])
+
+    classDef gateNode fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef warn fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+    class what,allowed,capcheck,boundary,derive,shape,triage,anyrule gateNode
+    class trigger,done terminal
+    class pin,tscheck warn

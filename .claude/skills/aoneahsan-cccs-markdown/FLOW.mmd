@@ -1,0 +1,61 @@
+flowchart TD
+    A[Writing or editing a markdown file] --> B{Who reads it?}
+
+    B -->|"Public: package README, CONTRIBUTING,<br/>CHANGELOG, public repo docs, docs-site page"| PUB[Public tier]
+    B -->|"Internal: CLAUDE.md, AGENTS.md,<br/>rules/, project docs/, trackers"| INT[Internal tier]
+
+    INT --> S[Style rules only]
+    PUB --> S
+
+    S --> S1[One H1, no skipped levels]
+    S1 --> S2[Every code fence names a language]
+    S2 --> S3[Tables for anything enumerable]
+    S3 --> S4[Images: alt text + explicit width, SVG master]
+    S4 --> S5{Callout needed?}
+    S5 -->|GitHub / npm| S6["&gt; [!NOTE|IMPORTANT|WARNING]"]
+    S5 -->|Docs site| S7[":::note admonition"]
+    S5 -->|No| S8
+    S6 --> S8[Single-home rule: one fact, one section]
+    S7 --> S8
+
+    S8 --> M{Which tier?}
+    M -->|Internal| I1["Last Updated: YYYY-MM-DD"]
+    I1 --> DONE
+
+    M -->|Public| P1[Anchor contract applies]
+
+    P1 --> P2["Slug = kebab-case of heading text,<br/>emoji dropped"]
+    P2 --> P3{"Slug already used<br/>in this file?"}
+    P3 -->|Yes| P4[STOP: duplicate heading.<br/>Rename one — ids collide]
+    P4 --> P2
+    P3 -->|No| P5["&lt;a id='slug'&gt;&lt;/a&gt;<br/>## EMOJI Title&amp;nbsp;[#](#slug)"]
+
+    P5 --> P6{One emoji per H2<br/>from the section map?}
+    P6 -->|H3 or deeper| P7[No emoji — plain heading]
+    P6 -->|H2| P8[Emoji from the shared map]
+    P7 --> P9
+    P8 --> P9{File over ~100 lines?}
+
+    P9 -->|Yes| P10[TOC from H2s only,<br/>above the first H2]
+    P9 -->|No| P11
+    P10 --> P11{Heading added, renamed,<br/>reordered or removed?}
+    P11 -->|Yes| P12[Regenerate the TOC<br/>in the SAME edit]
+    P11 -->|No| P13
+    P12 --> P13{Link target}
+
+    P13 -->|Same file| P14["Bare fragment: #slug<br/>never write user-content-"]
+    P13 -->|Inside the repo| P15[Relative path]
+    P13 -->|"Reachable from npmjs.com"| P16[ABSOLUTE URL —<br/>npm renders off-repo,<br/>relative links are dead]
+
+    P14 --> V
+    P15 --> V
+    P16 --> V[Verify]
+
+    V --> V1[Every TOC entry matches a heading]
+    V1 --> V2[No duplicate anchor id]
+    V2 --> V3[Every link returns 200/301]
+    V3 --> DONE([Done])
+
+    style P4 fill:#ffe0e0,stroke:#c00
+    style P16 fill:#fff4d6,stroke:#c90
+    style DONE fill:#e0f0e0,stroke:#0a0

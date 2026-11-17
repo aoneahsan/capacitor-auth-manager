@@ -1,0 +1,51 @@
+%% aoneahsan-cccs-react-components — full flow
+flowchart TD
+    trigger([Building or reviewing a component]) --> age{What kind of project?}
+
+    age -->|existing, on<br/>Radix or ShadCN| keep[KEEP the library.<br/>Use its components — not raw<br/>button/input/select.<br/>Do NOT migrate unprompted]
+    age -->|new project| custom[Tailwind latest + CUSTOM components]
+    age -->|deliberate UI redo| custom
+
+    custom --> criteria{Does the custom component deliver<br/>ALL of what the library gave?}
+    criteria --> c1[Theme management]
+    c1 --> c2[Colour management]
+    c2 --> c3[Font + typography control]
+    c3 --> c4[Contrast management]
+    c4 --> c5[Accessibility: keyboard, ARIA, focus]
+    c5 --> criteriaok{All six satisfied?}
+    criteriaok -->|no| fixcriteria[Not shippable yet —<br/>these are acceptance criteria,<br/>not extras]
+    fixcriteria --> criteria
+    criteriaok -->|yes| kind
+
+    keep --> kind
+    kind{What is the component?}
+
+    kind -->|options: checkbox,<br/>radio or select| count{How many options?}
+    count -->|8 or fewer| cards[CARD UI: option-specific SVG icon +<br/>title + one-line description.<br/>Selected state unmistakable]
+    cards --> dense{Dense form?}
+    dense -->|yes| tight[Tight variant: icon left, label right,<br/>no description]
+    dense -->|no| cardsok[Full cards]
+    count -->|more than 8| list[Vertical scrollable list,<br/>icon left + label right, or a select.<br/>Cards become overwhelming]
+
+    kind -->|chart| d3[D3.js ONLY.<br/>No Recharts/Chart.js/Victory/Nivo —<br/>wrappers eventually block the design]
+
+    kind -->|anything else| dup{Has this markup<br/>appeared before?}
+    dup -->|first time| inline[Write it in place —<br/>do not abstract yet]
+    dup -->|second time| together{Will BOTH copies always<br/>change together?}
+    together -->|yes| extract[Extract to components/ui/]
+    together -->|no| leavedup[Leave the duplication.<br/>Visually similar often diverges]
+
+    tight --> props
+    cardsok --> props
+    list --> props
+    d3 --> props
+    inline --> props
+    extract --> props
+    leavedup --> props
+    props[Named props, never positional —<br/>prop names ARE the public API]
+    props --> done([Responsive 320-1920, light + dark,<br/>then gates])
+
+    classDef gateNode fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    class age,criteria,criteriaok,kind,count,dense,dup,together gateNode
+    class trigger,done terminal

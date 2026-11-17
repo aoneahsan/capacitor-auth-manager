@@ -1,0 +1,102 @@
+# Banned phrases — the SINGLE source read by BOTH the humanize skill and the lint hook
+# (global-config/hooks/posttooluse-story-lint.sh). One phrase per line, matched case-insensitively
+# on word boundaries; a line starting with # is a comment. Multi-word phrases match with any
+# whitespace between the words. A draft may allow one phrase deliberately with an HTML comment
+# on its own line:   <!-- story-lint: allow "robust" -->
+# Why a list at all: the words below are statistically over-represented in machine prose and
+# read as a tell. A list alone is whack-a-mole — burstiness, specificity and voice-matching are
+# the levers that actually make text read human (references/humanize.md). This list is the
+# deterministic floor under them.
+#
+# --- the spec's core list ---
+delve
+delves
+delving
+leverage
+leverages
+leveraging
+seamless
+seamlessly
+robust
+tapestry
+realm
+landscape
+moreover
+furthermore
+it's worth noting
+it is worth noting
+in today's fast-paced world
+a testament to
+# --- verbs that dress up "use", "help", "show" ---
+utilize
+utilizes
+utilizing
+facilitate
+facilitates
+streamline
+streamlines
+underscore
+underscores
+foster
+fosters
+cultivate
+cultivates
+harness
+harnessing
+empower
+empowers
+unleash
+unlock
+elevate
+supercharge
+revolutionize
+navigate the complexities
+dive into
+deep dive
+embark on
+# --- nouns and adjectives that inflate ---
+synergy
+paradigm
+holistic
+game-changer
+game changer
+cutting-edge
+cutting edge
+state-of-the-art
+ever-evolving
+rapidly evolving
+transformative
+innovative
+comprehensive
+meticulous
+meticulously
+plethora
+myriad
+vibrant
+pivotal
+crucial
+nuanced
+intricate
+bustling
+nestled
+boasts
+# --- filler openers and closers ---
+in conclusion
+in summary
+at the end of the day
+when it comes to
+it is important to note
+it's important to note
+in the realm of
+in a world where
+look no further
+without further ado
+let's dive in
+buckle up
+the bottom line is
+whether you're a
+# --- assistant leakage ---
+as an ai
+i hope this helps
+certainly!
+here is the information

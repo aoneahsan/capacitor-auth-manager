@@ -1,0 +1,53 @@
+%% aoneahsan-cccs-react-performance — full flow
+flowchart TD
+    trigger([Performance work]) --> symptom{What is the symptom?}
+
+    symptom -->|large initial bundle| routes{Every route lazy-loaded?}
+    routes -->|no| lazyall[lazy import EVERY route —<br/>no exception for small pages]
+    routes -->|yes| heavy{Heavy libraries in<br/>the initial bundle?}
+    lazyall --> heavy
+    heavy -->|yes| dynimport[Dynamic import at point of use.<br/>Split at the FEATURE boundary —<br/>dozens of tiny chunks cost more<br/>in requests than they save]
+    heavy -->|no| chunkwarn
+    dynimport --> chunkwarn
+    chunkwarn{Build warns on chunk size?}
+    chunkwarn -->|yes| investigate[INVESTIGATE what tripped it.<br/>Do not just raise the limit]
+    chunkwarn -->|no| done
+    investigate --> done
+
+    symptom -->|a list feels slow| rowcount{More than ~200<br/>visible rows?}
+    rowcount -->|yes| virtual["@tanstack/react-virtual"]
+    rowcount -->|no| notvirt[Not the problem —<br/>look at render cost or data]
+
+    symptom -->|re-renders| measure[/MEASURE FIRST — profile it.<br/>Optimising unmeasured code is<br/>the rule most often broken/]
+    measure --> cause{What is actually causing it?}
+    cause -->|whole zustand store<br/>destructured| selector[Select a slice.<br/>The most common avoidable re-render]
+    cause -->|parent re-renders<br/>drag children| structural[Structural fix first: move state DOWN,<br/>or pass children as props]
+    cause -->|prop identity breaks<br/>a memoised child| memo[useMemo/useCallback HERE —<br/>they have their own cost,<br/>not a default]
+    cause -->|keys| keys[Stable ids, never array indices]
+
+    symptom -->|an operation takes<br/>tens of seconds| redesign[REDESIGN, do not add a spinner]
+    redesign --> r1[Cache models/assets after first load]
+    r1 --> r2[Show REAL progress,<br/>not an indeterminate spinner]
+    r2 --> r3[Move blocking work to a Web Worker<br/>so the UI keeps responding]
+
+    symptom -->|slow data| budget[Data cost IS performance —<br/>see the fetch budget: 20 default,<br/>50 hard max, server-side filtering]
+
+    symptom -->|layout shift| assets[SVG for vector · explicit width/height<br/>on raster · loading=lazy below the fold]
+
+    virtual --> done
+    notvirt --> done
+    selector --> done
+    structural --> done
+    memo --> done
+    keys --> done
+    r3 --> done
+    budget --> done
+    assets --> done
+    done([Build: zero warnings, no source maps])
+
+    classDef gateNode fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef warn fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+    class symptom,routes,heavy,chunkwarn,rowcount,cause gateNode
+    class trigger,done terminal
+    class measure warn

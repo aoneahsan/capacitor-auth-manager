@@ -1,0 +1,49 @@
+%% aoneahsan-cccs-programming-principles — full flow
+flowchart TD
+    trigger([Designing a module, or code is<br/>getting hard to reason about]) --> smell{What is the symptom?}
+
+    smell -->|change ripples<br/>across files| soc[Separation of concerns:<br/>split by reason-to-change]
+    smell -->|file or function<br/>too large| units[Apply the three-question test]
+    smell -->|similar code<br/>in two places| dry{Will they ALWAYS<br/>change together?}
+    smell -->|deep call chains<br/>a.b.c.d| demeter[Law of Demeter:<br/>talk to immediate collaborators]
+    smell -->|sprawling status<br/>conditional| behavioural
+    smell -->|construction varies<br/>by context| creational
+    smell -->|interface mismatch<br/>or messy subsystem| structural
+
+    dry -->|yes| extract[Extract — this is real duplication]
+    dry -->|no| leave[LEAVE IT.<br/>Merging couples independent concerns<br/>and the next change adds a flag param]
+
+    units --> q1[What does it do?]
+    q1 --> q2[How do you use it?]
+    q2 --> q3[What does it depend on?]
+    q3 --> boundary{Answerable without<br/>reading internals?}
+    boundary -->|no| redraw[Boundary is wrong — redraw it]
+    boundary -->|yes| ok[Boundary is sound]
+    redraw --> units
+
+    creational[Factory / Abstract Factory / Builder /<br/>Prototype / Singleton]
+    structural[Adapter / Facade / Decorator / Proxy /<br/>Composite / Bridge / Flyweight]
+    behavioural[Strategy / Observer / Command / State]
+
+    creational --> justify
+    structural --> justify
+    behavioural --> justify
+    justify{Can you NAME the<br/>specific pain it removes?}
+    justify -->|no| skip[Do not apply it.<br/>YAGNI — no pattern without a named pain]
+    justify -->|yes| apply[Apply it, and name it in the code]
+
+    soc --> check
+    demeter --> check
+    extract --> check
+    leave --> check
+    ok --> check
+    skip --> check
+    apply --> check
+    check([Re-read: is this the SIMPLEST thing<br/>that works? KISS beats cleverness])
+
+    classDef gateNode fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef warn fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+    class smell,dry,boundary,justify gateNode
+    class trigger,check terminal
+    class leave,skip warn

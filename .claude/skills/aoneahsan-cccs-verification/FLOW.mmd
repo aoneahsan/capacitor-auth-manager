@@ -1,0 +1,28 @@
+%% aoneahsan-cccs-verification — full flow
+flowchart TD
+    trigger([About to claim done / fixed / works / ready]) --> ran{Ran the proving command<br/>THIS turn?}
+    ran -->|no| identify[Identify the command<br/>that proves the claim]
+    identify --> run[Run it fresh + in full<br/>one-shot gates, never a watch server]
+    run --> read[Read full output:<br/>exit code + failure count]
+    read --> confirm{Output actually<br/>confirms the claim?}
+    ran -->|yes, output in hand| confirm
+
+    confirm -->|no| honest[State ACTUAL status with evidence;<br/>fix, then re-verify]
+    honest --> trigger
+    confirm -->|yes| reqs{Task-level claim?<br/>re-read original request}
+    reqs -->|requirements gap| honest
+    reqs -->|line-by-line checklist all met| runnable{Change can be<br/>exercised for real?}
+
+    runnable -->|yes| exercise[run-to-verify: background server<br/>+ headless browser, then kill it]
+    runnable -->|no| claim
+    exercise --> claim[Claim WITH evidence:<br/>Completed / Remaining / Not-done / Verification]
+    claim --> done([Honest completion])
+
+    run -.gates + grant.-> reg[(../rules/dev-workflow.md)]
+
+    classDef gate fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef warn fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+    class ran,confirm,reqs,runnable gate
+    class trigger,done terminal
+    class honest warn

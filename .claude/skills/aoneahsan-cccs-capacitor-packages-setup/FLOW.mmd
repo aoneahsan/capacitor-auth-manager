@@ -1,0 +1,60 @@
+%% aoneahsan-cccs-capacitor-packages-setup — full flow
+flowchart TD
+    trigger([New project setup, or a<br/>pre-release audit]) --> storage{How does the app<br/>store data?}
+    storage -->|localStorage| migrate[Migrate to strata-storage]
+    storage -->|"@capacitor/preferences"| legacy{Is this an existing<br/>project being revisited?}
+    legacy -->|no, it is new| migrate
+    legacy -->|yes, and not in scope| grandfather[Acceptable for now.<br/>New work uses strata-storage]
+    storage -->|strata-storage| adapter
+    migrate --> adapter
+    grandfather --> adapter
+    adapter{Does anything touch a<br/>storage API directly?}
+    adapter -->|yes| oneadapter[Route ALL access through ONE adapter<br/>module — that is what makes the<br/>migration a one-file change]
+    adapter -->|no| plugins
+    oneadapter --> plugins
+
+    plugins[Official plugin set]
+    plugins --> always[Always: app, device, network, share,<br/>splash-screen, toast, dialog,<br/>haptics, clipboard, browser]
+    always --> conditional{Does the project actually use<br/>camera / geolocation / scanning /<br/>motion / push?}
+    conditional -->|no| remove[REMOVE them. Each one costs<br/>a permission you must justify]
+    conditional -->|yes| keep[Keep — and justify the permission<br/>in privacy, terms and Data Safety]
+    remove --> pwa
+    keep --> pwa
+    pwa{"@ionic/pwa-elements installed?"}
+    pwa -->|no| addpwa[Add it — without it camera, toast<br/>and dialog silently NO-OP on web]
+    pwa -->|yes| capawesome
+    addpwa --> capawesome
+
+    capawesome[Capawesome: app-update, app-review,<br/>edge-to-edge, badge, app-shortcuts]
+    capawesome --> dup{Any Capawesome plugin duplicating<br/>an official one?}
+    dup -->|yes| dropdup[Remove the duplicate]
+    dup -->|no| e2e
+    dropdup --> e2e
+    e2e{Adding the edge-to-edge plugin?}
+    e2e -->|yes| disable["MUST set SystemBars:<br/>insetsHandling: 'disable' —<br/>otherwise two inset owners fight<br/>and content renders behind the bars"]
+    disable --> allowlist{Is android.includePlugins set<br/>in capacitor.config?}
+    allowlist -->|yes| inlist[The plugin MUST be in that list —<br/>it is a strict allowlist, and an<br/>omitted plugin is inert natively]
+    allowlist -->|no| ota
+    inlist --> ota
+    e2e -->|no| ota
+
+    ota{OTA updates wanted?}
+    ota -->|yes| nu[Wire native-update. Verify with a<br/>literal marker in the footer BEFORE<br/>attempting anything larger]
+    ota -->|no| auth
+    nu --> auth
+
+    auth[Auth: Firebase popup on web,<br/>codetrix google-auth on native.<br/>Never capacitor-firebase/authentication]
+    auth --> push[Push: OneSignal.<br/>Never hand-rolled VAPID/FCM/APNs]
+    push --> banned{Any banned package present?}
+    banned -->|yes| dropbanned[Remove capacitor-firebase<br/>crashlytics and performance.<br/>Sentry for errors,<br/>native/Amplitude for perf]
+    banned -->|no| perms
+    dropbanned --> perms
+
+    perms([Audit the MERGED manifest —<br/>see android-finalization])
+
+    classDef gateNode fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef warn fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+    class storage,legacy,adapter,conditional,pwa,dup,e2e,allowlist,ota,banned gateNode
+    class trigger,perms terminal
+    class disable,addpwa warn

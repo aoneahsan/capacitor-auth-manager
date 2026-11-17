@@ -1,0 +1,54 @@
+%% OneSignal push — full flow
+%% Pure Mermaid. No Markdown fence.
+
+flowchart TD
+    trigger([Adding push notifications]) --> provider{Which provider?}
+
+    provider -->|"hand-rolled VAPID / raw FCM"| no[🔴 No. VAPID registers a subscription<br/>you still need a private-key server to send to,<br/>and it does NOTHING on native]
+    provider -->|OneSignal| appid
+
+    no --> appid
+
+    appid{Is VITE_ONESIGNAL_APP_ID set?}
+    appid -->|empty| offstate[Push is fully OFF:<br/>no SDK loads, no worker registers,<br/>no prompt. The project still ships]
+    appid -->|set| platform{Which platform?}
+
+    platform -->|"web"| web[react-onesignal, DYNAMICALLY imported,<br/>initialised LAZILY on opt-in —<br/>not ~30KB for users who never enable it]
+    platform -->|"native"| native[onesignal-cordova-plugin,<br/>dynamically imported,<br/>initialised AT BOOT so a tap can route]
+
+    web --> sw{Is there already a PWA<br/>service worker at scope '/'?}
+    sw -->|yes| sub["🔴 Scope OneSignal's worker to a<br/>SUBDIRECTORY — /push/onesignal/ —<br/>or the two collide and one silently wins"]
+    sw -->|no| csp
+    sub --> csp
+
+    csp[CSP: cdn.onesignal.com in script-src,<br/>onesignal.com + *.onesignal.com in connect-src<br/>— or web push fails with no useful error]
+
+    csp --> perm
+    native --> perm
+
+    perm{When is permission requested?}
+    perm -->|"at launch"| denied[🔴 Denied — and a denial is effectively<br/>PERMANENT. Both the browser and the OS<br/>stop asking; only the user can undo it]
+    denied --> perm
+    perm -->|"behind an explicit opt-in, with context"| tap
+
+    tap{Does a notification TAP route<br/>to the relevant screen?}
+    tap -->|"opens the home screen"| wasted[The notification is wasted.<br/>Handle the deep link on both platforms]
+    wasted --> tap
+
+    tap -->|routes| android{Android build?}
+    android -->|no| done
+    android -->|yes| manifest[Audit the MERGED manifest —<br/>the plugin injects permissions.<br/>Strip what is unused with tools:node=remove]
+
+    manifest --> adid{🔴 Do all THREE agree?<br/>manifest AD_ID · Play advertising-id<br/>declaration · Data Safety device-IDs row}
+    adid -->|no| fixadid[Play Console ERROR.<br/>Push delivery needs no advertising id —<br/>strip AD_ID unless segmentation is used]
+    fixadid --> adid
+    adid -->|agree| done([Done: one service, off until configured,<br/>permission earned, taps route])
+
+    provider -.the full platform matrix.-> reg[(../rules/push-notifications.md)]
+
+    classDef gate fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef stopnode fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+    class provider,appid,platform,sw,perm,tap,android,adid gate
+    class trigger,done terminal
+    class no,sub,denied stopnode

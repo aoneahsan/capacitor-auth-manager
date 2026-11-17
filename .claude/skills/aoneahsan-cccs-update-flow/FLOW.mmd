@@ -1,0 +1,24 @@
+%% Update flow — full flow
+%% Pure Mermaid.
+
+flowchart TD
+    start([Product starts, resumes, comes into view, or a release is published]) --> l1[Layer 1: self-update<br/>SW takeover / OTA / Play immediate / extension / Tauri]
+    l1 --> took{New version<br/>running now?}
+    took -->|yes| done([Up to date])
+    took -->|no| fetch[Layer 2: read the latest release record<br/>platform + channel, limit 1]
+    fetch --> ok{Record read?}
+    ok -->|no: offline or error| stored{Normal release stored<br/>from an earlier check?}
+    stored -->|no| done2([Fail open: keep working])
+    stored -->|yes, and this is a new start| block
+    ok -->|yes| newer{Running version older<br/>than the record?}
+    newer -->|no| clear[Clear any stored release] --> done
+    newer -->|yes| sev{Severity}
+    sev -->|urgent| block[Full-screen block<br/>reason + Update]
+    sev -->|normal| first{New start and this release<br/>was already announced?}
+    first -->|yes| block
+    first -->|no| notice[Notice now: required from the next start<br/>store the release]
+    notice --> done2
+    block --> upd[Update: layer 1 again<br/>reload / apply OTA / Play immediate]
+    upd --> worked{Updated?}
+    worked -->|yes| done
+    worked -->|no| store[Open the store page] --> block

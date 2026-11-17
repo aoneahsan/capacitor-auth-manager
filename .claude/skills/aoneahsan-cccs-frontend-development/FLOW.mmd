@@ -1,0 +1,48 @@
+%% aoneahsan-cccs-frontend-development — full flow
+flowchart TD
+    trigger([Implementing or reviewing a layout]) --> start{Which direction<br/>was it authored?}
+    start -->|desktop first| rewrite[Rewrite mobile-first.<br/>Retrofitting mobile is how<br/>horizontal scroll ships]
+    start -->|mobile first| base[Base styles target 320px]
+    rewrite --> base
+
+    base --> up[Add complexity UPWARD through<br/>sm 375 / md 480 / tablet 640 /<br/>lg 1024 / xl 1280]
+    up --> nav{Does this include navigation?}
+
+    nav -->|yes| navrule[ONE method per viewport]
+    navrule --> shared[Inline nav and hamburger share<br/>ONE breakpoint: hidden lg:flex<br/>paired with lg:!hidden]
+    shared --> fits{Do the inline items fit<br/>at that breakpoint?}
+    fits -->|no| reduce[REDUCE the item count —<br/>overflow into the mobile sheet<br/>and footer. Never show both]
+    fits -->|yes| minimums
+    reduce --> minimums
+
+    nav -->|no| minimums
+    minimums{Check the minimums}
+    minimums --> m1{Horizontal scroll<br/>at any width?}
+    m1 -->|yes| findcause[Usual causes: a fixed width,<br/>a long unbroken string,<br/>an overflowing table, a negative margin]
+    findcause --> contain[Wide content scrolls INSIDE its own<br/>container — the body never<br/>scrolls sideways]
+    m1 -->|no| m2
+    contain --> m2
+    m2{Touch targets >= 44x44px?}
+    m2 -->|no| fixtargets[Enlarge + space them]
+    m2 -->|yes| m3
+    fixtargets --> m3
+    m3{Body text >= 16px on mobile?}
+    m3 -->|no| fixtext[Raise it — below 16px<br/>iOS zooms on focus,<br/>which reads as a bug]
+    m3 -->|yes| m4
+    fixtext --> m4
+    m4[Media: max-width 100%, height auto,<br/>intrinsic dimensions to stop shift]
+    m4 --> m5[Modals: flexbox + scrollable region<br/>+ max-height calc, never fixed]
+
+    m5 --> native{Capacitor build?}
+    native -->|yes| insets{Exactly ONE inset owner?}
+    insets -->|no| fixinsets[Pick one: edge-to-edge plugin with<br/>core SystemBars disabled, OR<br/>env safe-area-inset with viewport-fit=cover.<br/>Two owners = content behind the bars]
+    insets -->|yes| verify
+    fixinsets --> verify
+    native -->|no| verify
+
+    verify([Verify at 320, 375, 640, 1024, 1280,<br/>1920 + dark mode + reduced motion])
+
+    classDef gateNode fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    class start,nav,fits,minimums,m1,m2,m3,native,insets gateNode
+    class trigger,verify terminal

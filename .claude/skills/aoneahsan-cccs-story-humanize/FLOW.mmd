@@ -1,0 +1,22 @@
+%% aoneahsan-cccs-story-humanize — score, then rewrite what failed
+flowchart TD
+    trigger([Finalize, a lint report,<br/>or "make it sound human"]) --> mode{Mode?}
+    mode -->|score| det[Deterministic half:<br/>burstiness · range · banned phrases ·<br/>dashes · not-X-but-Y · triplets ·<br/>openers · throat-clearing / summary]
+    det --> judg[Judgment half:<br/>specificity · point of view · hedging ·<br/>voice match vs fingerprint · palette]
+    judg --> sheet[Score sheet: pass / fail / allowed per row]
+    sheet --> anyfail{Any FAIL?}
+    anyfail -->|no| pass([PASS — name the fingerprint checked against])
+    anyfail -->|yes| rewrite
+    mode -->|rewrite| rewrite[Fix flagged criteria only:<br/>split / merge for rhythm · plain word for banned ·<br/>cut before adding]
+    rewrite --> fact{Would a fix need<br/>a new fact?}
+    fact -->|yes| nd[NEEDS DECISION — stop]
+    fact -->|no| diff[Diff summary: change → criterion]
+    diff --> det
+
+    det -.same list.-> banned[(aoneahsan-cccs-story-craft/assets/banned-phrases.txt)]
+    det -.same computation.-> hook[(global-config/hooks/posttooluse-story-lint.sh)]
+
+    classDef gate fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    class mode,anyfail,fact gate
+    class trigger,pass terminal

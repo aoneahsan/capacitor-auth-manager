@@ -1,0 +1,32 @@
+flowchart TD
+    A[A component enters the gallery] --> B[State row: every state,<br/>labelled, side by side]
+    B --> C{Which dial families<br/>apply?}
+
+    C --> D[Data shape<br/>empty · one · typical · dense<br/>extreme · longest string · RTL]
+    C --> E[State<br/>the row, as a dial]
+    C --> F[Variant<br/>size · tone · emphasis]
+    C --> G[Content<br/>label length · wrap · widest number]
+    C --> H[Context<br/>320/768/1440 · theme axes]
+
+    H --> I[Theme axes DELEGATE to<br/>the one theme control]
+
+    D --> J{Is it a chart?}
+    J -->|Yes| K[Chart dials: series · points<br/>zero/negative/null · single point<br/>spike · all-equal · long labels]
+    J -->|No| L[Wire the knobs]
+    K --> L
+
+    L --> M{Do the knobs drive<br/>ONE live instance?}
+    M -->|No — it swaps specimens| N[NOT a playground.<br/>Rebuild against one instance]
+    M -->|Yes| O[Knob state to the query string]
+
+    O --> P{Is it persisted?}
+    P -->|Yes| Q[BUG: every page looks<br/>broken for the session.<br/>Demo axes never persist]
+    P -->|No| R[Mutation test:<br/>disconnect a knob]
+
+    R --> S{Does the check<br/>go red?}
+    S -->|No| T[The check is decorative.<br/>Fix the check first]
+    S -->|Yes| U[Reviewable ✓]
+
+    N --> L
+    Q --> O
+    T --> R

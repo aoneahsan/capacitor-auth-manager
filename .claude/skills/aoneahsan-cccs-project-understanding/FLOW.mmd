@@ -1,0 +1,22 @@
+flowchart TD
+    trigger([Material work or possible missing context]) --> scale{Trivial and fully specified?}
+    scale -->|yes| nearest[Read nearest guidance and target file]
+    scale -->|no| guidance[Read one native guide, routed context, and active tracker slice]
+    guidance --> evidence[Inspect relevant code, config, git state, and history]
+    evidence --> ledger[Separate verified facts, recorded decisions, and unknowns]
+    ledger --> material{Does an unknown materially change the result?}
+    material -->|no| proceed[Follow evidence and established project patterns]
+    material -->|yes| searchable{Can project evidence answer it?}
+    searchable -->|yes| evidence
+    searchable -->|no| owner[Ask the owner with options and pause]
+    owner --> record[Record the answer in its canonical home]
+    record --> proceed
+    nearest --> proceed
+    proceed --> learned{New durable knowledge?}
+    learned -->|project| projectContext[Update docs/PROJECT-CONTEXT.md]
+    learned -->|feature| tracker[Update the feature tracker]
+    learned -->|fleet| globalRecord[Update the matching global record]
+    learned -->|no or session-only| finish([Finish without extra documentation])
+    projectContext --> finish
+    tracker --> finish
+    globalRecord --> finish

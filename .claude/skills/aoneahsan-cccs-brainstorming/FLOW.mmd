@@ -1,0 +1,28 @@
+%% aoneahsan-cccs-brainstorming — full flow
+flowchart TD
+    trigger([Idea / build request arrives]) --> specified{Already fully specified,<br/>no open questions?}
+    specified -->|yes| plan[Skip to aoneahsan-cccs-task-planning]
+    specified -->|no| context[Explore project context:<br/>files, docs, recent commits]
+
+    context --> scope{Spans several independent<br/>subsystems?}
+    scope -->|yes| decompose[Decompose into sub-projects;<br/>brainstorm the first one]
+    scope -->|no| ask
+    decompose --> ask
+
+    ask[Ask ONE question at a time<br/>AskUserQuestion, multiple-choice where it fits]
+    ask --> blocking{Owner-only decision?}
+    blocking -->|yes| pause[aoneahsan-cccs-ask-the-owner:<br/>ask + PAUSE + hold]
+    pause --> ask
+    blocking -->|no| enough{Understand purpose,<br/>constraints, success criteria?}
+    enough -->|no| ask
+    enough -->|yes| approaches[Offer 2-3 approaches<br/>+ recommendation]
+
+    approaches --> design[Present design in sections,<br/>each scaled to complexity;<br/>apply YAGNI]
+    design --> approve{Owner approves<br/>this section?}
+    approve -->|no, revise| design
+    approve -->|yes, all sections| gate([Design approved →<br/>aoneahsan-cccs-task-planning])
+
+    classDef gate fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    class specified,scope,blocking,enough,approve gate
+    class trigger,gate,plan terminal

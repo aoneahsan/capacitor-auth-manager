@@ -1,0 +1,27 @@
+%% aoneahsan-cccs-story-craft — full flow
+flowchart TD
+    trigger([Prose meant to move a reader]) --> bible{docs/story/story-bible.md<br/>exists AND approved?}
+    bible -->|no| init[aoneahsan-cccs-story-bible<br/>/story-init → STOP at GATE 1]
+    bible -->|yes| load[Load Bible + voice-fingerprint<br/>+ this surface's content-map row]
+    load --> mapped{Surface in content-map.md?}
+    mapped -->|no| cmap[aoneahsan-cccs-story-content-map<br/>→ STOP at GATE 2]
+    mapped -->|yes| safety{Therapy / crisis / legal /<br/>medical / financial /<br/>error of consequence?}
+    safety -->|yes| safe[references/safety.md<br/>humor OFF · gravity band]
+    safety -->|no| pick
+    safe --> pick[Pick the structure from the<br/>surface table → open its reference]
+    pick --> draft[Draft: hook first · palette ratio ·<br/>jagged rhythm · one specific per section ·<br/>answer-first if indexed]
+    draft --> invent{Would any fact, number,<br/>name or quote be invented?}
+    invent -->|yes| nd[Write NEEDS DECISION: question<br/>never a guess]
+    invent -->|no| banned
+    nd --> banned{Any phrase from<br/>assets/banned-phrases.txt?}
+    banned -->|yes| cut[Cut it, or allow with the<br/>documented marker + reason]
+    cut --> banned
+    banned -->|no| check[Self-check: palette · rhythm ·<br/>unsure spots]
+    check --> hand([Hand to aoneahsan-cccs-story-orchestration<br/>for the review panel])
+
+    load -.consult if present.-> law[(~/.claude/rules/storytelling-content.md)]
+
+    classDef gate fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    class bible,mapped,safety,invent,banned gate
+    class trigger,hand terminal

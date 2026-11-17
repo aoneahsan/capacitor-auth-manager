@@ -1,0 +1,43 @@
+%% Motion — full flow
+%% Pure Mermaid. No Markdown fence.
+
+flowchart TD
+    trigger([Adding a transition or animation]) --> never{Is it one of the<br/>NEVER-ANIMATE cases?}
+
+    never -->|"validation error · destructive confirm<br/>· blocking input · moves a committed tap target"| stop[🔴 Do not animate it.<br/>Show it instantly.<br/>Moving a committed tap target is a BUG]
+    never -->|no| tool{Which tool?}
+
+    tool -->|"exit animation<br/>layout / shared element<br/>gesture"| js[motion v12 — import from motion/react]
+    tool -->|route change| vt[View Transitions API]
+    tool -->|everything else| css[CSS transition or animation.<br/>A library here is ~30KB<br/>doing what 2 lines of CSS do]
+
+    js --> tokens
+    vt --> tokens
+    css --> tokens
+
+    tokens[Use the SHARED tokens:<br/>--ease-standard/enter/exit<br/>--duration-instant/quick/moderate]
+
+    tokens --> budget{Duration ≤ 600ms?<br/>and ≤ 350ms for an interaction?}
+    budget -->|no| trim[Cut it. Past ~350ms<br/>an interaction feels like waiting]
+    trim --> budget
+
+    budget -->|yes| props{Animating ONLY<br/>transform and opacity?}
+    props -->|"no — height, top, width, box-shadow"| swap[Substitute:<br/>height → grid-template-rows or scaleY<br/>top → translate<br/>box-shadow → cross-fade a pseudo-element]
+    swap --> props
+
+    props -->|yes| reduced{prefers-reduced-motion<br/>handled FOR THIS PATTERN?}
+    reduced -->|"no, or 'all animation off'"| perpattern[Neutralise MOVEMENT, keep opacity.<br/>Never remove all feedback —<br/>the user loses confirmation<br/>that anything happened]
+    perpattern --> reduced
+
+    reduced -->|yes| restraint{Restraint check:<br/>hero / boundary / empty state / state change<br/>— or every card in a list?}
+    restraint -->|"every card"| cut[Remove it. A list where all 12 items<br/>animate in reads as SLOW, not designed]
+    cut --> restraint
+
+    restraint -->|"targeted"| done([Done: one language, bounded,<br/>usable with reduced motion])
+
+    classDef gate fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef stopnode fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+    class never,tool,budget,props,reduced,restraint gate
+    class trigger,done terminal
+    class stop stopnode

@@ -1,0 +1,54 @@
+%% aoneahsan-cccs-documentation — full flow
+flowchart TD
+    trigger([About to write or update a doc]) --> asked{Did the owner ASK<br/>for this document?}
+    asked -->|no| needed{Will the feature fail<br/>to work without it?}
+    needed -->|no| dont[DO NOT CREATE IT.<br/>No summary/status/completion files.<br/>One or two lines inline instead]
+    needed -->|yes| budget
+    asked -->|yes| budget
+
+    budget{Is doc effort exceeding<br/>~10% of the task?}
+    budget -->|yes| stop[STOP. Ship the real work first.<br/>Doc work outpacing real work is a failure]
+    budget -->|no| where
+
+    where{What kind of artefact?}
+    where -->|dependency inventory| p1[docs/PACKAGES.md]
+    where -->|human-only steps| p2[docs/MANUAL-TASKS.md<br/>agent appends, ONLY the owner ticks off]
+    where -->|multi-phase feature| p3[docs/features/slug/00-tracker.json]
+    where -->|store material| p4[docs/play-store/README.md]
+    where -->|session record| p5[docs/work-history/]
+    where -->|project rule| claude
+
+    p1 --> fixed
+    p2 --> fixed
+    p3 --> tracker
+    p4 --> fixed
+    p5 --> fixed
+    fixed[Use the FIXED path — identical in<br/>every project. Never a local variant]
+
+    tracker{Tracker already exists?}
+    tracker -->|yes| resume[READ IT. Resume the first pending<br/>sub-task. NEVER re-plan from zero]
+    tracker -->|no| create[Create it in the FIRST commit,<br/>phases + subTasks + runHistory]
+
+    claude[Rule belongs in CLAUDE.md]
+    claude --> both[Write it to BOTH CLAUDE.md and AGENTS.md]
+    both --> global{Is it a GLOBAL rule<br/>or knowledge base?}
+    global -->|yes| pointer[Write a POINTER to ~/.claude/rules/...<br/>NEVER copy the content — copies drift]
+    global -->|no| size{File over 28k chars?}
+    pointer --> size
+    size -->|yes| move[Move detail to docs/ or rules/,<br/>leave a pointer behind]
+    size -->|no| stamp[Update Last Updated: YYYY-MM-DD]
+    move --> stamp
+
+    fixed --> delete
+    resume --> delete
+    create --> delete
+    stamp --> delete
+    delete[Delete-first: remove what this<br/>change made stale]
+    delete --> done([Commit docs WITH the code change])
+
+    classDef gateNode fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef warn fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+    class asked,needed,budget,where,tracker,global,size gateNode
+    class trigger,done terminal
+    class dont,stop warn

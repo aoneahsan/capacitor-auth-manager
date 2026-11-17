@@ -1,0 +1,44 @@
+%% aoneahsan-cccs-git-workflow — full flow
+flowchart TD
+    start([Task finished, gates green]) --> clean{Working tree had<br/>pre-existing changes?}
+    clean -->|yes| leave[Leave the owner's unrelated<br/>changes unstaged — stage only your paths]
+    clean -->|no| stage
+    leave --> stage
+
+    stage[git add specific paths]
+    stage --> scope{Where does this<br/>project live?}
+    scope -->|owner project or authorised scope| auto[Use decided primary branch;<br/>auto-commit + push authorised]
+    scope -->|client or READ-ONLY repo| ask[Follow its stricter boundary;<br/>do not infer authorization]
+
+    auto --> commit
+    ask --> commit
+    commit[ONE commit for the whole prompt<br/>conventional message]
+
+    commit --> remote[Detect the remote:<br/>git remote head -1<br/>it may be 'o', not 'origin']
+    remote --> pull[git fetch remote branch;<br/>merge remote/branch]
+    pull --> conflict{Conflicts?}
+    conflict -->|yes| resolve[Resolve — MERGE, not rebase.<br/>Rebase only if nothing else works]
+    resolve --> commit2[Commit the resolution]
+    commit2 --> push
+    conflict -->|no| push
+
+    push[git push remote branch]
+    push --> pushok{Push accepted?}
+    pushok -->|remote moved| pull
+    pushok -->|rejected despite configured bypass| blocked[Report exact rejection;<br/>NEVER force or weaken protection]
+    pushok -->|yes; bypass may be recorded| verify[git status --short --branch<br/>confirm local == remote;<br/>report bypass output]
+
+    verify --> deploy{Deploy needed?}
+    deploy -->|under code/| dodeploy[Deploy automatically:<br/>firebase deploy --only hosting/rules/indexes<br/>NEVER --only firestore]
+    deploy -->|client project| never[NEVER auto-deploy —<br/>only on explicit request]
+    deploy -->|no| done
+    dodeploy --> done
+    never --> done
+    done([Done — local and remote in sync])
+
+    classDef gateNode fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef warn fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+    class clean,scope,conflict,pushok,deploy gateNode
+    class start,done terminal
+    class never,blocked warn

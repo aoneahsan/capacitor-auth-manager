@@ -1,0 +1,3122 @@
+{
+ "$schema": "cloned-skills-catalog/v1",
+ "description": "Deduped index of every distinct skill in the local cloned-skills library. Read this before proposing skills to copy into a project. Absent optional keys mean the safe default: selfContained=true, collidesWithHouseSkill=false, no copyNotes, no bundledScripts.",
+ "generated": "2026-07-27",
+ "libraryRoot": "RESOLVE PER MACHINE — never hardcode. $AHSAN_GIT_CLONED_SKILLS, then machines.json, then the existing-root fallback; see copy-procedure.md \u00a74. Only darwin-pc uses ~/Documents/ahsan-work/git-cloned.",
+ "skillPathTemplate": "<libraryRoot>/_reviewed/<sourceRepo>/<path>",
+ "copyAs": "Target folder name in the project. The spec requires SKILL.md frontmatter name: to EQUAL the parent directory, so rewrite it to this value when copying.",
+ "counts": {
+  "distinctSkillsCatalogued": 253,
+  "skillMdFilesOnDisk": 6618,
+  "quarantinedNotCatalogued": 1894,
+  "byCategory": {
+   "backend-data": 53,
+   "motion-3d": 47,
+   "design-visual": 33,
+   "flutter-dart": 28,
+   "docs-content": 22,
+   "testing": 20,
+   "react-web": 17,
+   "devops": 13,
+   "meta-tooling": 7,
+   "other": 7,
+   "accessibility": 3,
+   "mobile": 2,
+   "typography": 1
+  }
+ },
+ "trustTiers": {
+  "official": "Anthropic / Google. Copy freely.",
+  "vendor": "Vendor-published. Copy freely; check runtime network deps.",
+  "community-active": "Read the SKILL.md before copying. Maintained.",
+  "community-stale": "Read before copying; verify any library version claim independently.",
+  "excluded-by-policy": "NEVER copy \u2014 conflicts with an owner rule.",
+  "quarantined": "NEVER auto-copy. Owner must name the skill; vet it first (references/security.md).",
+  "link-list": "Contains no skills \u2014 a discovery source for future clones."
+ },
+ "skills": [
+  {
+   "id": "accesslint-skills/audit",
+   "name": "audit",
+   "sourceRepo": "accesslint-skills",
+   "path": "plugins/accesslint/skills/audit/SKILL.md",
+   "description": "Find and fix WCAG 2.2 accessibility issues. Two modes \u2014 report (sweep a codebase or page, produce a prioritized written report, no edits) and fix (audit\u2192edit\u2192verify loop on a target). Prefers direct-CDP live-DOM auditing",
+   "category": "accessibility",
+   "trustTier": "community-active",
+   "sizeKB": 7,
+   "copyAs": "ext-accesslint-audit"
+  },
+  {
+   "id": "accesslint-skills/diff",
+   "name": "diff",
+   "sourceRepo": "accesslint-skills",
+   "path": "plugins/accesslint/skills/diff/SKILL.md",
+   "description": "Diff a live page's accessibility violations against a baseline \u2014 by default compares uncommitted changes (stash-based), or pass --branch [<name>] to diff against a branch. Reports only new violations introduced, violatio",
+   "category": "accessibility",
+   "trustTier": "community-active",
+   "sizeKB": 4,
+   "copyAs": "ext-accesslint-diff"
+  },
+  {
+   "id": "accesslint-skills/scan",
+   "name": "scan",
+   "sourceRepo": "accesslint-skills",
+   "path": "plugins/accesslint/skills/scan/SKILL.md",
+   "description": "Audit a live page for accessibility issues and locate each violation precisely \u2014 pass a URL, a config target name (e.g. `accesslint:scan dev`), or nothing to use the default target from accesslint.config.json. Ensures a",
+   "category": "accessibility",
+   "trustTier": "community-active",
+   "sizeKB": 2,
+   "copyAs": "ext-accesslint-scan"
+  },
+  {
+   "id": "agent-skills/design-mobile-apps",
+   "name": "sleek-design-mobile-apps",
+   "sourceRepo": "agent-skills",
+   "path": "skills/design-mobile-apps/SKILL.md",
+   "description": "Use when the user wants to design a mobile app or UI screens, when they mention their Sleek (sleek.design) projects, or when implementing Sleek designs in code (HTML, React Native, SwiftUI).",
+   "category": "mobile",
+   "selfContained": false,
+   "copyNotes": [
+    "fetches rules/content over the network at runtime",
+    "requires an API key / env var"
+   ],
+   "trustTier": "excluded-by-policy",
+   "sizeKB": 26,
+   "copyAs": "ext-sleek-sleek-design-mobile-apps"
+  },
+  {
+   "id": "bencium-marketplace/adaptive-communication",
+   "name": "adaptive-communication",
+   "sourceRepo": "bencium-marketplace",
+   "path": "adaptive-communication/skills/adaptive-communication/SKILL.md",
+   "description": "Use when detecting ambiguous user intent, hedging language, open-ended framing, personal context before requests, or when unsure whether user wants exploration vs direct answer. Applies to all conversations.",
+   "category": "docs-content",
+   "trustTier": "community-active",
+   "sizeKB": 3,
+   "copyAs": "ext-bencium-adaptive-communication"
+  },
+  {
+   "id": "bencium-marketplace/bencium-aeo",
+   "name": "bencium-aeo",
+   "sourceRepo": "bencium-marketplace",
+   "path": "bencium-aeo/skills/bencium-aeo/SKILL.md",
+   "description": "Generate AEO-optimized content (Answer Engine Optimization) for AI search visibility - ChatGPT, Claude, Gemini, AI Overviews. Use when optimizing websites for AI citations, creating FAQ schemas, evidence panels, or analy",
+   "category": "devops",
+   "trustTier": "community-active",
+   "sizeKB": 65,
+   "copyAs": "ext-bencium-bencium-aeo"
+  },
+  {
+   "id": "bencium-marketplace/bencium-code-conventions",
+   "name": "bencium-code-conventions",
+   "sourceRepo": "bencium-marketplace",
+   "path": "bencium-code-conventions/skills/bencium-code-conventions/SKILL.md",
+   "description": "Bence's code style, tech stack, and workflow conventions",
+   "category": "design-visual",
+   "trustTier": "community-active",
+   "sizeKB": 3,
+   "copyAs": "ext-bencium-bencium-code-conventions"
+  },
+  {
+   "id": "bencium-marketplace/bencium-controlled-ux-designer",
+   "name": "bencium-controlled-ux-designer",
+   "sourceRepo": "bencium-marketplace",
+   "path": "bencium-controlled-ux-designer/skills/bencium-controlled-ux-designer/SKILL.md",
+   "description": "Expert UI/UX design guidance for unique, accessible interfaces. Use for visual decisions, colors, typography, layouts. Always ask before making design decisions. Use this skill when the user asks to build web components,",
+   "category": "design-visual",
+   "trustTier": "community-active",
+   "sizeKB": 82,
+   "copyAs": "ext-bencium-bencium-controlled-ux-designer"
+  },
+  {
+   "id": "bencium-marketplace/bencium-impact-designer",
+   "name": "bencium-impact-designer",
+   "sourceRepo": "bencium-marketplace",
+   "path": "bencium-impact-designer/skills/bencium-impact-designer/SKILL.md",
+   "description": "Create distinctive, production-grade frontend interfaces with high design quality. Use this skill when the user asks to build web components, pages, or applications. Generates creative, polished code that avoids generic",
+   "category": "design-visual",
+   "trustTier": "community-active",
+   "sizeKB": 48,
+   "copyAs": "ext-bencium-bencium-impact-designer"
+  },
+  {
+   "id": "bencium-marketplace/bencium-innovative-ux-designer",
+   "name": "bencium-innovative-ux-designer",
+   "sourceRepo": "bencium-marketplace",
+   "path": "bencium-innovative-ux-designer/skills/bencium-innovative-ux-designer/SKILL.md",
+   "description": "Create distinctive, production-grade frontend interfaces with high design quality. Use this skill when the user asks to build web components, pages, or applications. Generates creative, polished code that avoids generic",
+   "category": "design-visual",
+   "trustTier": "community-active",
+   "sizeKB": 49,
+   "copyAs": "ext-bencium-bencium-innovative-ux-designer"
+  },
+  {
+   "id": "bencium-marketplace/design-audit",
+   "name": "design-audit",
+   "sourceRepo": "bencium-marketplace",
+   "path": "design-audit/skills/design-audit/SKILL.md",
+   "description": "Premium UI/UX design audit and refinement skill. Conducts systematic visual audits of existing apps and produces phased, implementation-ready design plans. Use this skill whenever the user asks to audit a UI, improve an",
+   "category": "design-visual",
+   "trustTier": "community-active",
+   "sizeKB": 11,
+   "copyAs": "ext-bencium-design-audit"
+  },
+  {
+   "id": "bencium-marketplace/human-architect-mindset",
+   "name": "human-architect-mindset",
+   "sourceRepo": "bencium-marketplace",
+   "path": "human-architect-mindset/skills/human-architect-mindset/SKILL.md",
+   "description": "Systematic architectural thinking for irreplaceable human capabilities - domain modeling, systems thinking, constraint navigation, and AI-aware problem decomposition. Use proactively when detecting architectural decision",
+   "category": "react-web",
+   "trustTier": "community-active",
+   "sizeKB": 93,
+   "copyAs": "ext-bencium-human-architect-mindset"
+  },
+  {
+   "id": "bencium-marketplace/hungarian-humanizer",
+   "name": "hungarian-humanizer",
+   "sourceRepo": "bencium-marketplace",
+   "path": "hungarian-humanizer/skills/hungarian-humanizer/SKILL.md",
+   "description": "Detect and remove AI-generated markers from Hungarian text, making it sound like a native Hungarian speaker wrote it. Use when asked to \"humanize\", \"naturalize\", or \"remove AI feel\" from Hungarian text, or when editing .",
+   "category": "docs-content",
+   "trustTier": "community-active",
+   "sizeKB": 27,
+   "copyAs": "ext-bencium-hungarian-humanizer"
+  },
+  {
+   "id": "bencium-marketplace/insurgent-campaign",
+   "name": "insurgent-campaign",
+   "sourceRepo": "bencium-marketplace",
+   "path": "insurgent-campaign/skills/insurgent-campaign/SKILL.md",
+   "description": "Grassroots-first campaign design for anyone being outspent \u2014 startups vs. incumbents, NGOs vs. corporate comms, movements vs. state-backed machines, solo brands vs. big-budget competitors. Ideates awareness, launch, fund",
+   "category": "design-visual",
+   "trustTier": "community-active",
+   "sizeKB": 128,
+   "copyAs": "ext-bencium-insurgent-campaign"
+  },
+  {
+   "id": "bencium-marketplace/negentropy-lens",
+   "name": "negentropy-lens",
+   "sourceRepo": "bencium-marketplace",
+   "path": "negentropy-lens/skills/negentropy-lens/SKILL.md",
+   "description": "A decision-support framework that evaluates systems, architectures, and strategies through the entropy (decay) vs negentropy (growth) lens, while surfacing tacit knowledge gaps. Use this skill whenever the user is making",
+   "category": "design-visual",
+   "trustTier": "community-active",
+   "sizeKB": 14,
+   "copyAs": "ext-bencium-negentropy-lens"
+  },
+  {
+   "id": "bencium-marketplace/relationship-design",
+   "name": "relationship-design",
+   "sourceRepo": "bencium-marketplace",
+   "path": "relationship-design/skills/relationship-design/SKILL.md",
+   "description": "Design AI-first interfaces that build ongoing relationships through memory, trust evolution, and collaborative planning, not just isolated screen interactions",
+   "category": "design-visual",
+   "upstreamNameInvalid": "Agentic UX Design - Relationship-Centric Interfaces",
+   "trustTier": "community-active",
+   "sizeKB": 73,
+   "copyAs": "ext-bencium-relationship-design"
+  },
+  {
+   "id": "bencium-marketplace/renaissance-architecture",
+   "name": "renaissance-architecture",
+   "sourceRepo": "bencium-marketplace",
+   "path": "renaissance-architecture/skills/renaissance-architecture/SKILL.md",
+   "description": "Software architecture and UI/UX principles for building genuinely new solutions, not derivative work. Use when designing features, architecting software, brainstorming apps, reviewing designs, or during strategy discussi",
+   "category": "design-visual",
+   "trustTier": "community-active",
+   "sizeKB": 13,
+   "copyAs": "ext-bencium-renaissance-architecture"
+  },
+  {
+   "id": "bencium-marketplace/typography",
+   "name": "ui-typography",
+   "sourceRepo": "bencium-marketplace",
+   "path": "typography/skills/typography/SKILL.md",
+   "description": "Professional typography rules for UI design, web applications, software interfaces, and all screen-based text. Enforces timeless typographic correctness that LLMs consistently get wrong: proper quote marks, dashes, spaci",
+   "category": "typography",
+   "trustTier": "community-active",
+   "sizeKB": 26,
+   "copyAs": "ext-bencium-ui-typography"
+  },
+  {
+   "id": "bencium-marketplace/vanity-engineering-review",
+   "name": "vanity-engineering-review",
+   "sourceRepo": "bencium-marketplace",
+   "path": "vanity-engineering-review/skills/vanity-engineering-review/SKILL.md",
+   "description": "Reviews codebases, architectures, PRs, and technical plans for vanity engineering \u2014 code and systems built for the developer's ego, resume, or intellectual pleasure rather than delivering user or business value. Triggers",
+   "category": "motion-3d",
+   "trustTier": "community-active",
+   "sizeKB": 28,
+   "copyAs": "ext-bencium-vanity-engineering-review"
+  },
+  {
+   "id": "claudedesignskills/aframe-webxr",
+   "name": "aframe-webxr",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/aframe-webxr/SKILL.md",
+   "description": "Declarative web framework for building browser-based 3D, VR, and AR experiences using HTML and entity-component architecture. Use this skill when creating WebXR applications, VR experiences, AR experiences, 360-degree me",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 3 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 3,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 176,
+   "copyAs": "ext-cds-aframe-webxr"
+  },
+  {
+   "id": "claudedesignskills/animated-component-libraries",
+   "name": "animated-component-libraries",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/animated-component-libraries/SKILL.md",
+   "description": "Pre-built animated React component collections combining Magic UI (150+ TypeScript/Tailwind/Motion components) and React Bits (90+ minimal-dependency animated components). Use this skill when building landing pages, mark",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 2 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 2,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 89,
+   "copyAs": "ext-cds-animated-component-libraries"
+  },
+  {
+   "id": "claudedesignskills/animejs",
+   "name": "animejs",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/animejs/SKILL.md",
+   "description": "Versatile JavaScript animation engine for DOM, CSS, SVG, and JavaScript objects. Use when creating timeline-based animations, stagger effects, SVG morphing, keyframe sequences, or complex choreographed animations. Trigge",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 2 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 2,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 62,
+   "copyAs": "ext-cds-animejs"
+  },
+  {
+   "id": "claudedesignskills/babylonjs-engine",
+   "name": "babylonjs-engine",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/babylonjs-engine/SKILL.md",
+   "description": "Comprehensive skill for Babylon.js 3D web rendering engine. Use this skill when building real-time 3D experiences, browser-based games, interactive visualizations, or immersive web applications. Triggers on tasks involvi",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 4 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 4,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 153,
+   "copyAs": "ext-cds-babylonjs-engine"
+  },
+  {
+   "id": "claudedesignskills/barba-js",
+   "name": "barba-js",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/barba-js/SKILL.md",
+   "description": "Page transitions library for creating fluid, smooth transitions between website pages. Use this skill when implementing page transitions, creating SPA-like experiences, adding animated route changes, or building websites",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 2 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 2,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 129,
+   "copyAs": "ext-cds-barba-js"
+  },
+  {
+   "id": "claudedesignskills/blender-web-pipeline",
+   "name": "blender-web-pipeline",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/blender-web-pipeline/SKILL.md",
+   "description": "Blender to web export workflows for 3D models and animations. Use this skill when exporting Blender models to glTF for web, optimizing 3D assets for Three.js or Babylon.js, batch processing models with Python scripts, au",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 3 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 3,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 27,
+   "copyAs": "ext-cds-blender-web-pipeline"
+  },
+  {
+   "id": "claudedesignskills/gsap-scrolltrigger",
+   "name": "gsap-scrolltrigger",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/gsap-scrolltrigger/SKILL.md",
+   "description": "Comprehensive skill for GSAP (GreenSock Animation Platform) and ScrollTrigger plugin. Use this skill when creating web animations, scroll-driven experiences, timelines, tweens, scroll-triggered animations, pinning, scrub",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 3 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 3,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 159,
+   "copyAs": "ext-cds-gsap-scrolltrigger"
+  },
+  {
+   "id": "claudedesignskills/lightweight-3d-effects",
+   "name": "lightweight-3d-effects",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/lightweight-3d-effects/SKILL.md",
+   "description": "Lightweight 3D effects for decorative elements and micro-interactions using Zdog, Vanta.js, and Vanilla-Tilt.js. Use this skill when adding pseudo-3D illustrations, animated backgrounds, parallax tilt effects, decorative",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 3 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 3,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 179,
+   "copyAs": "ext-cds-lightweight-3d-effects"
+  },
+  {
+   "id": "claudedesignskills/locomotive-scroll",
+   "name": "locomotive-scroll",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/locomotive-scroll/SKILL.md",
+   "description": "Comprehensive skill for Locomotive Scroll smooth scrolling library with parallax effects, viewport detection, and scroll-driven animations. Use this skill when implementing smooth scrolling experiences, creating parallax",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 3 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 3,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 81,
+   "copyAs": "ext-cds-locomotive-scroll"
+  },
+  {
+   "id": "claudedesignskills/lottie-animations",
+   "name": "lottie-animations",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/lottie-animations/SKILL.md",
+   "description": "After Effects animation rendering for web and React applications. Use this skill when implementing Lottie animations, JSON vector animations, interactive animated icons, micro-interactions, or loading animations. Trigger",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 2 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 2,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 64,
+   "copyAs": "ext-cds-lottie-animations"
+  },
+  {
+   "id": "claudedesignskills/modern-web-design",
+   "name": "modern-web-design",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/modern-web-design/SKILL.md",
+   "description": "Modern web design trends, principles, and implementation patterns for 2024-2025. Use this skill when designing websites, creating interactive experiences, implementing design systems, ensuring accessibility, or building",
+   "category": "design-visual",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 2 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 2,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 151,
+   "copyAs": "ext-cds-modern-web-design"
+  },
+  {
+   "id": "claudedesignskills/motion-framer",
+   "name": "motion-framer",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/motion-framer/SKILL.md",
+   "description": "Modern animation library for React and JavaScript. Create smooth, production-ready animations with motion components, variants, gestures (hover/tap/drag), layout animations, AnimatePresence exit animations, spring physic",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 3 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 3,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 159,
+   "copyAs": "ext-cds-motion-framer"
+  },
+  {
+   "id": "claudedesignskills/pixijs-2d",
+   "name": "pixijs-2d",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/pixijs-2d/SKILL.md",
+   "description": "Fast, lightweight 2D rendering engine for creating interactive graphics, particle effects, and canvas-based applications using WebGL/WebGPU. Use this skill when building 2D games, particle systems, interactive canvases,",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 3 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 3,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 253,
+   "copyAs": "ext-cds-pixijs-2d"
+  },
+  {
+   "id": "claudedesignskills/playcanvas-engine",
+   "name": "playcanvas-engine",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/playcanvas-engine/SKILL.md",
+   "description": "Lightweight WebGL/WebGPU game engine with entity-component architecture and visual editor integration. Use this skill when building browser-based games, interactive 3D applications, or performance-critical web experience",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 5 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 5,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 183,
+   "copyAs": "ext-cds-playcanvas-engine"
+  },
+  {
+   "id": "claudedesignskills/react-spring-physics",
+   "name": "react-spring-physics",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/react-spring-physics/SKILL.md",
+   "description": "Physics-based animation library combining React Spring (spring dynamics, gesture integration, 60fps animations) and Popmotion (low-level composable animation utilities, reactive streams). Use when building fluid, natural",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 2 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 2,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 71,
+   "copyAs": "ext-cds-react-spring-physics"
+  },
+  {
+   "id": "claudedesignskills/react-three-fiber",
+   "name": "react-three-fiber",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/react-three-fiber/SKILL.md",
+   "description": "Build declarative 3D scenes with React Three Fiber (R3F) - a React renderer for Three.js. Use when building interactive 3D experiences in React applications with component-based architecture, state management, and reusab",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 3 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 3,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 105,
+   "copyAs": "ext-cds-react-three-fiber"
+  },
+  {
+   "id": "claudedesignskills/rive-interactive",
+   "name": "rive-interactive",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/rive-interactive/SKILL.md",
+   "description": "State machine-based vector animation with runtime interactivity and web integration. Use this skill when creating interactive animations, state-driven UI, animated components with logic, or designer-created animations wi",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 2 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 2,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 26,
+   "copyAs": "ext-cds-rive-interactive"
+  },
+  {
+   "id": "claudedesignskills/scroll-reveal-libraries",
+   "name": "scroll-reveal-libraries",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/scroll-reveal-libraries/SKILL.md",
+   "description": "Simple scroll-triggered reveal animations using AOS (Animate On Scroll). Use this skill when building marketing pages, landing pages, or content-heavy sites requiring basic fade/slide effects without complex animation or",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 2 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 2,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 94,
+   "copyAs": "ext-cds-scroll-reveal-libraries"
+  },
+  {
+   "id": "claudedesignskills/skill-creator",
+   "name": "skill-creator",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/skill-creator/SKILL.md",
+   "description": "Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Claude's capabilities with specialized knowledge, workflows, or tool integra",
+   "category": "meta-tooling",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 3 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 3,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 1,
+   "sizeKB": 41,
+   "copyAs": "ext-cds-skill-creator"
+  },
+  {
+   "id": "claudedesignskills/spline-interactive",
+   "name": "spline-interactive",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/spline-interactive/SKILL.md",
+   "description": "Browser-based 3D design tool with visual editor, animation, and web export. Use this skill when creating 3D scenes without code, designing interactive web experiences, prototyping 3D UI, exporting to React/web, or buildi",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 2 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 2,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 54,
+   "copyAs": "ext-cds-spline-interactive"
+  },
+  {
+   "id": "claudedesignskills/substance-3d-texturing",
+   "name": "substance-3d-texturing",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/substance-3d-texturing/SKILL.md",
+   "description": "Comprehensive skill for Adobe Substance 3D Painter texturing and material creation workflow. Use this skill when creating PBR materials, exporting textures for web/game engines, optimizing 3D assets for real-time renderi",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 3 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 3,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 126,
+   "copyAs": "ext-cds-substance-3d-texturing"
+  },
+  {
+   "id": "claudedesignskills/threejs-webgl",
+   "name": "threejs-webgl",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/threejs-webgl/SKILL.md",
+   "description": "Comprehensive skill for Three.js 3D web development. Use this skill when building interactive 3D scenes, WebGL/WebGPU applications, product configurators, 3D visualizations, or immersive web experiences. Triggers on task",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 2 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 2,
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 62,
+   "copyAs": "ext-cds-threejs-webgl"
+  },
+  {
+   "id": "claudedesignskills/web3d-integration-patterns",
+   "name": "web3d-integration-patterns",
+   "sourceRepo": "claudedesignskills",
+   "path": ".claude/skills/web3d-integration-patterns/SKILL.md",
+   "description": "Meta-skill for combining Three.js, GSAP ScrollTrigger, React Three Fiber, Motion, and React Spring for complex 3D web experiences. Use when building applications that integrate multiple 3D and animation libraries, requir",
+   "category": "motion-3d",
+   "trustTier": "community-stale",
+   "duplicateCopiesInRepo": 3,
+   "sizeKB": 21,
+   "copyAs": "ext-cds-web3d-integration-patterns"
+  },
+  {
+   "id": "developer-kit/adr-drafting",
+   "name": "adr-drafting",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-core/skills/adr-drafting/SKILL.md",
+   "description": "Creates new Architecture Decision Record (ADR) documents for significant architectural changes using a consistent template and repository-aware naming and storage guidance. Use when a user or agent decides on an architec",
+   "category": "docs-content",
+   "trustTier": "community-active",
+   "sizeKB": 9,
+   "copyAs": "ext-devkit-adr-drafting"
+  },
+  {
+   "id": "developer-kit/aws-cdk",
+   "name": "aws-cdk",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/aws-cdk/SKILL.md",
+   "description": "Provides AWS CDK TypeScript patterns for defining, validating, and deploying AWS infrastructure as code. Use when creating CDK apps, stacks, and reusable constructs, modeling serverless or VPC-based architectures, applyi",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 56,
+   "copyAs": "ext-devkit-aws-cdk"
+  },
+  {
+   "id": "developer-kit/aws-cli-beast",
+   "name": "aws-cli-beast",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-aws/skills/aws/aws-cli-beast/SKILL.md",
+   "description": "Provides advanced AWS CLI patterns for managing EC2, Lambda, S3, DynamoDB, RDS, VPC, IAM, and CloudWatch. Generates bulk operation scripts, automates cross-service workflows, validates security configurations, and execut",
+   "category": "backend-data",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 1 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 1,
+   "trustTier": "community-active",
+   "sizeKB": 60,
+   "copyAs": "ext-devkit-aws-cli-beast"
+  },
+  {
+   "id": "developer-kit/aws-cloudformation-auto-scaling",
+   "name": "aws-cloudformation-auto-scaling",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-aws/skills/aws-cloudformation/aws-cloudformation-auto-scaling/SKILL.md",
+   "description": "Provides AWS CloudFormation patterns for Auto Scaling including EC2, ECS, and Lambda. Use when creating Auto Scaling groups, launch configurations, launch templates, scaling policies, lifecycle hooks, and predictive scal",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 78,
+   "copyAs": "ext-devkit-aws-cloudformation-auto-scaling"
+  },
+  {
+   "id": "developer-kit/aws-cloudformation-bedrock",
+   "name": "aws-cloudformation-bedrock",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-aws/skills/aws-cloudformation/aws-cloudformation-bedrock/SKILL.md",
+   "description": "Provides AWS CloudFormation patterns for Amazon Bedrock resources including agents, knowledge bases, data sources, guardrails, prompts, flows, and inference profiles. Use when creating Bedrock agents with action groups,",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 94,
+   "copyAs": "ext-devkit-aws-cloudformation-bedrock"
+  },
+  {
+   "id": "developer-kit/aws-cloudformation-cloudfront",
+   "name": "aws-cloudformation-cloudfront",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-aws/skills/aws-cloudformation/aws-cloudformation-cloudfront/SKILL.md",
+   "description": "Provides AWS CloudFormation patterns for CloudFront distributions, origins (ALB, S3, Lambda@Edge, VPC Origins), CacheBehaviors, Functions, SecurityHeaders, parameters, Outputs and cross-stack references. Use when creatin",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 163,
+   "copyAs": "ext-devkit-aws-cloudformation-cloudfront"
+  },
+  {
+   "id": "developer-kit/aws-cloudformation-cloudwatch",
+   "name": "aws-cloudformation-cloudwatch",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-aws/skills/aws-cloudformation/aws-cloudformation-cloudwatch/SKILL.md",
+   "description": "Provides AWS CloudFormation patterns for CloudWatch monitoring, metrics, alarms, dashboards, logs, and observability. Use when creating CloudWatch metrics, alarms, dashboards, log groups, log subscriptions, anomaly detec",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 151,
+   "copyAs": "ext-devkit-aws-cloudformation-cloudwatch"
+  },
+  {
+   "id": "developer-kit/aws-cloudformation-dynamodb",
+   "name": "aws-cloudformation-dynamodb",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-aws/skills/aws-cloudformation/aws-cloudformation-dynamodb/SKILL.md",
+   "description": "Provides AWS CloudFormation patterns for DynamoDB tables, GSIs, LSIs, auto-scaling, and streams. Use when creating DynamoDB tables with CloudFormation, configuring primary keys, local/global secondary indexes, capacity m",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 55,
+   "copyAs": "ext-devkit-aws-cloudformation-dynamodb"
+  },
+  {
+   "id": "developer-kit/aws-cloudformation-ec2",
+   "name": "aws-cloudformation-ec2",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-aws/skills/aws-cloudformation/aws-cloudformation-ec2/SKILL.md",
+   "description": "Provides AWS CloudFormation patterns for EC2 instances, Security Groups, IAM roles, and load balancers. Use when creating EC2 instances, SPOT instances, Security Groups, IAM roles for EC2, Application Load Balancers (ALB",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 118,
+   "copyAs": "ext-devkit-aws-cloudformation-ec2"
+  },
+  {
+   "id": "developer-kit/aws-cloudformation-ecs",
+   "name": "aws-cloudformation-ecs",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-aws/skills/aws-cloudformation/aws-cloudformation-ecs/SKILL.md",
+   "description": "Provides AWS CloudFormation patterns for ECS clusters, task definitions, services, container definitions, auto scaling, blue/green deployments, CodeDeploy integration, ALB integration, service discovery, monitoring, logg",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 85,
+   "copyAs": "ext-devkit-aws-cloudformation-ecs"
+  },
+  {
+   "id": "developer-kit/aws-cloudformation-elasticache",
+   "name": "aws-cloudformation-elasticache",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-aws/skills/aws-cloudformation/aws-cloudformation-elasticache/SKILL.md",
+   "description": "Provides AWS CloudFormation patterns for ElastiCache Redis or Memcached infrastructure, including subnet groups, parameter groups, security controls, and cross-stack outputs. Use when designing cache tiers, high-availabi",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 54,
+   "copyAs": "ext-devkit-aws-cloudformation-elasticache"
+  },
+  {
+   "id": "developer-kit/aws-cloudformation-iam",
+   "name": "aws-cloudformation-iam",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-aws/skills/aws-cloudformation/aws-cloudformation-iam/SKILL.md",
+   "description": "Provides AWS CloudFormation patterns for IAM roles, policies, managed policies, permission boundaries, and trust relationships. Use when modeling least-privilege access, cross-account assumptions, service roles, or reusa",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 94,
+   "copyAs": "ext-devkit-aws-cloudformation-iam"
+  },
+  {
+   "id": "developer-kit/aws-cloudformation-lambda",
+   "name": "aws-cloudformation-lambda",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-aws/skills/aws-cloudformation/aws-cloudformation-lambda/SKILL.md",
+   "description": "Provides AWS CloudFormation patterns for Lambda functions, layers, API Gateway integration, event sources, cold start optimization, monitoring, logging, template validation, and deployment workflows. Use when creating La",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 88,
+   "copyAs": "ext-devkit-aws-cloudformation-lambda"
+  },
+  {
+   "id": "developer-kit/aws-cloudformation-rds",
+   "name": "aws-cloudformation-rds",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-aws/skills/aws-cloudformation/aws-cloudformation-rds/SKILL.md",
+   "description": "Provides AWS CloudFormation patterns for Amazon RDS databases. Use when creating RDS instances (MySQL, PostgreSQL, Aurora), DB clusters, multi-AZ deployments, parameter groups, subnet groups, and implementing template st",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 137,
+   "copyAs": "ext-devkit-aws-cloudformation-rds"
+  },
+  {
+   "id": "developer-kit/aws-cloudformation-s3",
+   "name": "aws-cloudformation-s3",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-aws/skills/aws-cloudformation/aws-cloudformation-s3/SKILL.md",
+   "description": "Provides AWS CloudFormation patterns for Amazon S3. Use when creating S3 buckets, policies, versioning, lifecycle rules, and implementing template structure with Parameters, Outputs, Mappings, Conditions, and cross-stack",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 55,
+   "copyAs": "ext-devkit-aws-cloudformation-s3"
+  },
+  {
+   "id": "developer-kit/aws-cloudformation-security",
+   "name": "aws-cloudformation-security",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-aws/skills/aws-cloudformation/aws-cloudformation-security/SKILL.md",
+   "description": "Provides AWS CloudFormation patterns for security infrastructure including KMS encryption, Secrets Manager, IAM security, VPC security, ACM certificates, parameter security, outputs, and secure cross-stack references. Us",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 91,
+   "copyAs": "ext-devkit-aws-cloudformation-security"
+  },
+  {
+   "id": "developer-kit/aws-cloudformation-task-ecs-deploy-gh",
+   "name": "aws-cloudformation-task-ecs-deploy-gh",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-aws/skills/aws-cloudformation/aws-cloudformation-task-ecs-deploy-gh/SKILL.md",
+   "description": "Provides patterns to deploy ECS tasks and services with GitHub Actions CI/CD. Use when building Docker images, pushing to ECR, updating ECS task definitions, deploying ECS services, integrating with CloudFormation stacks",
+   "category": "devops",
+   "trustTier": "community-active",
+   "sizeKB": 156,
+   "copyAs": "ext-devkit-aws-cloudformation-task-ecs-deploy-gh"
+  },
+  {
+   "id": "developer-kit/aws-cloudformation-vpc",
+   "name": "aws-cloudformation-vpc",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-aws/skills/aws-cloudformation/aws-cloudformation-vpc/SKILL.md",
+   "description": "Provides AWS CloudFormation patterns for VPC foundations, including subnets, route tables, internet and NAT gateways, endpoints, and reusable outputs. Use when creating a new network baseline, segmenting public and priva",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 53,
+   "copyAs": "ext-devkit-aws-cloudformation-vpc"
+  },
+  {
+   "id": "developer-kit/aws-cost-optimization",
+   "name": "aws-cost-optimization",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-aws/skills/aws/aws-cost-optimization/SKILL.md",
+   "description": "Provides structured AWS cost optimization guidance using five pillars (right-sizing, elasticity, pricing models, storage optimization, monitoring) and twelve actionable best practices with executable AWS CLI examples. Us",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 13,
+   "copyAs": "ext-devkit-aws-cost-optimization"
+  },
+  {
+   "id": "developer-kit/aws-drawio-architecture-diagrams",
+   "name": "aws-drawio-architecture-diagrams",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-aws/skills/aws/aws-drawio-architecture-diagrams/SKILL.md",
+   "description": "Creates professional AWS architecture diagrams in draw.io XML format (.drawio files) using official AWS Architecture Icons (aws4 library). Use when the user asks for AWS diagrams, VPC layouts, multi-tier architectures, s",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 60,
+   "copyAs": "ext-devkit-aws-drawio-architecture-diagrams"
+  },
+  {
+   "id": "developer-kit/aws-lambda-java-integration",
+   "name": "aws-lambda-java-integration",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/aws-lambda-java-integration/SKILL.md",
+   "description": "Provides AWS Lambda integration patterns for Java with cold start optimization. Use when deploying Java functions to AWS Lambda, choosing between Micronaut and Raw Java approaches, optimizing cold starts below 1 second,",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 117,
+   "copyAs": "ext-devkit-aws-lambda-java-integration"
+  },
+  {
+   "id": "developer-kit/aws-lambda-php-integration",
+   "name": "aws-lambda-php-integration",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-php/skills/aws-lambda-php-integration/SKILL.md",
+   "description": "Provides AWS Lambda integration patterns for PHP with Symfony using the Bref framework. Creates Lambda handler classes, configures runtime layers, sets up SQS/SNS event triggers, implements warm-up strategies, and optimi",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 54,
+   "copyAs": "ext-devkit-aws-lambda-php-integration"
+  },
+  {
+   "id": "developer-kit/aws-lambda-python-integration",
+   "name": "aws-lambda-python-integration",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-python/skills/aws-lambda-python-integration/SKILL.md",
+   "description": "Provides AWS Lambda integration patterns for Python with cold start optimization. Use when deploying Python functions to AWS Lambda, choosing between AWS Chalice and raw Python approaches, optimizing cold starts, configu",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 72,
+   "copyAs": "ext-devkit-aws-lambda-python-integration"
+  },
+  {
+   "id": "developer-kit/aws-lambda-typescript-integration",
+   "name": "aws-lambda-typescript-integration",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/aws-lambda-typescript-integration/SKILL.md",
+   "description": "Provides AWS Lambda integration patterns for TypeScript with cold start optimization. Use when creating or deploying TypeScript Lambda functions, choosing between NestJS framework and raw TypeScript approaches, optimizin",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 115,
+   "copyAs": "ext-devkit-aws-lambda-typescript-integration"
+  },
+  {
+   "id": "developer-kit/aws-rds-spring-boot-integration",
+   "name": "aws-rds-spring-boot-integration",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/aws-rds-spring-boot-integration/SKILL.md",
+   "description": "Provides patterns to configure AWS RDS (Aurora, MySQL, PostgreSQL) with Spring Boot applications. Configures HikariCP connection pools, implements read/write splitting, sets up IAM database authentication, enables SSL co",
+   "category": "motion-3d",
+   "trustTier": "community-active",
+   "sizeKB": 21,
+   "copyAs": "ext-devkit-aws-rds-spring-boot-integration"
+  },
+  {
+   "id": "developer-kit/aws-sam-bootstrap",
+   "name": "aws-sam-bootstrap",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-aws/skills/aws/aws-sam-bootstrap/SKILL.md",
+   "description": "Provides AWS SAM bootstrap patterns: generates `template.yaml` and `samconfig.toml` for new projects via `sam init`, creates SAM templates for existing Lambda/CloudFormation code migration, validates build/package/deploy",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 8,
+   "copyAs": "ext-devkit-aws-sam-bootstrap"
+  },
+  {
+   "id": "developer-kit/aws-sdk-java-v2-bedrock",
+   "name": "aws-sdk-java-v2-bedrock",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/aws-sdk-java-v2-bedrock/SKILL.md",
+   "description": "Provides Amazon Bedrock patterns using AWS SDK for Java 2.x. Invokes foundation models (Claude, Llama, Titan), generates text and images, creates embeddings for RAG, streams real-time responses, and configures Spring Boo",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 506,
+   "copyAs": "ext-devkit-aws-sdk-java-v2-bedrock"
+  },
+  {
+   "id": "developer-kit/aws-sdk-java-v2-core",
+   "name": "aws-sdk-java-v2-core",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/aws-sdk-java-v2-core/SKILL.md",
+   "description": "Provides AWS SDK for Java 2.x client configuration, credential resolution, HTTP client tuning, timeout, retry, and testing patterns. Use when creating or hardening AWS service clients, wiring Spring Boot beans, debugging",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 25,
+   "copyAs": "ext-devkit-aws-sdk-java-v2-core"
+  },
+  {
+   "id": "developer-kit/aws-sdk-java-v2-dynamodb",
+   "name": "aws-sdk-java-v2-dynamodb",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/aws-sdk-java-v2-dynamodb/SKILL.md",
+   "description": "Provides Amazon DynamoDB patterns using AWS SDK for Java 2.x. Use when creating, querying, scanning, or performing CRUD operations on DynamoDB tables, working with indexes, batch operations, transactions, or integrating",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 43,
+   "copyAs": "ext-devkit-aws-sdk-java-v2-dynamodb"
+  },
+  {
+   "id": "developer-kit/aws-sdk-java-v2-kms",
+   "name": "aws-sdk-java-v2-kms",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/aws-sdk-java-v2-kms/SKILL.md",
+   "description": "Provides AWS Key Management Service (KMS) patterns using AWS SDK for Java 2.x. Use when creating/managing encryption keys, encrypting/decrypting data, generating data keys, digital signing, key rotation, or integrating e",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 83,
+   "copyAs": "ext-devkit-aws-sdk-java-v2-kms"
+  },
+  {
+   "id": "developer-kit/aws-sdk-java-v2-lambda",
+   "name": "aws-sdk-java-v2-lambda",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/aws-sdk-java-v2-lambda/SKILL.md",
+   "description": "Provides AWS Lambda patterns using AWS SDK for Java 2.x. Use when invoking Lambda functions, creating/updating functions, managing function configurations, working with Lambda layers, or integrating Lambda with Spring Bo",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 64,
+   "copyAs": "ext-devkit-aws-sdk-java-v2-lambda"
+  },
+  {
+   "id": "developer-kit/aws-sdk-java-v2-messaging",
+   "name": "aws-sdk-java-v2-messaging",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/aws-sdk-java-v2-messaging/SKILL.md",
+   "description": "Provides AWS messaging patterns using AWS SDK for Java 2.x for SQS queues and SNS topics. Handles sending/receiving messages, FIFO queues, DLQ, subscriptions, and pub/sub patterns. Use when implementing messaging with SQ",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 31,
+   "copyAs": "ext-devkit-aws-sdk-java-v2-messaging"
+  },
+  {
+   "id": "developer-kit/aws-sdk-java-v2-rds",
+   "name": "aws-sdk-java-v2-rds",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/aws-sdk-java-v2-rds/SKILL.md",
+   "description": "Provides AWS RDS (Relational Database Service) management patterns using AWS SDK for Java 2.x. Use when creating, modifying, monitoring, or managing Amazon RDS database instances, snapshots, parameter groups, and configu",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 34,
+   "copyAs": "ext-devkit-aws-sdk-java-v2-rds"
+  },
+  {
+   "id": "developer-kit/aws-sdk-java-v2-s3",
+   "name": "aws-sdk-java-v2-s3",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/aws-sdk-java-v2-s3/SKILL.md",
+   "description": "Provides Amazon S3 patterns and examples using AWS SDK for Java 2.x. Use when working with S3 buckets, uploading/downloading objects, multipart uploads, presigned URLs, S3 Transfer Manager, object operations, or S3-speci",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 60,
+   "copyAs": "ext-devkit-aws-sdk-java-v2-s3"
+  },
+  {
+   "id": "developer-kit/aws-sdk-java-v2-secrets-manager",
+   "name": "aws-sdk-java-v2-secrets-manager",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/aws-sdk-java-v2-secrets-manager/SKILL.md",
+   "description": "Provides AWS Secrets Manager patterns for AWS SDK for Java 2.x, including secret retrieval, caching, rotation-aware access, and Spring Boot integration. Use when storing or reading secrets in Java services, replacing har",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 35,
+   "copyAs": "ext-devkit-aws-sdk-java-v2-secrets-manager"
+  },
+  {
+   "id": "developer-kit/better-auth",
+   "name": "better-auth",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/better-auth/SKILL.md",
+   "description": "Provides Better Auth integration patterns for NestJS backend and Next.js frontend with Drizzle ORM and PostgreSQL. Use when setting up Better Auth with NestJS backend, integrating Next.js App Router frontend, configuring",
+   "category": "backend-data",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 11 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 11,
+   "trustTier": "community-active",
+   "sizeKB": 112,
+   "copyAs": "ext-devkit-better-auth"
+  },
+  {
+   "id": "developer-kit/brainstorm-prompt-optimizer",
+   "name": "brainstorm-prompt-optimizer",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-specs/skills/brainstorm-prompt-optimizer/SKILL.md",
+   "description": "Optimizes raw idea descriptions into structured prompts ready for the brainstorming workflow. TRIGGER when: user says \"optimize for brainstorm\", \"prepare idea for brainstorm\", \"enhance this idea\", \"make this ready for br",
+   "category": "devops",
+   "trustTier": "community-active",
+   "sizeKB": 18,
+   "copyAs": "ext-devkit-brainstorm-prompt-optimizer"
+  },
+  {
+   "id": "developer-kit/bug-fix-brief",
+   "name": "bug-fix-brief",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-core/skills/bug-fix-brief/SKILL.md",
+   "description": "Generates a structured Bug Fix Brief (BFB) to document issue corrections. Includes root cause analysis, repro steps, fix options, and fix checklist. Use when user asks to create a BFB, document a bug fix, or generate a b",
+   "category": "docs-content",
+   "trustTier": "community-active",
+   "sizeKB": 3,
+   "copyAs": "ext-devkit-bug-fix-brief"
+  },
+  {
+   "id": "developer-kit/chunking-strategy",
+   "name": "chunking-strategy",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-ai/skills/chunking-strategy/SKILL.md",
+   "description": "Provides chunking strategies for RAG systems. Generates chunk size recommendations (256-1024 tokens), overlap percentages (10-20%), and semantic boundary detection methods. Validates semantic coherence and evaluates retr",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 249,
+   "copyAs": "ext-devkit-chunking-strategy"
+  },
+  {
+   "id": "developer-kit/clean-architecture",
+   "name": "clean-architecture",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/clean-architecture/SKILL.md",
+   "description": "Provides implementation patterns for Clean Architecture, Hexagonal Architecture (Ports & Adapters), and Domain-Driven Design in Java 21+ Spring Boot 3.5+ applications. Use when structuring layered architectures, separati",
+   "category": "motion-3d",
+   "trustTier": "community-active",
+   "sizeKB": 36,
+   "copyAs": "ext-devkit-clean-architecture"
+  },
+  {
+   "id": "developer-kit/clean-architecture",
+   "name": "clean-architecture",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-python/skills/clean-architecture/SKILL.md",
+   "description": "Provides implementation patterns for Clean Architecture, Hexagonal Architecture (Ports & Adapters), and Domain-Driven Design in Python applications with FastAPI or Flask. Use when designing maintainable backends with sep",
+   "category": "motion-3d",
+   "trustTier": "community-active",
+   "sizeKB": 50,
+   "copyAs": "ext-devkit-clean-architecture"
+  },
+  {
+   "id": "developer-kit/clean-architecture",
+   "name": "clean-architecture",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-php/skills/clean-architecture/SKILL.md",
+   "description": "Provides implementation patterns for Clean Architecture, Hexagonal Architecture (Ports & Adapters), and Domain-Driven Design in PHP 8.3+ with Symfony 7.x. Use when architecting enterprise PHP applications with entities/v",
+   "category": "motion-3d",
+   "trustTier": "community-active",
+   "sizeKB": 43,
+   "copyAs": "ext-devkit-clean-architecture"
+  },
+  {
+   "id": "developer-kit/clean-architecture",
+   "name": "clean-architecture",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/clean-architecture/SKILL.md",
+   "description": "Provides implementation patterns for Clean Architecture, Domain-Driven Design (DDD), and Hexagonal Architecture (Ports & Adapters) in NestJS/TypeScript applications. Use when structuring complex backend systems, designin",
+   "category": "motion-3d",
+   "trustTier": "community-active",
+   "sizeKB": 59,
+   "copyAs": "ext-devkit-clean-architecture"
+  },
+  {
+   "id": "developer-kit/codex",
+   "name": "codex",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-tools/skills/codex/SKILL.md",
+   "description": "Provides Codex CLI delegation workflows for complex code generation and development tasks using OpenAI's GPT-5.3-codex models, including English prompt formulation, execution flags, sandbox modes, and safe result handlin",
+   "category": "other",
+   "trustTier": "community-active",
+   "sizeKB": 19,
+   "copyAs": "ext-devkit-codex"
+  },
+  {
+   "id": "developer-kit/constitution",
+   "name": "constitution",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-specs/skills/constitution/SKILL.md",
+   "description": "Creates, updates, validates, and displays the architectural DNA of a project through two shared documents: docs/specs/architecture.md (technology stack, architectural rules, security constraints, AI guardrails) and docs/",
+   "category": "docs-content",
+   "selfContained": false,
+   "copyNotes": [
+    "uses ${CLAUDE_PLUGIN_ROOT} \u2014 rewrite script paths after copy"
+   ],
+   "trustTier": "community-active",
+   "sizeKB": 39,
+   "copyAs": "ext-devkit-constitution"
+  },
+  {
+   "id": "developer-kit/copilot-cli",
+   "name": "copilot-cli",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-tools/skills/copilot-cli/SKILL.md",
+   "description": "Provides GitHub Copilot CLI task delegation in non-interactive mode with multi-model support (Claude, GPT, Gemini), permission controls, output sharing, and session resume. Use when users ask to hand work to Copilot, com",
+   "category": "other",
+   "trustTier": "community-active",
+   "sizeKB": 7,
+   "copyAs": "ext-devkit-copilot-cli"
+  },
+  {
+   "id": "developer-kit/create-pr-from-spec",
+   "name": "create-pr-from-spec",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-specs/skills/create-pr-from-spec/SKILL.md",
+   "description": "Create GitHub Pull Request from specification using pull_request_template.md. Use when: spec needs to be converted to PR, spec is ready for review/merge, need to automate PR creation from specification file with template",
+   "category": "meta-tooling",
+   "trustTier": "community-active",
+   "sizeKB": 6,
+   "copyAs": "ext-devkit-create-pr-from-spec"
+  },
+  {
+   "id": "developer-kit/docs-updater",
+   "name": "docs-updater",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-core/skills/docs-updater/SKILL.md",
+   "description": "Provides automated documentation updates by analyzing git changes between the current branch and the last release tag. Performs git diff analysis to identify modifications, then updates README.md, CHANGELOG.md following",
+   "category": "docs-content",
+   "trustTier": "community-active",
+   "sizeKB": 19,
+   "copyAs": "ext-devkit-docs-updater"
+  },
+  {
+   "id": "developer-kit/drawio-logical-diagrams",
+   "name": "drawio-logical-diagrams",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-core/skills/drawio-logical-diagrams/SKILL.md",
+   "description": "Creates professional logical flow diagrams and logical system architecture diagrams using draw.io XML format (.drawio files). Use when creating: (1) logical flow diagrams showing data/process flow between system componen",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 71,
+   "copyAs": "ext-devkit-drawio-logical-diagrams"
+  },
+  {
+   "id": "developer-kit/drizzle-orm-patterns",
+   "name": "drizzle-orm-patterns",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/drizzle-orm-patterns/SKILL.md",
+   "description": "Provides comprehensive Drizzle ORM patterns for schema definition, CRUD operations, relations, queries, transactions, and migrations. Proactively use for any Drizzle ORM development including defining database schemas, w",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 56,
+   "copyAs": "ext-devkit-drizzle-orm-patterns"
+  },
+  {
+   "id": "developer-kit/dynamodb-toolbox-patterns",
+   "name": "dynamodb-toolbox-patterns",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/dynamodb-toolbox-patterns/SKILL.md",
+   "description": "Provides TypeScript patterns for DynamoDB-Toolbox v2 including schema/table/entity modeling, .build() command workflow, query/scan access patterns, batch and transaction operations, and single-table design with computed",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 9,
+   "copyAs": "ext-devkit-dynamodb-toolbox-patterns"
+  },
+  {
+   "id": "developer-kit/gemini",
+   "name": "gemini",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-tools/skills/gemini/SKILL.md",
+   "description": "Provides Gemini CLI delegation workflows for large-context analysis and complex reasoning using Gemini 3.0 Flash and Gemini 3.0 Pro models, including English prompt formulation, execution flags, and safe result handling.",
+   "category": "other",
+   "trustTier": "community-active",
+   "sizeKB": 15,
+   "copyAs": "ext-devkit-gemini"
+  },
+  {
+   "id": "developer-kit/github-issue-workflow",
+   "name": "github-issue-workflow",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-core/skills/github-issue-workflow/SKILL.md",
+   "description": "Provides a structured 8-phase workflow for resolving GitHub issues in Claude Code. Covers fetching issue details, analyzing requirements, implementing solutions, verifying correctness, performing code review, committing",
+   "category": "docs-content",
+   "trustTier": "community-active",
+   "sizeKB": 90,
+   "copyAs": "ext-devkit-github-issue-workflow"
+  },
+  {
+   "id": "developer-kit/graalvm-native-image",
+   "name": "graalvm-native-image",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/graalvm-native-image/SKILL.md",
+   "description": "Provides expert guidance for building GraalVM Native Image executables from Java applications. Use when converting JVM applications to native binaries, optimizing cold start times, reducing memory footprint, configuring",
+   "category": "motion-3d",
+   "trustTier": "community-active",
+   "sizeKB": 49,
+   "copyAs": "ext-devkit-graalvm-native-image"
+  },
+  {
+   "id": "developer-kit/knowledge-graph",
+   "name": "knowledge-graph",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-specs/skills/knowledge-graph/SKILL.md",
+   "description": "Manage persistent Knowledge Graph for specifications. Provides read, query, update, and validation capabilities for codebase analysis caching. Use when: spec-to-tasks needs to cache/reuse codebase analysis, task-implemen",
+   "category": "react-web",
+   "trustTier": "community-active",
+   "sizeKB": 101,
+   "copyAs": "ext-devkit-knowledge-graph"
+  },
+  {
+   "id": "developer-kit/langchain4j-ai-services-patterns",
+   "name": "langchain4j-ai-services-patterns",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/langchain4j-ai-services-patterns/SKILL.md",
+   "description": "Provides patterns to build declarative AI Services with LangChain4j for LLM integration, chatbot development, AI agent implementation, and conversational AI in Java. Generates type-safe AI services using interface-based",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 35,
+   "copyAs": "ext-devkit-langchain4j-ai-services-patterns"
+  },
+  {
+   "id": "developer-kit/langchain4j-mcp-server-patterns",
+   "name": "langchain4j-mcp-server-patterns",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/langchain4j-mcp-server-patterns/SKILL.md",
+   "description": "Provides LangChain4j patterns for implementing MCP (Model Context Protocol) servers, creating Java AI tools, exposing tool calling capabilities, and integrating MCP clients with AI services. Use when building a Java MCP",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 44,
+   "copyAs": "ext-devkit-langchain4j-mcp-server-patterns"
+  },
+  {
+   "id": "developer-kit/langchain4j-rag-implementation-patterns",
+   "name": "langchain4j-rag-implementation-patterns",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/langchain4j-rag-implementation-patterns/SKILL.md",
+   "description": "Provides Retrieval-Augmented Generation (RAG) implementation patterns with LangChain4j for Java. Generates document ingestion pipelines, embedding stores, vector search, and semantic search capabilities. Use when buildin",
+   "category": "backend-data",
+   "selfContained": false,
+   "copyNotes": [
+    "requires an API key / env var"
+   ],
+   "trustTier": "community-active",
+   "sizeKB": 41,
+   "copyAs": "ext-devkit-langchain4j-rag-implementation-patterns"
+  },
+  {
+   "id": "developer-kit/langchain4j-spring-boot-integration",
+   "name": "langchain4j-spring-boot-integration",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/langchain4j-spring-boot-integration/SKILL.md",
+   "description": "Provides integration patterns for LangChain4j with Spring Boot. Configures AI model beans, sets up chat memory with Spring context, integrates RAG pipelines with Spring Data, and handles auto-configuration, dependency in",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "requires an API key / env var"
+   ],
+   "trustTier": "community-active",
+   "sizeKB": 52,
+   "copyAs": "ext-devkit-langchain4j-spring-boot-integration"
+  },
+  {
+   "id": "developer-kit/langchain4j-testing-strategies",
+   "name": "langchain4j-testing-strategies",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/langchain4j-testing-strategies/SKILL.md",
+   "description": "Provides unit test, integration test, and mock AI patterns for LangChain4j applications. Creates mock LLM responses, tests retrieval chains, validates RAG workflows, and implements Testcontainers-based integration tests",
+   "category": "testing",
+   "trustTier": "community-active",
+   "sizeKB": 50,
+   "copyAs": "ext-devkit-langchain4j-testing-strategies"
+  },
+  {
+   "id": "developer-kit/langchain4j-tool-function-calling-patterns",
+   "name": "langchain4j-tool-function-calling-patterns",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/langchain4j-tool-function-calling-patterns/SKILL.md",
+   "description": "Provides and generates LangChain4j tool and function calling patterns: annotates methods as tools with @Tool, configures tool executors, registers tools with AiServices, validates tool parameters, and handles tool execut",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 63,
+   "copyAs": "ext-devkit-langchain4j-tool-function-calling-patterns"
+  },
+  {
+   "id": "developer-kit/langchain4j-vector-stores-configuration",
+   "name": "langchain4j-vector-stores-configuration",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/langchain4j-vector-stores-configuration/SKILL.md",
+   "description": "Provides configuration patterns for LangChain4J vector stores in RAG applications. Use when building semantic search, integrating vector databases (PostgreSQL/pgvector, Pinecone, MongoDB, Milvus, Neo4j), implementing emb",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 33,
+   "copyAs": "ext-devkit-langchain4j-vector-stores-configuration"
+  },
+  {
+   "id": "developer-kit/learn",
+   "name": "learn",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-core/skills/learn/SKILL.md",
+   "description": "Provides autonomous project pattern learning by analyzing the codebase to discover development conventions, architectural patterns, and coding standards, then generates project rule files in .claude/rules/. Use when user",
+   "category": "meta-tooling",
+   "trustTier": "community-active",
+   "sizeKB": 10,
+   "copyAs": "ext-devkit-learn"
+  },
+  {
+   "id": "developer-kit/memory-md-management",
+   "name": "memory-md-management",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-core/skills/memory-md-management/SKILL.md",
+   "description": "Provides comprehensive memory file management capabilities including auditing, quality assessment, and targeted improvements for files such as CLAUDE.md. Use when user asks to check, audit, update, improve, fix, maintain",
+   "category": "meta-tooling",
+   "trustTier": "community-active",
+   "sizeKB": 18,
+   "copyAs": "ext-devkit-memory-md-management"
+  },
+  {
+   "id": "developer-kit/nestjs",
+   "name": "nestjs",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/nestjs/SKILL.md",
+   "description": "Provides comprehensive NestJS framework patterns with Drizzle ORM integration for building scalable server-side applications. Generates REST/GraphQL APIs, implements authentication guards, creates database schemas, and s",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 113,
+   "copyAs": "ext-devkit-nestjs"
+  },
+  {
+   "id": "developer-kit/nestjs-best-practices",
+   "name": "nestjs-best-practices",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/nestjs-best-practices/SKILL.md",
+   "description": "Provides comprehensive NestJS best practices including modular architecture, dependency injection scoping, exception filters, DTO validation with class-validator, and Drizzle ORM integration. Use when designing NestJS mo",
+   "category": "backend-data",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 3 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 3,
+   "trustTier": "community-active",
+   "sizeKB": 35,
+   "copyAs": "ext-devkit-nestjs-best-practices"
+  },
+  {
+   "id": "developer-kit/nestjs-code-review",
+   "name": "nestjs-code-review",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/nestjs-code-review/SKILL.md",
+   "description": "Provides comprehensive code review capability for NestJS applications, analyzing controllers, services, modules, guards, interceptors, pipes, dependency injection, and database integration patterns. Use when reviewing Ne",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 27,
+   "copyAs": "ext-devkit-nestjs-code-review"
+  },
+  {
+   "id": "developer-kit/nestjs-drizzle-crud-generator",
+   "name": "nestjs-drizzle-crud-generator",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/nestjs-drizzle-crud-generator/SKILL.md",
+   "description": "Generates complete CRUD modules for NestJS applications with Drizzle ORM. Use when building server-side features in NestJS that require database operations, including creating new entities with full CRUD endpoints, servi",
+   "category": "backend-data",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 7 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 7,
+   "trustTier": "community-active",
+   "sizeKB": 31,
+   "copyAs": "ext-devkit-nestjs-drizzle-crud-generator"
+  },
+  {
+   "id": "developer-kit/nextjs-app-router",
+   "name": "nextjs-app-router",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/nextjs-app-router/SKILL.md",
+   "description": "Provides patterns and code examples for building Next.js 16+ applications with App Router architecture. Use when creating projects with App Router, implementing Server Components and Client Components (\"use client\"), cre",
+   "category": "react-web",
+   "trustTier": "community-active",
+   "sizeKB": 114,
+   "copyAs": "ext-devkit-nextjs-app-router"
+  },
+  {
+   "id": "developer-kit/nextjs-authentication",
+   "name": "nextjs-authentication",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/nextjs-authentication/SKILL.md",
+   "description": "Provides authentication implementation patterns for Next.js 15+ App Router using Auth.js 5 (NextAuth.js). Use when setting up authentication flows, implementing protected routes, managing sessions in Server Components an",
+   "category": "react-web",
+   "trustTier": "community-active",
+   "sizeKB": 66,
+   "copyAs": "ext-devkit-nextjs-authentication"
+  },
+  {
+   "id": "developer-kit/nextjs-code-review",
+   "name": "nextjs-code-review",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/nextjs-code-review/SKILL.md",
+   "description": "Provides comprehensive code review capability for Next.js applications, validates Server Components, Client Components, Server Actions, caching strategies, metadata, API routes, middleware, and performance patterns. Use",
+   "category": "react-web",
+   "trustTier": "community-active",
+   "sizeKB": 28,
+   "copyAs": "ext-devkit-nextjs-code-review"
+  },
+  {
+   "id": "developer-kit/nextjs-data-fetching",
+   "name": "nextjs-data-fetching",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/nextjs-data-fetching/SKILL.md",
+   "description": "Provides Next.js App Router data fetching patterns including SWR and React Query integration, parallel data fetching, Incremental Static Regeneration (ISR), revalidation strategies, and error boundaries. Use when impleme",
+   "category": "react-web",
+   "trustTier": "community-active",
+   "sizeKB": 34,
+   "copyAs": "ext-devkit-nextjs-data-fetching"
+  },
+  {
+   "id": "developer-kit/nextjs-deployment",
+   "name": "nextjs-deployment",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/nextjs-deployment/SKILL.md",
+   "description": "Provides comprehensive patterns for deploying Next.js applications to production. Use when configuring Docker containers, setting up GitHub Actions CI/CD pipelines, managing environment variables, implementing preview de",
+   "category": "devops",
+   "trustTier": "community-active",
+   "sizeKB": 51,
+   "copyAs": "ext-devkit-nextjs-deployment"
+  },
+  {
+   "id": "developer-kit/nextjs-performance",
+   "name": "nextjs-performance",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/nextjs-performance/SKILL.md",
+   "description": "Expert Next.js performance optimization skill covering Core Web Vitals, image/font optimization, caching strategies, streaming, bundle optimization, and Server Components best practices. Use when optimizing Next.js appli",
+   "category": "react-web",
+   "trustTier": "community-active",
+   "sizeKB": 71,
+   "copyAs": "ext-devkit-nextjs-performance"
+  },
+  {
+   "id": "developer-kit/notebooklm",
+   "name": "notebooklm",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-tools/skills/notebooklm/SKILL.md",
+   "description": "Enables interaction with Google NotebookLM for advanced RAG (Retrieval-Augmented Generation) capabilities via the notebooklm-mcp-cli tool. Use when querying project documentation stored in NotebookLM, managing research n",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 19,
+   "copyAs": "ext-devkit-notebooklm"
+  },
+  {
+   "id": "developer-kit/nx-monorepo",
+   "name": "nx-monorepo",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/nx-monorepo/SKILL.md",
+   "description": "Provides comprehensive Nx monorepo management guidance for TypeScript/JavaScript projects. Use when creating Nx workspaces, generating apps/libraries/components, running affected commands, setting up CI/CD, configuring M",
+   "category": "devops",
+   "trustTier": "community-active",
+   "sizeKB": 53,
+   "copyAs": "ext-devkit-nx-monorepo"
+  },
+  {
+   "id": "developer-kit/pr-review-comments",
+   "name": "pr-review-comments",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-core/skills/pr-review-comments/SKILL.md",
+   "description": "Posts review findings from a JSON file as inline comments on a GitHub Pull Request, attaching each comment to its file and line. Use when you have a list/JSON of review findings (each with a file path, line number, and a",
+   "category": "docs-content",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 1 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 1,
+   "trustTier": "community-active",
+   "sizeKB": 15,
+   "copyAs": "ext-devkit-pr-review-comments"
+  },
+  {
+   "id": "developer-kit/prompt-engineering",
+   "name": "prompt-engineering",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-ai/skills/prompt-engineering/SKILL.md",
+   "description": "Provides workflows to write, debug, and optimize prompts for LLMs, including few-shot example selection, chain-of-thought structuring, system prompt design, and template composition. Use when the user asks to write or im",
+   "category": "devops",
+   "trustTier": "community-active",
+   "sizeKB": 80,
+   "copyAs": "ext-devkit-prompt-engineering"
+  },
+  {
+   "id": "developer-kit/qdrant",
+   "name": "qdrant",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/qdrant/SKILL.md",
+   "description": "Provides Qdrant vector database integration patterns with LangChain4j. Handles embedding storage, similarity search, and vector management for Java applications. Use when implementing vector-based retrieval for RAG syste",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 27,
+   "copyAs": "ext-devkit-qdrant"
+  },
+  {
+   "id": "developer-kit/qwen-coder",
+   "name": "qwen-coder",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-tools/skills/qwen-coder/SKILL.md",
+   "description": "Provides Qwen Coder CLI delegation workflows for coding tasks using Qwen2.5-Coder and QwQ models, including English prompt formulation, execution flags, and safe result handling. Use when the user explicitly asks to use",
+   "category": "other",
+   "trustTier": "community-active",
+   "sizeKB": 16,
+   "copyAs": "ext-devkit-qwen-coder"
+  },
+  {
+   "id": "developer-kit/rag",
+   "name": "rag",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-ai/skills/rag/SKILL.md",
+   "description": "Implements document chunking, embedding generation, vector storage, and retrieval pipelines for Retrieval-Augmented Generation systems. Use when building RAG applications, creating document Q&A systems, or integrating AI",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 39,
+   "copyAs": "ext-devkit-rag"
+  },
+  {
+   "id": "developer-kit/ralph-loop",
+   "name": "ralph-loop",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-specs/skills/ralph-loop/SKILL.md",
+   "description": "Ralph Wiggum-inspired automation loop for specification-driven development. Orchestrates task implementation, review, cleanup, and synchronization using a Python script. Use when: user runs /loop command, user asks to au",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 1 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 1,
+   "trustTier": "community-active",
+   "sizeKB": 100,
+   "copyAs": "ext-devkit-ralph-loop"
+  },
+  {
+   "id": "developer-kit/react-code-review",
+   "name": "react-code-review",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/react-code-review/SKILL.md",
+   "description": "Provides comprehensive code review capability for React applications, validates component architecture, hooks usage, React 19 patterns, state management, performance optimization, accessibility compliance, and TypeScript",
+   "category": "react-web",
+   "trustTier": "community-active",
+   "sizeKB": 29,
+   "copyAs": "ext-devkit-react-code-review"
+  },
+  {
+   "id": "developer-kit/react-patterns",
+   "name": "react-patterns",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/react-patterns/SKILL.md",
+   "description": "Provides comprehensive React 19 patterns for Server Components, Server Actions, useOptimistic, useActionState, useTransition, concurrent features, Suspense boundaries, and TypeScript integration. Generates executable cod",
+   "category": "react-web",
+   "trustTier": "community-active",
+   "sizeKB": 73,
+   "copyAs": "ext-devkit-react-patterns"
+  },
+  {
+   "id": "developer-kit/sdd-init",
+   "name": "sdd-init",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-specs/skills/sdd-init/SKILL.md",
+   "description": "Initialize Spec-Driven Development context \u2014 detects tech stack, conventions, architecture patterns, and bootstraps persistence backends. Triggers on 'sdd-init', 'init sdd', 'setup sdd', 'initialize sdd', 'setup project'",
+   "category": "motion-3d",
+   "trustTier": "community-active",
+   "sizeKB": 8,
+   "copyAs": "ext-devkit-sdd-init"
+  },
+  {
+   "id": "developer-kit/shadcn-ui",
+   "name": "shadcn-ui",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/shadcn-ui/SKILL.md",
+   "description": "Provides complete shadcn/ui component library patterns including installation, configuration, and implementation of accessible React components. Use when setting up shadcn/ui, installing components, building forms with R",
+   "category": "react-web",
+   "trustTier": "community-active",
+   "sizeKB": 164,
+   "copyAs": "ext-devkit-shadcn-ui"
+  },
+  {
+   "id": "developer-kit/sonarqube-mcp",
+   "name": "sonarqube-mcp",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-tools/skills/sonarqube-mcp/SKILL.md",
+   "description": "Provides SonarQube and SonarCloud integration patterns via the Model Context Protocol (MCP) server. Enables quality gate monitoring, issue discovery and triaging, pre-push code analysis, and rule education directly in th",
+   "category": "docs-content",
+   "trustTier": "community-active",
+   "sizeKB": 36,
+   "copyAs": "ext-devkit-sonarqube-mcp"
+  },
+  {
+   "id": "developer-kit/specs-code-cleanup",
+   "name": "specs-code-cleanup",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-specs/skills/specs-code-cleanup/SKILL.md",
+   "description": "Provides final code cleanup after task review approval. Removes debug logs, temporary comments, dead code, optimizes imports, and improves readability. Use when asked to clean up code, polish, finalize, tidy up, remove t",
+   "category": "meta-tooling",
+   "trustTier": "community-active",
+   "sizeKB": 7,
+   "copyAs": "ext-devkit-specs-code-cleanup"
+  },
+  {
+   "id": "developer-kit/specs-e2e-verification",
+   "name": "specs-e2e-verification",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-specs/skills/specs-e2e-verification/SKILL.md",
+   "description": "Executes real end-to-end verification against a running application after specification implementation. Detects the application type, starts the local runtime (Docker, Node, Spring Boot, etc.), runs real tests (curl for",
+   "category": "testing",
+   "trustTier": "community-active",
+   "sizeKB": 98,
+   "copyAs": "ext-devkit-specs-e2e-verification"
+  },
+  {
+   "id": "developer-kit/specs-explore",
+   "name": "specs-explore",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-specs/skills/specs-explore/SKILL.md",
+   "description": "Explore codebase before committing to a change. Phase executor skill for specs.explore command.",
+   "category": "meta-tooling",
+   "trustTier": "community-active",
+   "sizeKB": 3,
+   "copyAs": "ext-devkit-specs-explore"
+  },
+  {
+   "id": "developer-kit/spring-ai-mcp-server-patterns",
+   "name": "spring-ai-mcp-server-patterns",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/spring-ai-mcp-server-patterns/SKILL.md",
+   "description": "Provides Spring Boot MCP server patterns that create Model Context Protocol servers with Spring AI by defining tool handlers, exposing resources, configuring prompt templates, and setting up transports for AI function ca",
+   "category": "motion-3d",
+   "trustTier": "community-active",
+   "sizeKB": 150,
+   "copyAs": "ext-devkit-spring-ai-mcp-server-patterns"
+  },
+  {
+   "id": "developer-kit/spring-boot-actuator",
+   "name": "spring-boot-actuator",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/spring-boot-actuator/SKILL.md",
+   "description": "Provides patterns to configure Spring Boot Actuator for production-grade monitoring, health probes, secured management endpoints, and Micrometer metrics across JVM services. Use when setting up monitoring, health checks,",
+   "category": "motion-3d",
+   "trustTier": "community-active",
+   "sizeKB": 171,
+   "copyAs": "ext-devkit-spring-boot-actuator"
+  },
+  {
+   "id": "developer-kit/spring-boot-cache",
+   "name": "spring-boot-cache",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/spring-boot-cache/SKILL.md",
+   "description": "Provides patterns for implementing Spring Boot caching: configures Redis/Caffeine/EhCache providers with TTL and eviction policies, applies @Cacheable/@CacheEvict/@CachePut annotations, validates cache hit/miss behavior,",
+   "category": "motion-3d",
+   "trustTier": "community-active",
+   "sizeKB": 57,
+   "copyAs": "ext-devkit-spring-boot-cache"
+  },
+  {
+   "id": "developer-kit/spring-boot-crud-patterns",
+   "name": "spring-boot-crud-patterns",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/spring-boot-crud-patterns/SKILL.md",
+   "description": "Provides and generates complete CRUD workflows for Spring Boot 3 services. Creates feature-focused architecture with Spring Data JPA aggregates, repositories, DTOs, controllers, and REST APIs. Validates domain invariants",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 1 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 1,
+   "trustTier": "community-active",
+   "sizeKB": 67,
+   "copyAs": "ext-devkit-spring-boot-crud-patterns"
+  },
+  {
+   "id": "developer-kit/spring-boot-dependency-injection",
+   "name": "spring-boot-dependency-injection",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/spring-boot-dependency-injection/SKILL.md",
+   "description": "Provides dependency injection patterns for Spring Boot projects, including constructor-first design, optional collaborator handling, bean selection, and wiring validation. Use when creating services and configurations, r",
+   "category": "motion-3d",
+   "trustTier": "community-active",
+   "sizeKB": 39,
+   "copyAs": "ext-devkit-spring-boot-dependency-injection"
+  },
+  {
+   "id": "developer-kit/spring-boot-event-driven-patterns",
+   "name": "spring-boot-event-driven-patterns",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/spring-boot-event-driven-patterns/SKILL.md",
+   "description": "Provides Event-Driven Architecture (EDA) patterns for Spring Boot \u2014 creates domain events, configures ApplicationEvent and @TransactionalEventListener, sets up Kafka producers and consumers, and implements the transactio",
+   "category": "motion-3d",
+   "trustTier": "community-active",
+   "sizeKB": 99,
+   "copyAs": "ext-devkit-spring-boot-event-driven-patterns"
+  },
+  {
+   "id": "developer-kit/spring-boot-openapi-documentation",
+   "name": "spring-boot-openapi-documentation",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/spring-boot-openapi-documentation/SKILL.md",
+   "description": "Provides patterns to generate comprehensive REST API documentation using SpringDoc OpenAPI 3.0 and Swagger UI in Spring Boot 3.x applications. Use when setting up API documentation, configuring Swagger UI, adding OpenAPI",
+   "category": "motion-3d",
+   "trustTier": "community-active",
+   "sizeKB": 105,
+   "copyAs": "ext-devkit-spring-boot-openapi-documentation"
+  },
+  {
+   "id": "developer-kit/spring-boot-project-creator",
+   "name": "spring-boot-project-creator",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/spring-boot-project-creator/SKILL.md",
+   "description": "Creates and scaffolds a new Spring Boot project (3.x or 4.x) by downloading from Spring Initializr, generating package structure (DDD or Layered architecture), configuring JPA, SpringDoc OpenAPI, and Docker Compose servi",
+   "category": "motion-3d",
+   "trustTier": "community-active",
+   "sizeKB": 13,
+   "copyAs": "ext-devkit-spring-boot-project-creator"
+  },
+  {
+   "id": "developer-kit/spring-boot-resilience4j",
+   "name": "spring-boot-resilience4j",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/spring-boot-resilience4j/SKILL.md",
+   "description": "Provides fault tolerance patterns for Spring Boot 3.x using Resilience4j. Use when implementing circuit breakers, handling service failures, adding retry logic with exponential backoff, configuring rate limiters, or prot",
+   "category": "motion-3d",
+   "trustTier": "community-active",
+   "sizeKB": 51,
+   "copyAs": "ext-devkit-spring-boot-resilience4j"
+  },
+  {
+   "id": "developer-kit/spring-boot-rest-api-standards",
+   "name": "spring-boot-rest-api-standards",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/spring-boot-rest-api-standards/SKILL.md",
+   "description": "Provides REST API design standards and best practices for Spring Boot projects. Use when creating or reviewing REST endpoints, DTOs, error handling, pagination, security headers, HATEOAS and architecture patterns.",
+   "category": "motion-3d",
+   "trustTier": "community-active",
+   "sizeKB": 96,
+   "copyAs": "ext-devkit-spring-boot-rest-api-standards"
+  },
+  {
+   "id": "developer-kit/spring-boot-saga-pattern",
+   "name": "spring-boot-saga-pattern",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/spring-boot-saga-pattern/SKILL.md",
+   "description": "Provides distributed transaction patterns using the Saga Pattern for Spring Boot microservices. Use when implementing distributed transactions across services, handling compensating transactions, ensuring eventual consis",
+   "category": "motion-3d",
+   "trustTier": "community-active",
+   "sizeKB": 145,
+   "copyAs": "ext-devkit-spring-boot-saga-pattern"
+  },
+  {
+   "id": "developer-kit/spring-boot-security-jwt",
+   "name": "spring-boot-security-jwt",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/spring-boot-security-jwt/SKILL.md",
+   "description": "Provides JWT authentication and authorization patterns for Spring Boot 3.5.x covering token generation with JJWT, Bearer/cookie authentication, database/OAuth2 integration, and RBAC/permission-based access control using",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 2 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 2,
+   "trustTier": "community-active",
+   "sizeKB": 408,
+   "copyAs": "ext-devkit-spring-boot-security-jwt"
+  },
+  {
+   "id": "developer-kit/spring-boot-test-patterns",
+   "name": "spring-boot-test-patterns",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/spring-boot-test-patterns/SKILL.md",
+   "description": "Provides comprehensive testing patterns for Spring Boot applications covering unit, integration, slice, and container-based testing with JUnit 5, Mockito, Testcontainers, and performance optimization. Use when writing te",
+   "category": "motion-3d",
+   "trustTier": "community-active",
+   "sizeKB": 51,
+   "copyAs": "ext-devkit-spring-boot-test-patterns"
+  },
+  {
+   "id": "developer-kit/spring-data-jpa",
+   "name": "spring-data-jpa",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/spring-data-jpa/SKILL.md",
+   "description": "Provides patterns to implement persistence layers with Spring Data JPA. Use when creating repositories, configuring entity relationships, writing queries (derived and `@Query`), setting up pagination, database auditing,",
+   "category": "motion-3d",
+   "trustTier": "community-active",
+   "sizeKB": 123,
+   "copyAs": "ext-devkit-spring-data-jpa"
+  },
+  {
+   "id": "developer-kit/spring-data-neo4j",
+   "name": "spring-data-neo4j",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/spring-data-neo4j/SKILL.md",
+   "description": "Provides Spring Data Neo4j integration patterns for Spring Boot applications. Use when you need to work with a graph database, Neo4j nodes and relationships, Cypher queries, or Spring Data Neo4j. Creates node entities wi",
+   "category": "motion-3d",
+   "trustTier": "community-active",
+   "sizeKB": 62,
+   "copyAs": "ext-devkit-spring-data-neo4j"
+  },
+  {
+   "id": "developer-kit/tailwind-css-patterns",
+   "name": "tailwind-css-patterns",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/tailwind-css-patterns/SKILL.md",
+   "description": "Provides comprehensive Tailwind CSS utility-first styling patterns including responsive design, layout utilities, flexbox, grid, spacing, typography, colors, and modern CSS best practices. Use when styling React/Vue/Svel",
+   "category": "react-web",
+   "trustTier": "community-active",
+   "sizeKB": 41,
+   "copyAs": "ext-devkit-tailwind-css-patterns"
+  },
+  {
+   "id": "developer-kit/tailwind-design-system",
+   "name": "tailwind-design-system",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/tailwind-design-system/SKILL.md",
+   "description": "Skill for creating and managing a Design System using Tailwind CSS and shadcn/ui. Use when defining design tokens, setting up theming with CSS variables, building a consistent UI component library, initializing a design",
+   "category": "react-web",
+   "trustTier": "community-active",
+   "sizeKB": 27,
+   "copyAs": "ext-devkit-tailwind-design-system"
+  },
+  {
+   "id": "developer-kit/turborepo-monorepo",
+   "name": "turborepo-monorepo",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/turborepo-monorepo/SKILL.md",
+   "description": "Provides comprehensive Turborepo monorepo management guidance for TypeScript/JavaScript projects. Use when creating Turborepo workspaces, configuring turbo.json tasks, setting up Next.js/NestJS apps, managing test pipeli",
+   "category": "devops",
+   "trustTier": "community-active",
+   "sizeKB": 29,
+   "copyAs": "ext-devkit-turborepo-monorepo"
+  },
+  {
+   "id": "developer-kit/typescript-docs",
+   "name": "typescript-docs",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/typescript-docs/SKILL.md",
+   "description": "Generates comprehensive TypeScript documentation using JSDoc, TypeDoc, and multi-layered documentation patterns for different audiences. Use when creating API documentation, architectural decision records (ADRs), code ex",
+   "category": "docs-content",
+   "trustTier": "community-active",
+   "sizeKB": 87,
+   "copyAs": "ext-devkit-typescript-docs"
+  },
+  {
+   "id": "developer-kit/typescript-security-review",
+   "name": "typescript-security-review",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/typescript-security-review/SKILL.md",
+   "description": "Provides security review capability for TypeScript/Node.js applications, validates code against XSS, injection, CSRF, JWT/OAuth2 flaws, dependency CVEs, and secrets exposure. Use when performing security audits, before d",
+   "category": "devops",
+   "trustTier": "community-active",
+   "sizeKB": 34,
+   "copyAs": "ext-devkit-typescript-security-review"
+  },
+  {
+   "id": "developer-kit/unit-test-application-events",
+   "name": "unit-test-application-events",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/unit-test-application-events/SKILL.md",
+   "description": "Provides patterns for unit testing Spring application events. Validates event publishing with ApplicationEventPublisher, tests @EventListener annotation behavior, and verifies async event handling. Use when writing tests",
+   "category": "testing",
+   "trustTier": "community-active",
+   "sizeKB": 8,
+   "copyAs": "ext-devkit-unit-test-application-events"
+  },
+  {
+   "id": "developer-kit/unit-test-bean-validation",
+   "name": "unit-test-bean-validation",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/unit-test-bean-validation/SKILL.md",
+   "description": "Provides patterns for unit testing Jakarta Bean Validation (JSR-380), including @Valid, @NotNull, @Min, @Max, @Email constraints with Hibernate Validator. Generates custom validator tests, constraint violation assertions",
+   "category": "testing",
+   "trustTier": "community-active",
+   "sizeKB": 13,
+   "copyAs": "ext-devkit-unit-test-bean-validation"
+  },
+  {
+   "id": "developer-kit/unit-test-boundary-conditions",
+   "name": "unit-test-boundary-conditions",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/unit-test-boundary-conditions/SKILL.md",
+   "description": "Provides edge case, corner case, boundary condition, and limit testing patterns for Java unit tests. Validates minimum/maximum values, null cases, empty collections, numeric overflow/underflow, floating-point precision,",
+   "category": "testing",
+   "trustTier": "community-active",
+   "sizeKB": 12,
+   "copyAs": "ext-devkit-unit-test-boundary-conditions"
+  },
+  {
+   "id": "developer-kit/unit-test-caching",
+   "name": "unit-test-caching",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/unit-test-caching/SKILL.md",
+   "description": "Provides patterns for unit testing Spring Cache annotations (@Cacheable, @CachePut, @CacheEvict). Generates test code that mocks cache managers, verifies cache hit/miss behavior, tests cache key generation with SpEL expr",
+   "category": "testing",
+   "trustTier": "community-active",
+   "sizeKB": 11,
+   "copyAs": "ext-devkit-unit-test-caching"
+  },
+  {
+   "id": "developer-kit/unit-test-config-properties",
+   "name": "unit-test-config-properties",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/unit-test-config-properties/SKILL.md",
+   "description": "Provides patterns for unit testing `@ConfigurationProperties` classes with `@ConfigurationPropertiesTest`. Validates property binding, tests validation constraints, verifies default values, checks type conversions, and m",
+   "category": "testing",
+   "trustTier": "community-active",
+   "sizeKB": 18,
+   "copyAs": "ext-devkit-unit-test-config-properties"
+  },
+  {
+   "id": "developer-kit/unit-test-controller-layer",
+   "name": "unit-test-controller-layer",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/unit-test-controller-layer/SKILL.md",
+   "description": "Provides patterns for unit testing REST controllers using MockMvc and @WebMvcTest. Generates controller tests that validates request/response mapping, validation, exception handling, and HTTP status codes. Use when testi",
+   "category": "testing",
+   "trustTier": "community-active",
+   "sizeKB": 18,
+   "copyAs": "ext-devkit-unit-test-controller-layer"
+  },
+  {
+   "id": "developer-kit/unit-test-exception-handler",
+   "name": "unit-test-exception-handler",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/unit-test-exception-handler/SKILL.md",
+   "description": "Provides patterns for unit testing `@ExceptionHandler` and `@ControllerAdvice` in Spring Boot applications. Validates error response formatting, mocks exceptions, verifies HTTP status codes, tests field-level validation",
+   "category": "testing",
+   "trustTier": "community-active",
+   "sizeKB": 9,
+   "copyAs": "ext-devkit-unit-test-exception-handler"
+  },
+  {
+   "id": "developer-kit/unit-test-json-serialization",
+   "name": "unit-test-json-serialization",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/unit-test-json-serialization/SKILL.md",
+   "description": "Provides patterns for unit testing JSON serialization/deserialization with Jackson and `@JsonTest`. Validates JSON mapping, custom serializers, date formats, and polymorphic types. Use when testing JSON serialization, va",
+   "category": "testing",
+   "trustTier": "community-active",
+   "sizeKB": 10,
+   "copyAs": "ext-devkit-unit-test-json-serialization"
+  },
+  {
+   "id": "developer-kit/unit-test-mapper-converter",
+   "name": "unit-test-mapper-converter",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/unit-test-mapper-converter/SKILL.md",
+   "description": "Provides patterns for unit testing mappers, converters, and bean mappings. Validates entity-to-DTO and model transformation logic in isolation. Generates executable mapping tests with MapStruct and custom converter test",
+   "category": "testing",
+   "trustTier": "community-active",
+   "sizeKB": 12,
+   "copyAs": "ext-devkit-unit-test-mapper-converter"
+  },
+  {
+   "id": "developer-kit/unit-test-parameterized",
+   "name": "unit-test-parameterized",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/unit-test-parameterized/SKILL.md",
+   "description": "Provides parameterized testing patterns with JUnit 5, generates data-driven unit tests using @ParameterizedTest, @ValueSource, @CsvSource, @MethodSource. Creates tests that run the same logic with multiple input values.",
+   "category": "testing",
+   "trustTier": "community-active",
+   "sizeKB": 6,
+   "copyAs": "ext-devkit-unit-test-parameterized"
+  },
+  {
+   "id": "developer-kit/unit-test-scheduled-async",
+   "name": "unit-test-scheduled-async",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/unit-test-scheduled-async/SKILL.md",
+   "description": "Provides patterns for unit testing Spring `@Scheduled` and `@Async` methods using JUnit 5, CompletableFuture, Awaitility, and Mockito. Covers mocking task execution and timing, verifying execution counts, testing cron ex",
+   "category": "testing",
+   "trustTier": "community-active",
+   "sizeKB": 12,
+   "copyAs": "ext-devkit-unit-test-scheduled-async"
+  },
+  {
+   "id": "developer-kit/unit-test-security-authorization",
+   "name": "unit-test-security-authorization",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/unit-test-security-authorization/SKILL.md",
+   "description": "Provides patterns for unit testing Spring Security with `@PreAuthorize`, `@Secured`, `@RolesAllowed`. Validates role-based access control and authorization policies. Use when testing security configurations and access co",
+   "category": "testing",
+   "trustTier": "community-active",
+   "sizeKB": 32,
+   "copyAs": "ext-devkit-unit-test-security-authorization"
+  },
+  {
+   "id": "developer-kit/unit-test-service-layer",
+   "name": "unit-test-service-layer",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/unit-test-service-layer/SKILL.md",
+   "description": "Provides patterns for unit testing service layer with Mockito. Creates isolated tests that mock repository calls, verify method invocations, test exception scenarios, and stub external API responses. Use when testing ser",
+   "category": "testing",
+   "trustTier": "community-active",
+   "sizeKB": 14,
+   "copyAs": "ext-devkit-unit-test-service-layer"
+  },
+  {
+   "id": "developer-kit/unit-test-utility-methods",
+   "name": "unit-test-utility-methods",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/unit-test-utility-methods/SKILL.md",
+   "description": "Provides patterns for testing utility classes, static methods, and helper functions. Validates pure functions, null handling, edge cases, and boundary conditions. Generates AssertJ assertions and @ParameterizedTest for s",
+   "category": "testing",
+   "trustTier": "community-active",
+   "sizeKB": 12,
+   "copyAs": "ext-devkit-unit-test-utility-methods"
+  },
+  {
+   "id": "developer-kit/unit-test-wiremock-rest-api",
+   "name": "unit-test-wiremock-rest-api",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/unit-test-wiremock-rest-api/SKILL.md",
+   "description": "Provides patterns for unit testing external REST APIs using WireMock. Stubs API responses, verifies request details, simulates failures (timeouts, 4xx/5xx errors), and validates HTTP client behavior without real network",
+   "category": "testing",
+   "trustTier": "community-active",
+   "sizeKB": 7,
+   "copyAs": "ext-devkit-unit-test-wiremock-rest-api"
+  },
+  {
+   "id": "developer-kit/wiremock-standalone-docker",
+   "name": "wiremock-standalone-docker",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-java/skills/wiremock-standalone-docker/SKILL.md",
+   "description": "Provides patterns and configurations for running WireMock as a standalone Docker container. Generates mock HTTP endpoints, creates stub mappings for testing, validates integration scenarios, and simulates error condition",
+   "category": "devops",
+   "trustTier": "community-active",
+   "sizeKB": 8,
+   "copyAs": "ext-devkit-wiremock-standalone-docker"
+  },
+  {
+   "id": "developer-kit/wordpress-sage-theme",
+   "name": "wordpress-sage-theme",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-php/skills/wordpress/wordpress-sage-theme/SKILL.md",
+   "description": "Provides WordPress theme development patterns using Sage (roots/sage) framework. Use when creating, modifying, or debugging WordPress themes with Sage, including (1): creating new Sage themes from scratch, (2): setting u",
+   "category": "design-visual",
+   "trustTier": "community-active",
+   "sizeKB": 37,
+   "copyAs": "ext-devkit-wordpress-sage-theme"
+  },
+  {
+   "id": "developer-kit/zod-validation-utilities",
+   "name": "zod-validation-utilities",
+   "sourceRepo": "developer-kit",
+   "path": "plugins/developer-kit-typescript/skills/zod-validation-utilities/SKILL.md",
+   "description": "Creates reusable Zod v4 schemas, validates API payloads, forms, and configuration input, transforms and coerces data safely, and handles validation errors with strong type inference for TypeScript applications. Use when",
+   "category": "backend-data",
+   "trustTier": "community-active",
+   "sizeKB": 10,
+   "copyAs": "ext-devkit-zod-validation-utilities"
+  },
+  {
+   "id": "flutter-agent-plugins/add-dart-lint-validation-rule",
+   "name": "add-dart-lint-validation-rule",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "tool/dart_skills_lint/.agents/skills/add-dart-lint-validation-rule/SKILL.md",
+   "description": "Instructions for adding a new validation rule and CLI flag to dart_skills_lint. Use this skill when asked to create a new rule that validates aspects of skills (like frontmatter metadata).",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 10,
+   "copyAs": "ext-flutter-add-dart-lint-validation-rule"
+  },
+  {
+   "id": "flutter-agent-plugins/api-review",
+   "name": "api-review",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": ".agents/agents/reidbaker-agent/skills/api-review/SKILL.md",
+   "description": "Reviews the specified code against the canonical API Design guidelines. Use this skill when the user asks for an API review or to check code against API design principles.",
+   "category": "backend-data",
+   "trustTier": "official",
+   "sizeKB": 11,
+   "copyAs": "ext-flutter-api-review"
+  },
+  {
+   "id": "flutter-agent-plugins/check-downstream-consumers",
+   "name": "check-downstream-consumers",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "tool/dart_skills_lint/.agents/skills/check-downstream-consumers/SKILL.md",
+   "description": "Validates an in-progress PR or feature branch of dart_skills_lint against known downstream ecosystem consumers. Use when assessing breaking changes across external repositories during PR evaluation, testing migrations ag",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 12,
+   "copyAs": "ext-flutter-check-downstream-consumers"
+  },
+  {
+   "id": "flutter-agent-plugins/code-documentation",
+   "name": "code-documentation",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": ".agents/agents/reidbaker-agent/skills/code-documentation/SKILL.md",
+   "description": "Guide for writing effective code documentation, including docstrings, JSDoc, dartdoc, and implementation comments. Use this skill when writing new code, adding features, or improving existing documentation in Dart, Pytho",
+   "category": "docs-content",
+   "trustTier": "official",
+   "sizeKB": 13,
+   "copyAs": "ext-flutter-code-documentation"
+  },
+  {
+   "id": "flutter-agent-plugins/code-review",
+   "name": "code-review",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": ".agents/agents/reidbaker-agent/skills/code-review/SKILL.md",
+   "description": "Performs a comprehensive, multi-step code review of pull requests or local code changes, using iterative refinement (generation, critique, synthesis) to ensure high-quality, actionable feedback. Use when you need to revi",
+   "category": "other",
+   "collidesWithHouseSkill": true,
+   "selfContained": false,
+   "copyNotes": [
+    "ships 1 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 1,
+   "trustTier": "official",
+   "sizeKB": 24,
+   "copyAs": "ext-flutter-code-review"
+  },
+  {
+   "id": "flutter-agent-plugins/contributor-pr-description",
+   "name": "contributor-pr-description",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "tool/dart_skills_lint/.agents/skills/contributor-pr-description/SKILL.md",
+   "description": "Guidelines and format for writing pull request descriptions in this repository. Use this skill whenever the user asks you to draft a pull request description, submit a PR, or update a PR description.",
+   "category": "docs-content",
+   "trustTier": "official",
+   "sizeKB": 3,
+   "copyAs": "ext-flutter-contributor-pr-description"
+  },
+  {
+   "id": "flutter-agent-plugins/dart-add-unit-test",
+   "name": "dart-add-unit-test",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/dart-add-unit-test/SKILL.md",
+   "description": "Write and organize unit tests for functions, methods, and classes using `package:test`. Use when creating new logic or fixing bugs to ensure code remains correct and regression-free.",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 5,
+   "copyAs": "ext-flutter-dart-add-unit-test"
+  },
+  {
+   "id": "flutter-agent-plugins/dart-build-cli-app",
+   "name": "dart-build-cli-app",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/dart-build-cli-app/SKILL.md",
+   "description": "Entrypoint structure, exit codes, cross-platform scripts. Use when building command line utilities, scripts, or applications.",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 9,
+   "copyAs": "ext-flutter-dart-build-cli-app"
+  },
+  {
+   "id": "flutter-agent-plugins/dart-collect-coverage",
+   "name": "dart-collect-coverage",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/dart-collect-coverage/SKILL.md",
+   "description": "Collect coverage using the coverage packge and create an LCOV report",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 5,
+   "copyAs": "ext-flutter-dart-collect-coverage"
+  },
+  {
+   "id": "flutter-agent-plugins/dart-fix-runtime-errors",
+   "name": "dart-fix-runtime-errors",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/dart-fix-runtime-errors/SKILL.md",
+   "description": "Uses get_runtime_errors and lsp to fetch an active stack trace, locate the failing line, apply a fix, and verify resolution via hot_reload.",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 6,
+   "copyAs": "ext-flutter-dart-fix-runtime-errors"
+  },
+  {
+   "id": "flutter-agent-plugins/dart-generate-test-mocks",
+   "name": "dart-generate-test-mocks",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/dart-generate-test-mocks/SKILL.md",
+   "description": "Define and generate mock objects for external dependencies using `package:mockito` and `build_runner`. Use when unit testing classes that depend on complex external services like APIs or databases.",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 6,
+   "copyAs": "ext-flutter-dart-generate-test-mocks"
+  },
+  {
+   "id": "flutter-agent-plugins/dart-migrate-to-checks-package",
+   "name": "dart-migrate-to-checks-package",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/dart-migrate-to-checks-package/SKILL.md",
+   "description": "Replace the usage of `expect` and similar functions from `package:matcher` to `package:checks` equivalents.",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 19,
+   "copyAs": "ext-flutter-dart-migrate-to-checks-package"
+  },
+  {
+   "id": "flutter-agent-plugins/dart-resolve-package-conflicts",
+   "name": "dart-resolve-package-conflicts",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/dart-resolve-package-conflicts/SKILL.md",
+   "description": "Workflow for fixing package version conflicts. Use this when `pub get` fails due to incompatible package versions.",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 5,
+   "copyAs": "ext-flutter-dart-resolve-package-conflicts"
+  },
+  {
+   "id": "flutter-agent-plugins/dart-run-static-analysis",
+   "name": "dart-run-static-analysis",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/dart-run-static-analysis/SKILL.md",
+   "description": "Execute `dart analyze` to identify warnings and errors, and use `dart fix --apply` to automatically resolve mechanical lint issues. Use during development to ensure code quality and before committing changes.",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 5,
+   "copyAs": "ext-flutter-dart-run-static-analysis"
+  },
+  {
+   "id": "flutter-agent-plugins/dart-setup-ffi-assets",
+   "name": "dart-setup-ffi-assets",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/dart-setup-ffi-assets/SKILL.md",
+   "description": "Guides agents in compiling and packaging C/C++ source code into dynamic or static libraries (Code Assets) using Dart's Native Assets hook system (via hook/build.dart and hook/link.dart utilizing package:hooks and package",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 18,
+   "copyAs": "ext-flutter-dart-setup-ffi-assets"
+  },
+  {
+   "id": "flutter-agent-plugins/dart-skills-lint-integration",
+   "name": "dart-skills-lint-integration",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "tool/dart_skills_lint/.agents/skills/dart-skills-lint-integration/SKILL.md",
+   "description": "How to integrate, update, and configure the dart_skills_lint validation tool within a repository. Make sure to use this skill whenever the user asks to update dart_skills_lint, configure skills validation tests, fix skil",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 7,
+   "copyAs": "ext-flutter-dart-skills-lint-integration"
+  },
+  {
+   "id": "flutter-agent-plugins/dart-skills-lint-setup",
+   "name": "dart-skills-lint-setup",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "tool/dart_skills_lint/skills/dart-skills-lint-setup/SKILL.md",
+   "description": "Use this skill when you need to set up validation for AI agent skills in a Dart project for the first time. Adds the linter as a dev_dependency, creates a configuration file, and generates a baseline for legacy repos.",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 6,
+   "copyAs": "ext-flutter-dart-skills-lint-setup"
+  },
+  {
+   "id": "flutter-agent-plugins/dart-skills-lint-validation",
+   "name": "dart-skills-lint-validation",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "tool/dart_skills_lint/skills/dart-skills-lint-validation/SKILL.md",
+   "description": "Use this skill when you need to validate AI agent skills with dart_skills_lint \u2014 running the linter, interpreting failures, fixing violations, and authoring custom rules.",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 6,
+   "copyAs": "ext-flutter-dart-skills-lint-validation"
+  },
+  {
+   "id": "flutter-agent-plugins/dart-use-ffigen",
+   "name": "dart-use-ffigen",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/dart-use-ffigen/SKILL.md",
+   "description": "Guide agents to use `package:ffigen` to automatically generate FFI bindings instead of writing them manually. Use this skill when a task involves writing new FFI bindings, extending C/Objective-C/Swift integrations, or r",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 11,
+   "copyAs": "ext-flutter-dart-use-ffigen"
+  },
+  {
+   "id": "flutter-agent-plugins/dart-use-pattern-matching",
+   "name": "dart-use-pattern-matching",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/dart-use-pattern-matching/SKILL.md",
+   "description": "Use switch expressions and pattern matching where appropriate",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 6,
+   "copyAs": "ext-flutter-dart-use-pattern-matching"
+  },
+  {
+   "id": "flutter-agent-plugins/dart-use-primary-constructors",
+   "name": "dart-use-primary-constructors",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/dart-use-primary-constructors/SKILL.md",
+   "description": "Help users write syntactically and semantically correct primary constructors in Dart, and migrate/use the new constructor syntax, empty-body semicolon syntax, in-body initializer list syntax, and abbreviated concise cons",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 11,
+   "copyAs": "ext-flutter-dart-use-primary-constructors"
+  },
+  {
+   "id": "flutter-agent-plugins/definition-of-done",
+   "name": "definition-of-done",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "tool/dart_skills_lint/.agents/skills/definition-of-done/SKILL.md",
+   "description": "Mandatory checks to run before completing any task that touches md files or dart code in this repository.",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 4,
+   "copyAs": "ext-flutter-definition-of-done"
+  },
+  {
+   "id": "flutter-agent-plugins/flutter-add-integration-test",
+   "name": "flutter-add-integration-test",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/flutter-add-integration-test/SKILL.md",
+   "description": "Configures Flutter Driver for app interaction and converts MCP actions into permanent integration tests. Use when adding integration testing to a project, exploring UI components via MCP, or automating user flows with th",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 7,
+   "copyAs": "ext-flutter-flutter-add-integration-test"
+  },
+  {
+   "id": "flutter-agent-plugins/flutter-add-widget-preview",
+   "name": "flutter-add-widget-preview",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/flutter-add-widget-preview/SKILL.md",
+   "description": "Adds interactive widget previews to the project using the previews.dart system. Use when creating new UI components or updating existing screens to ensure consistent design and interactive testing.",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 6,
+   "copyAs": "ext-flutter-flutter-add-widget-preview"
+  },
+  {
+   "id": "flutter-agent-plugins/flutter-add-widget-test",
+   "name": "flutter-add-widget-test",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/flutter-add-widget-test/SKILL.md",
+   "description": "Implement a component-level test using `WidgetTester` to verify UI rendering and user interactions (tapping, scrolling, entering text). Use when validating that a specific widget displays correct data and responds to eve",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 6,
+   "copyAs": "ext-flutter-flutter-add-widget-test"
+  },
+  {
+   "id": "flutter-agent-plugins/flutter-apply-architecture-best-practices",
+   "name": "flutter-apply-architecture-best-practices",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/flutter-apply-architecture-best-practices/SKILL.md",
+   "description": "Architects a Flutter application using the recommended layered approach (UI, Logic, Data). Use when structuring a new project or refactoring for scalability.",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 6,
+   "copyAs": "ext-flutter-flutter-apply-architecture-best-practices"
+  },
+  {
+   "id": "flutter-agent-plugins/flutter-build-responsive-layout",
+   "name": "flutter-build-responsive-layout",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/flutter-build-responsive-layout/SKILL.md",
+   "description": "Use `LayoutBuilder`, `MediaQuery`, or `Expanded/Flexible` to create a layout that adapts to different screen sizes. Use when you need the UI to look good on both mobile and tablet/desktop form factors.",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 7,
+   "copyAs": "ext-flutter-flutter-build-responsive-layout"
+  },
+  {
+   "id": "flutter-agent-plugins/flutter-fix-layout-issues",
+   "name": "flutter-fix-layout-issues",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/flutter-fix-layout-issues/SKILL.md",
+   "description": "Fixes Flutter layout errors (overflows, unbounded constraints) using Dart and Flutter MCP tools. Use when addressing \"RenderFlex overflowed\", \"Vertical viewport was given unbounded height\", or similar layout issues.",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 5,
+   "copyAs": "ext-flutter-flutter-fix-layout-issues"
+  },
+  {
+   "id": "flutter-agent-plugins/flutter-implement-json-serialization",
+   "name": "flutter-implement-json-serialization",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/flutter-implement-json-serialization/SKILL.md",
+   "description": "Create model classes with `fromJson` and `toJson` methods using `dart:convert`. Use when manually mapping JSON keys to class properties for simple data structures.",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 6,
+   "copyAs": "ext-flutter-flutter-implement-json-serialization"
+  },
+  {
+   "id": "flutter-agent-plugins/flutter-setup-declarative-routing",
+   "name": "flutter-setup-declarative-routing",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/flutter-setup-declarative-routing/SKILL.md",
+   "description": "Configure `MaterialApp.router` using a package like `go_router` for advanced URL-based navigation. Use when developing web applications or mobile apps that require specific deep linking and browser history support.",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 8,
+   "copyAs": "ext-flutter-flutter-setup-declarative-routing"
+  },
+  {
+   "id": "flutter-agent-plugins/flutter-setup-localization",
+   "name": "flutter-setup-localization",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/flutter-setup-localization/SKILL.md",
+   "description": "Add `flutter_localizations` and `intl` dependencies, enable \"generate true\" in `pubspec.yaml`, and create an `l10n.yaml` configuration file. Use when initializing localization support for a new Flutter project.",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 6,
+   "copyAs": "ext-flutter-flutter-setup-localization"
+  },
+  {
+   "id": "flutter-agent-plugins/flutter-use-http-package",
+   "name": "flutter-use-http-package",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "skills/flutter-use-http-package/SKILL.md",
+   "description": "Use the `http` package to execute GET, POST, PUT, or DELETE requests. Use when you need to fetch from or send data to a REST API.",
+   "category": "flutter-dart",
+   "trustTier": "official",
+   "sizeKB": 6,
+   "copyAs": "ext-flutter-flutter-use-http-package"
+  },
+  {
+   "id": "flutter-agent-plugins/grill-with-docs",
+   "name": "grill-with-docs",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": ".agents/agents/reidbaker-agent/skills/grill-with-docs/SKILL.md",
+   "description": "Grilling session that challenges your plan against the existing domain model, sharpens terminology, and updates documentation (CONTEXT.md, ADRs) inline as decisions crystallise. Use when user wants to stress-test a plan",
+   "category": "docs-content",
+   "trustTier": "official",
+   "sizeKB": 9,
+   "copyAs": "ext-flutter-grill-with-docs"
+  },
+  {
+   "id": "flutter-agent-plugins/natural-writing",
+   "name": "natural-writing",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": ".agents/agents/reidbaker-agent/skills/natural-writing/SKILL.md",
+   "description": "Contains well-defined rules for creating natural, accurate, and readable writing. Use whenever authoring longer text, like analysis documents, PR or CL descriptions, or documentation.",
+   "category": "docs-content",
+   "trustTier": "official",
+   "sizeKB": 8,
+   "copyAs": "ext-flutter-natural-writing"
+  },
+  {
+   "id": "flutter-agent-plugins/run-evals",
+   "name": "run-evals",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": "tool/dart_skills_lint/.agents/skills/run-evals/SKILL.md",
+   "description": "Run evaluations for one, multiple, or all skills using the agent orchestration framework. Make sure to use this skill whenever the user asks to run evals, test a skill's performance, run benchmarks, or compare baseline v",
+   "category": "testing",
+   "trustTier": "official",
+   "sizeKB": 8,
+   "copyAs": "ext-flutter-run-evals"
+  },
+  {
+   "id": "flutter-agent-plugins/unix-cli-best-practices",
+   "name": "unix-cli-best-practices",
+   "sourceRepo": "flutter-agent-plugins",
+   "path": ".agents/agents/reidbaker-agent/skills/unix-cli-best-practices/SKILL.md",
+   "description": "Safe, portable, and efficient command-line patterns for macOS/BSD Unix tools (grep, find, sed, awk, xargs, mdfind, pbcopy, open) and modern alternatives (ripgrep, fd). Covers common shell scripting and one-liner use case",
+   "category": "docs-content",
+   "trustTier": "official",
+   "sizeKB": 7,
+   "copyAs": "ext-flutter-unix-cli-best-practices"
+  },
+  {
+   "id": "skills/algorithmic-art",
+   "name": "algorithmic-art",
+   "sourceRepo": "skills",
+   "path": "skills/algorithmic-art/SKILL.md",
+   "description": "Creating algorithmic art using p5.js with seeded randomness and interactive parameter exploration. Use this when users request creating art using code, generative art, algorithmic art, flow fields, or particle systems. C",
+   "category": "other",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 1 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 1,
+   "trustTier": "official",
+   "sizeKB": 58,
+   "copyAs": "ext-anthropic-algorithmic-art"
+  },
+  {
+   "id": "skills/brand-guidelines",
+   "name": "brand-guidelines",
+   "sourceRepo": "skills",
+   "path": "skills/brand-guidelines/SKILL.md",
+   "description": "Applies Anthropic's official brand colors and typography to any sort of artifact that may benefit from having Anthropic's look-and-feel. Use it when brand colors or style guidelines, visual formatting, or company design",
+   "category": "design-visual",
+   "trustTier": "official",
+   "sizeKB": 13,
+   "copyAs": "ext-anthropic-brand-guidelines"
+  },
+  {
+   "id": "skills/canvas-design",
+   "name": "canvas-design",
+   "sourceRepo": "skills",
+   "path": "skills/canvas-design/SKILL.md",
+   "description": "Create beautiful visual art in .png and .pdf documents using design philosophy. You should use this skill when the user asks to create a poster, piece of art, design, or other static piece. Create original visual designs",
+   "category": "design-visual",
+   "trustTier": "official",
+   "sizeKB": 5424,
+   "copyAs": "ext-anthropic-canvas-design"
+  },
+  {
+   "id": "skills/claude-api",
+   "name": "claude-api",
+   "sourceRepo": "skills",
+   "path": "skills/claude-api/SKILL.md",
+   "description": "Reference for the Claude API / Anthropic SDK \u2014 model ids, pricing, params, streaming, tool use, MCP, agents, caching, token counting, model migration. TRIGGER \u2014 read BEFORE opening the target file; don't skip because it",
+   "category": "backend-data",
+   "trustTier": "official",
+   "sizeKB": 845,
+   "copyAs": "ext-anthropic-claude-api"
+  },
+  {
+   "id": "skills/doc-coauthoring",
+   "name": "doc-coauthoring",
+   "sourceRepo": "skills",
+   "path": "skills/doc-coauthoring/SKILL.md",
+   "description": "Guide users through a structured workflow for co-authoring documentation. Use when user wants to write documentation, proposals, technical specs, decision docs, or similar structured content. This workflow helps users ef",
+   "category": "docs-content",
+   "trustTier": "official",
+   "sizeKB": 15,
+   "copyAs": "ext-anthropic-doc-coauthoring"
+  },
+  {
+   "id": "skills/docx",
+   "name": "docx",
+   "sourceRepo": "skills",
+   "path": "skills/docx/SKILL.md",
+   "description": "Use this skill whenever the user wants to create, read, edit, or manipulate Word documents (.docx files) or Word templates (.dotx files). Triggers include: any mention of 'Word doc', 'word document', '.docx', '.dotx', or",
+   "category": "docs-content",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 15 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 15,
+   "trustTier": "official",
+   "sizeKB": 1102,
+   "copyAs": "ext-anthropic-docx"
+  },
+  {
+   "id": "skills/frontend-design",
+   "name": "frontend-design",
+   "sourceRepo": "skills",
+   "path": "skills/frontend-design/SKILL.md",
+   "description": "Guidance for distinctive, intentional visual design when building new UI or reshaping an existing one. Helps with aesthetic direction, typography, and making choices that don't read as templated defaults.",
+   "category": "design-visual",
+   "collidesWithHouseSkill": true,
+   "trustTier": "official",
+   "sizeKB": 18,
+   "copyAs": "ext-anthropic-frontend-design"
+  },
+  {
+   "id": "skills/internal-comms",
+   "name": "internal-comms",
+   "sourceRepo": "skills",
+   "path": "skills/internal-comms/SKILL.md",
+   "description": "A set of resources to help me write all kinds of internal communications, using the formats that my company likes to use. Claude should use this skill whenever asked to write some sort of internal communications (status",
+   "category": "docs-content",
+   "trustTier": "official",
+   "sizeKB": 22,
+   "copyAs": "ext-anthropic-internal-comms"
+  },
+  {
+   "id": "skills/mcp-builder",
+   "name": "mcp-builder",
+   "sourceRepo": "skills",
+   "path": "skills/mcp-builder/SKILL.md",
+   "description": "Guide for creating high-quality MCP (Model Context Protocol) servers that enable LLMs to interact with external services through well-designed tools. Use when building MCP servers to integrate external APIs or services,",
+   "category": "backend-data",
+   "selfContained": false,
+   "copyNotes": [
+    "fetches rules/content over the network at runtime",
+    "ships 2 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 2,
+   "trustTier": "official",
+   "sizeKB": 119,
+   "copyAs": "ext-anthropic-mcp-builder"
+  },
+  {
+   "id": "skills/pdf",
+   "name": "pdf",
+   "sourceRepo": "skills",
+   "path": "skills/pdf/SKILL.md",
+   "description": "Use this skill whenever the user wants to do anything with PDF files. This includes reading or extracting text/tables from PDFs, combining or merging multiple PDFs into one, splitting PDFs apart, rotating pages, adding w",
+   "category": "docs-content",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 8 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 8,
+   "trustTier": "official",
+   "sizeKB": 57,
+   "copyAs": "ext-anthropic-pdf"
+  },
+  {
+   "id": "skills/pptx",
+   "name": "pptx",
+   "sourceRepo": "skills",
+   "path": "skills/pptx/SKILL.md",
+   "description": "Use this skill any time a .pptx or .potx file is involved in any way \u2014 as input, output, or both. This includes: creating slide decks, pitch decks, or presentations; reading, parsing, or extracting text from any .pptx or",
+   "category": "docs-content",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 15 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 15,
+   "trustTier": "official",
+   "sizeKB": 1112,
+   "copyAs": "ext-anthropic-pptx"
+  },
+  {
+   "id": "skills/skill-creator",
+   "name": "skill-creator",
+   "sourceRepo": "skills",
+   "path": "skills/skill-creator/SKILL.md",
+   "description": "Create new skills, modify and improve existing skills, and measure skill performance. Use when users want to create a skill from scratch, edit, or optimize an existing skill, run evals to test a skill, benchmark skill pe",
+   "category": "testing",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 10 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 10,
+   "trustTier": "official",
+   "sizeKB": 220,
+   "copyAs": "ext-anthropic-skill-creator"
+  },
+  {
+   "id": "skills/slack-gif-creator",
+   "name": "slack-gif-creator",
+   "sourceRepo": "skills",
+   "path": "skills/slack-gif-creator/SKILL.md",
+   "description": "Knowledge and utilities for creating animated GIFs optimized for Slack. Provides constraints, validation tools, and animation concepts. Use when users request animated GIFs for Slack like \"make me a GIF of X doing Y for",
+   "category": "motion-3d",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 4 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 4,
+   "trustTier": "official",
+   "sizeKB": 43,
+   "copyAs": "ext-anthropic-slack-gif-creator"
+  },
+  {
+   "id": "skills/template",
+   "name": "template-skill",
+   "sourceRepo": "skills",
+   "path": "template/SKILL.md",
+   "description": "Replace with description of the skill and when Claude should use it.",
+   "category": "meta-tooling",
+   "trustTier": "official",
+   "sizeKB": 0,
+   "copyAs": "ext-anthropic-template-skill"
+  },
+  {
+   "id": "skills/theme-factory",
+   "name": "theme-factory",
+   "sourceRepo": "skills",
+   "path": "skills/theme-factory/SKILL.md",
+   "description": "Toolkit for styling artifacts with a theme. These artifacts can be slides, docs, reportings, HTML landing pages, etc. There are 10 pre-set themes with colors/fonts that you can apply to any artifact that has been creatin",
+   "category": "design-visual",
+   "trustTier": "official",
+   "sizeKB": 141,
+   "copyAs": "ext-anthropic-theme-factory"
+  },
+  {
+   "id": "skills/web-artifacts-builder",
+   "name": "web-artifacts-builder",
+   "sourceRepo": "skills",
+   "path": "skills/web-artifacts-builder/SKILL.md",
+   "description": "Suite of tools for creating elaborate, multi-component claude.ai HTML artifacts using modern frontend web technologies (React, Tailwind CSS, shadcn/ui). Use for complex artifacts requiring state management, routing, or s",
+   "category": "react-web",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 2 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 2,
+   "trustTier": "official",
+   "sizeKB": 45,
+   "copyAs": "ext-anthropic-web-artifacts-builder"
+  },
+  {
+   "id": "skills/webapp-testing",
+   "name": "webapp-testing",
+   "sourceRepo": "skills",
+   "path": "skills/webapp-testing/SKILL.md",
+   "description": "Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs.",
+   "category": "testing",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 4 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 4,
+   "trustTier": "official",
+   "sizeKB": 22,
+   "copyAs": "ext-anthropic-webapp-testing"
+  },
+  {
+   "id": "skills/xlsx",
+   "name": "xlsx",
+   "sourceRepo": "skills",
+   "path": "skills/xlsx/SKILL.md",
+   "description": "Use this skill any time a spreadsheet file is the primary input or output. This means any task where the user wants to: open, read, edit, or fix an existing .xlsx, .xlsm, .xltx, .csv, or .tsv file (e.g., adding columns,",
+   "category": "docs-content",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 12 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 12,
+   "trustTier": "official",
+   "sizeKB": 1077,
+   "copyAs": "ext-anthropic-xlsx"
+  },
+  {
+   "id": "taste-skill/brandkit",
+   "name": "brandkit",
+   "sourceRepo": "taste-skill",
+   "path": "skills/brandkit/SKILL.md",
+   "description": "Premium brand-kit image generation skill for creating high-end brand-guidelines boards, logo systems, identity decks, and visual-world presentations. Trained for minimalist, cinematic, editorial, dark-tech, luxury, cultu",
+   "category": "design-visual",
+   "trustTier": "community-active",
+   "sizeKB": 16,
+   "copyAs": "ext-taste-brandkit"
+  },
+  {
+   "id": "taste-skill/taste-skill",
+   "name": "design-taste-frontend",
+   "sourceRepo": "taste-skill",
+   "path": "skills/taste-skill/SKILL.md",
+   "description": "Anti-slop frontend skill for landing pages, portfolios, and redesigns. The agent reads the brief, infers the right design direction, and ships interfaces that do not look templated. Real design systems when applicable, a",
+   "category": "design-visual",
+   "trustTier": "community-active",
+   "sizeKB": 85,
+   "copyAs": "ext-taste-design-taste-frontend"
+  },
+  {
+   "id": "taste-skill/taste-skill-v1",
+   "name": "design-taste-frontend-v1",
+   "sourceRepo": "taste-skill",
+   "path": "skills/taste-skill-v1/SKILL.md",
+   "description": "The original v1 taste-skill, preserved for projects depending on its exact behavior. The current default is `design-taste-frontend` (v2 experimental), which is a substantial rewrite. Use this v1 install name only if you",
+   "category": "design-visual",
+   "trustTier": "community-active",
+   "sizeKB": 21,
+   "copyAs": "ext-taste-design-taste-frontend-v1"
+  },
+  {
+   "id": "taste-skill/output-skill",
+   "name": "full-output-enforcement",
+   "sourceRepo": "taste-skill",
+   "path": "skills/output-skill/SKILL.md",
+   "description": "Overrides default LLM truncation behavior. Enforces complete code generation, bans placeholder patterns, and handles token-limit splits cleanly. Apply to any task requiring exhaustive, unabridged output.",
+   "category": "other",
+   "trustTier": "community-active",
+   "sizeKB": 3,
+   "copyAs": "ext-taste-full-output-enforcement"
+  },
+  {
+   "id": "taste-skill/gpt-tasteskill",
+   "name": "gpt-taste",
+   "sourceRepo": "taste-skill",
+   "path": "skills/gpt-tasteskill/SKILL.md",
+   "description": "Elite UX/UI & Advanced GSAP Motion Engineer. Enforces Python-driven true randomization for layout variance, strict AIDA page structure, wide editorial typography (bans 6-line wraps), gapless bento grids, strict GSAP Scro",
+   "category": "design-visual",
+   "trustTier": "community-active",
+   "sizeKB": 8,
+   "copyAs": "ext-taste-gpt-taste"
+  },
+  {
+   "id": "taste-skill/soft-skill",
+   "name": "high-end-visual-design",
+   "sourceRepo": "taste-skill",
+   "path": "skills/soft-skill/SKILL.md",
+   "description": "Teaches the AI to design like a high-end agency. Defines the exact fonts, spacing, shadows, card structures, and animations that make a website feel expensive. Blocks all the common defaults that make AI designs look che",
+   "category": "design-visual",
+   "trustTier": "community-active",
+   "sizeKB": 10,
+   "copyAs": "ext-taste-high-end-visual-design"
+  },
+  {
+   "id": "taste-skill/image-to-code-skill",
+   "name": "image-to-code",
+   "sourceRepo": "taste-skill",
+   "path": "skills/image-to-code-skill/SKILL.md",
+   "description": "Elite website image-to-code skill for Codex. For visually important web tasks, it must first generate the design image(s) itself, deeply analyze them, then implement the website to match them as closely as possible. In C",
+   "category": "design-visual",
+   "trustTier": "community-active",
+   "sizeKB": 36,
+   "copyAs": "ext-taste-image-to-code"
+  },
+  {
+   "id": "taste-skill/imagegen-frontend-mobile",
+   "name": "imagegen-frontend-mobile",
+   "sourceRepo": "taste-skill",
+   "path": "skills/imagegen-frontend-mobile/SKILL.md",
+   "description": "Elite mobile app image-generation skill for creating premium, app-native screen concepts and flows. Designed for iOS, Android, and cross-platform mobile products. Prioritizes clean hierarchy, comfortably readable text, s",
+   "category": "mobile",
+   "trustTier": "community-active",
+   "sizeKB": 39,
+   "copyAs": "ext-taste-imagegen-frontend-mobile"
+  },
+  {
+   "id": "taste-skill/imagegen-frontend-web",
+   "name": "imagegen-frontend-web",
+   "sourceRepo": "taste-skill",
+   "path": "skills/imagegen-frontend-web/SKILL.md",
+   "description": "Elite frontend image-direction skill for generating premium, conversion-aware website design references. CRITICAL OUTPUT RULE \u2014 generate ONE separate horizontal image FOR EVERY section. A landing page with 8 sections pro",
+   "category": "devops",
+   "trustTier": "community-active",
+   "sizeKB": 36,
+   "copyAs": "ext-taste-imagegen-frontend-web"
+  },
+  {
+   "id": "taste-skill/brutalist-skill",
+   "name": "industrial-brutalist-ui",
+   "sourceRepo": "taste-skill",
+   "path": "skills/brutalist-skill/SKILL.md",
+   "description": "Raw mechanical interfaces fusing Swiss typographic print with military terminal aesthetics. Rigid grids, extreme type scale contrast, utilitarian color, analog degradation effects. For data-heavy dashboards, portfolios,",
+   "category": "design-visual",
+   "trustTier": "community-active",
+   "sizeKB": 8,
+   "copyAs": "ext-taste-industrial-brutalist-ui"
+  },
+  {
+   "id": "taste-skill/minimalist-skill",
+   "name": "minimalist-ui",
+   "sourceRepo": "taste-skill",
+   "path": "skills/minimalist-skill/SKILL.md",
+   "description": "Clean editorial-style interfaces. Warm monochrome palette, typographic contrast, flat bento grids, muted pastels. No gradients, no heavy shadows.",
+   "category": "design-visual",
+   "trustTier": "community-active",
+   "sizeKB": 8,
+   "copyAs": "ext-taste-minimalist-ui"
+  },
+  {
+   "id": "taste-skill/redesign-skill",
+   "name": "redesign-existing-projects",
+   "sourceRepo": "taste-skill",
+   "path": "skills/redesign-skill/SKILL.md",
+   "description": "Upgrades existing websites and apps to premium quality. Audits current design, identifies generic AI patterns, and applies high-end design standards without breaking functionality. Works with any CSS framework or vanilla",
+   "category": "design-visual",
+   "trustTier": "community-active",
+   "sizeKB": 15,
+   "copyAs": "ext-taste-redesign-existing-projects"
+  },
+  {
+   "id": "taste-skill/stitch-skill",
+   "name": "stitch-design-taste",
+   "sourceRepo": "taste-skill",
+   "path": "skills/stitch-skill/SKILL.md",
+   "description": "Semantic Design System Skill for Google Stitch. Generates agent-friendly DESIGN.md files that enforce premium, anti-generic UI standards \u2014 strict typography, calibrated color, asymmetric layouts, perpetual micro-motion,",
+   "category": "design-visual",
+   "trustTier": "community-active",
+   "sizeKB": 23,
+   "copyAs": "ext-taste-stitch-design-taste"
+  },
+  {
+   "id": "ui-ux-pro-max-skill/banner-design",
+   "name": "banner-design",
+   "sourceRepo": "ui-ux-pro-max-skill",
+   "path": ".claude/skills/banner-design/SKILL.md",
+   "description": "Design banners for social media, ads, website heroes, creative assets, and print. Multiple art direction options with AI-generated visuals. Actions: design, create, generate banner. Platforms: Facebook, Twitter/X, Linked",
+   "category": "design-visual",
+   "trustTier": "community-active",
+   "duplicateCopiesInRepo": 1,
+   "sizeKB": 13,
+   "copyAs": "ext-uiuxpm-banner-design"
+  },
+  {
+   "id": "ui-ux-pro-max-skill/brand",
+   "name": "brand",
+   "sourceRepo": "ui-ux-pro-max-skill",
+   "path": ".claude/skills/brand/SKILL.md",
+   "description": "Brand voice, visual identity, messaging frameworks, asset management, brand consistency. Activate for branded content, tone of voice, marketing assets, brand compliance, style guides.",
+   "category": "design-visual",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 5 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 5,
+   "trustTier": "community-active",
+   "duplicateCopiesInRepo": 1,
+   "sizeKB": 87,
+   "copyAs": "ext-uiuxpm-brand"
+  },
+  {
+   "id": "ui-ux-pro-max-skill/design",
+   "name": "design",
+   "sourceRepo": "ui-ux-pro-max-skill",
+   "path": ".claude/skills/design/SKILL.md",
+   "description": "Comprehensive design skill: brand identity, design tokens, UI styling, logo generation (55 styles, Gemini AI), corporate identity program (50 deliverables, CIP mockups), HTML presentations (Chart.js), banner design (22 s",
+   "category": "design-visual",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 8 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 8,
+   "trustTier": "community-active",
+   "duplicateCopiesInRepo": 1,
+   "sizeKB": 236,
+   "copyAs": "ext-uiuxpm-design"
+  },
+  {
+   "id": "ui-ux-pro-max-skill/design-system",
+   "name": "design-system",
+   "sourceRepo": "ui-ux-pro-max-skill",
+   "path": ".claude/skills/design-system/SKILL.md",
+   "description": "Token architecture, component specifications, and slide generation. Three-layer tokens (primitive\u2192semantic\u2192component), CSS variables, spacing/typography scales, component specs, strategic slide creation. Use for design t",
+   "category": "design-visual",
+   "collidesWithHouseSkill": true,
+   "selfContained": false,
+   "copyNotes": [
+    "ships 10 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 10,
+   "trustTier": "community-active",
+   "duplicateCopiesInRepo": 1,
+   "sizeKB": 175,
+   "copyAs": "ext-uiuxpm-design-system"
+  },
+  {
+   "id": "ui-ux-pro-max-skill/slides",
+   "name": "slides",
+   "sourceRepo": "ui-ux-pro-max-skill",
+   "path": ".claude/skills/slides/SKILL.md",
+   "description": "Create strategic HTML presentations with Chart.js, design tokens, responsive layouts, copywriting formulas, and contextual slide strategies.",
+   "category": "design-visual",
+   "trustTier": "community-active",
+   "duplicateCopiesInRepo": 1,
+   "sizeKB": 19,
+   "copyAs": "ext-uiuxpm-slides"
+  },
+  {
+   "id": "ui-ux-pro-max-skill/ui-styling",
+   "name": "ui-styling",
+   "sourceRepo": "ui-ux-pro-max-skill",
+   "path": ".claude/skills/ui-styling/SKILL.md",
+   "description": "Create beautiful, accessible user interfaces with shadcn/ui components (built on Radix UI + Tailwind), Tailwind CSS utility-first styling, and canvas-based visual designs. Use when building user interfaces, implementing",
+   "category": "design-visual",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 4 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 4,
+   "trustTier": "community-active",
+   "duplicateCopiesInRepo": 1,
+   "sizeKB": 5620,
+   "copyAs": "ext-uiuxpm-ui-styling"
+  },
+  {
+   "id": "ui-ux-pro-max-skill/ui-ux-pro-max",
+   "name": "ui-ux-pro-max",
+   "sourceRepo": "ui-ux-pro-max-skill",
+   "path": ".claude/skills/ui-ux-pro-max/SKILL.md",
+   "description": "UI/UX design intelligence for web and mobile. Searchable local database with 84 styles, 192 color palettes, 74 font pairings, 192 product types, 98 UX guidelines, 104 icon entries, 16 GSAP motion presets, and 25 chart ty",
+   "category": "design-visual",
+   "selfContained": false,
+   "copyNotes": [
+    "uses ${CLAUDE_PLUGIN_ROOT} \u2014 rewrite script paths after copy",
+    "ships 5 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 5,
+   "trustTier": "community-active",
+   "sizeKB": 1712,
+   "copyAs": "ext-uiuxpm-ui-ux-pro-max"
+  },
+  {
+   "id": "vercel-labs-agent-skills/deploy-to-vercel",
+   "name": "deploy-to-vercel",
+   "sourceRepo": "vercel-labs-agent-skills",
+   "path": "skills/deploy-to-vercel/SKILL.md",
+   "description": "Deploy applications and websites to Vercel. Use when the user requests deployment actions like \"deploy my app\", \"deploy and give me the link\", \"push this live\", or \"create a preview deployment\".",
+   "category": "devops",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 2 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 2,
+   "trustTier": "vendor",
+   "sizeKB": 40,
+   "copyAs": "ext-vercel-deploy-to-vercel"
+  },
+  {
+   "id": "vercel-labs-agent-skills/vercel-cli-with-tokens",
+   "name": "vercel-cli-with-tokens",
+   "sourceRepo": "vercel-labs-agent-skills",
+   "path": "skills/vercel-cli-with-tokens/SKILL.md",
+   "description": "Deploy and manage projects on Vercel using token-based authentication. Use when working with Vercel CLI using access tokens rather than interactive login \u2014 e.g. \"deploy to vercel\", \"set up vercel\", \"add environment varia",
+   "category": "devops",
+   "trustTier": "vendor",
+   "sizeKB": 10,
+   "copyAs": "ext-vercel-vercel-cli-with-tokens"
+  },
+  {
+   "id": "vercel-labs-agent-skills/composition-patterns",
+   "name": "vercel-composition-patterns",
+   "sourceRepo": "vercel-labs-agent-skills",
+   "path": "skills/composition-patterns/SKILL.md",
+   "description": "React composition patterns that scale. Use when refactoring components with boolean prop proliferation, building flexible component libraries, or designing reusable APIs. Triggers on tasks involving compound components,",
+   "category": "react-web",
+   "trustTier": "vendor",
+   "sizeKB": 49,
+   "copyAs": "ext-vercel-vercel-composition-patterns"
+  },
+  {
+   "id": "vercel-labs-agent-skills/vercel-optimize",
+   "name": "vercel-optimize",
+   "sourceRepo": "vercel-labs-agent-skills",
+   "path": "skills/vercel-optimize/SKILL.md",
+   "description": "Use for Vercel cost and performance optimization on deployed projects, especially Next.js, SvelteKit, Nuxt, and limited Astro apps. Collect Vercel metrics, usage, project config, and code scan results first; investigate",
+   "category": "devops",
+   "selfContained": false,
+   "copyNotes": [
+    "ships 90 executable file(s) \u2014 read before use"
+   ],
+   "bundledScripts": 90,
+   "trustTier": "vendor",
+   "sizeKB": 808,
+   "copyAs": "ext-vercel-vercel-optimize"
+  },
+  {
+   "id": "vercel-labs-agent-skills/react-best-practices",
+   "name": "vercel-react-best-practices",
+   "sourceRepo": "vercel-labs-agent-skills",
+   "path": "skills/react-best-practices/SKILL.md",
+   "description": "React and Next.js performance optimization guidelines from Vercel Engineering. This skill should be used when writing, reviewing, or refactoring React/Next.js code to ensure optimal performance patterns. Triggers on task",
+   "category": "react-web",
+   "trustTier": "vendor",
+   "sizeKB": 225,
+   "copyAs": "ext-vercel-vercel-react-best-practices"
+  },
+  {
+   "id": "vercel-labs-agent-skills/react-native-skills",
+   "name": "vercel-react-native-skills",
+   "sourceRepo": "vercel-labs-agent-skills",
+   "path": "skills/react-native-skills/SKILL.md",
+   "description": "React Native and Expo best practices for building performant mobile apps. Use when building React Native components, optimizing list performance, implementing animations, or working with native modules. Triggers on tasks",
+   "category": "react-web",
+   "trustTier": "vendor",
+   "sizeKB": 155,
+   "copyAs": "ext-vercel-vercel-react-native-skills"
+  },
+  {
+   "id": "vercel-labs-agent-skills/react-view-transitions",
+   "name": "vercel-react-view-transitions",
+   "sourceRepo": "vercel-labs-agent-skills",
+   "path": "skills/react-view-transitions/SKILL.md",
+   "description": "Guide for implementing smooth, native-feeling animations using React's View Transition API (`<ViewTransition>` component, `addTransitionType`, and CSS view transition pseudo-elements). Use this skill whenever the user wa",
+   "category": "react-web",
+   "trustTier": "vendor",
+   "sizeKB": 90,
+   "copyAs": "ext-vercel-vercel-react-view-transitions"
+  },
+  {
+   "id": "vercel-labs-agent-skills/web-design-guidelines",
+   "name": "web-design-guidelines",
+   "sourceRepo": "vercel-labs-agent-skills",
+   "path": "skills/web-design-guidelines/SKILL.md",
+   "description": "Review UI code for Web Interface Guidelines compliance. Use when asked to \"review my UI\", \"check accessibility\", \"audit design\", \"review UX\", or \"check my site against best practices\".",
+   "category": "design-visual",
+   "selfContained": false,
+   "copyNotes": [
+    "fetches rules/content over the network at runtime"
+   ],
+   "trustTier": "vendor",
+   "sizeKB": 1,
+   "copyAs": "ext-vercel-web-design-guidelines"
+  },
+  {
+   "id": "vercel-labs-agent-skills/writing-guidelines",
+   "name": "writing-guidelines",
+   "sourceRepo": "vercel-labs-agent-skills",
+   "path": "skills/writing-guidelines/SKILL.md",
+   "description": "Review docs/prose for Writing Guidelines compliance. Use when asked to \"review my docs\", \"check writing style\", \"audit prose\", \"review docs voice and tone\", or \"check this page against the writing handbook\".",
+   "category": "docs-content",
+   "selfContained": false,
+   "copyNotes": [
+    "fetches rules/content over the network at runtime"
+   ],
+   "trustTier": "vendor",
+   "sizeKB": 1,
+   "copyAs": "ext-vercel-writing-guidelines"
+  }
+ ]
+}

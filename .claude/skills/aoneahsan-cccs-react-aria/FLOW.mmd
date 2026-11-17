@@ -1,0 +1,39 @@
+%% React Aria — full flow
+%% Pure Mermaid. No Markdown fence.
+
+flowchart TD
+    trigger([Building or reviewing an interactive component]) --> behav{Does it have BEHAVIOUR?<br/>focus · keyboard nav · overlay<br/>· selection · validation}
+
+    behav -->|no — purely presentational| own[Build it outright.<br/>Avatar, Card, Badge, Skeleton, ScrollArea<br/>have no RAC primitive and need none]
+    behav -->|yes| rac{Does RAC have a primitive?}
+
+    rac -->|yes| use[Use the RAC component.<br/>NEVER hand-roll focus trap, roving tabindex,<br/>typeahead, dismissal or live regions]
+    rac -->|no| hooks[Escape hatch: react-aria HOOKS.<br/>Document WHY RAC was insufficient]
+
+    rac -.API, props, examples.-> adobe[(Adobe skill<br/>+ /llms.txt — the LIVE API)]
+
+    use --> style[Style with OUR tokens:<br/>render-prop className · data-* attrs<br/>· slot · @plugin tailwindcss-react-aria-components]
+    hooks --> style
+    own --> style
+
+    style --> form{Is it a FORM FIELD?}
+
+    form -->|yes| rhf["Drive it through RHF Controller<br/>+ validationBehavior='aria'<br/>← or RAC's native validation fights Zod"]
+    form -->|no| instr
+
+    rhf --> instr[Wrap with OUR instrumentation:<br/>analyticsId prop, error boundary<br/>— wired in the primitive, never per feature]
+
+    instr --> bar{Component quality bar<br/>— all nine dimensions?}
+
+    bar -->|keyboard/screen-reader gaps| check{Is the gap something<br/>RAC should have supplied?}
+    check -->|yes| misuse[You are fighting the primitive —<br/>re-read its API before patching around it]
+    check -->|no — contrast, copy, alt text,<br/>heading order, colour-alone| ours[Fix it. RAC never supplied these;<br/>they are ours in every component]
+    misuse --> use
+    ours --> bar
+
+    bar -->|passes| done([Done: RAC behaviour, our pixels,<br/>one validator, instrumented once])
+
+    classDef gate fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    class behav,rac,form,bar,check gate
+    class trigger,done terminal

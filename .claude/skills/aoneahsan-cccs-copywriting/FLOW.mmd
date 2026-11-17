@@ -1,0 +1,26 @@
+%% aoneahsan-cccs-copywriting — full flow
+flowchart TD
+    trigger([Writing prose a human will read]) --> kind{What kind?}
+    kind -->|docs / commit / UI / report| clarity
+    kind -->|store listing / marketing / changelog| clarity
+
+    clarity[Apply the clarity rules:<br/>omit needless words · active voice ·<br/>positive form · concrete language ·<br/>emphatic word last · one topic/paragraph]
+    clarity --> honest{Any claim about<br/>what it does / privacy / a number?}
+    honest -->|yes| verify[Honest framing: state what it does NOT do;<br/>privacy claim matches reality;<br/>cite a real source or cut the number]
+    honest -->|no| store
+    verify --> store
+
+    store{Store-facing copy?}
+    store -->|no| ship([Ship the prose])
+    store -->|yes| brief[Short + factual: title/short/full within limits;<br/>depth belongs in the app/website, not the listing]
+    brief --> banned{Contains a banned word?<br/>best/#1/top/free/AI-if-rule-based/<br/>user counts/testimonials/emojis-in-title}
+    banned -->|yes| rewrite[Rewrite factual — cross-check policy JSONs]
+    rewrite --> banned
+    banned -->|no| ship
+
+    banned -.consult if present.-> reg[(../policy/play-console + chrome-web-store rejection JSONs<br/>../rules/publishing-compliance.md)]
+
+    classDef gate fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    class kind,honest,store,banned gate
+    class trigger,ship terminal

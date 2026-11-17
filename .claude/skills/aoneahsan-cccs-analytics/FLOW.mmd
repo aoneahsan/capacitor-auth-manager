@@ -1,0 +1,42 @@
+%% Analytics — full flow
+%% Pure Mermaid. No Markdown fence.
+
+flowchart TD
+    trigger([Adding tracking]) --> reg{Is the event in the<br/>TYPED REGISTRY?}
+
+    reg -->|no| add[Add it there first.<br/>object_verb, snake_case, past tense.<br/>Without a registry you get water_logged,<br/>waterLogged AND log_water by month three]
+    reg -->|yes| pii
+
+    add --> pii
+
+    pii{🔴 Does the payload carry<br/>a health VALUE, free text,<br/>or an identifier beyond the user id?}
+    pii -->|yes| strip[Remove it. Track that a metric was<br/>logged and which KIND — never its value.<br/>This is a health app; that payload is<br/>a medical record in a third-party tool]
+    strip --> pii
+
+    pii -->|clean| where{Where is it emitted?}
+
+    where -->|"in feature code"| move[Move it to the PRIMITIVE.<br/>analyticsId on Button/Link/field.<br/>Asked of feature code, tracking is<br/>remembered about half the time]
+    where -->|"in the design-system primitive"| consent
+
+    move --> consent
+
+    consent{Has the user consented?}
+    consent -->|no| off[Do not INITIALISE the SDKs at all.<br/>A queued-but-unsent event<br/>is still collection]
+    consent -->|yes| send[One service → GA4 + Amplitude + Clarity.<br/>No vendor SDK in feature code]
+
+    send --> verify{🔴 Verified LIVE in all three?}
+    verify -->|"only that the code dispatches"| notproof[Not proof. Analytics is fire-and-forget:<br/>a wrong key, a blocked script or an origin<br/>rule fails SILENTLY and the build stays green]
+    notproof --> check[GA4 Realtime → Events<br/>Amplitude User Look-Up<br/>Clarity session + custom tag]
+    check --> verify
+
+    verify -->|"seen in all three"| ident{Identity handled?}
+    ident -->|"not cleared on sign-out"| leak[The next user on a shared device<br/>is attributed to the previous one]
+    leak --> ident
+    ident -->|"set on sign-in, cleared on sign-out"| done([Done: one vocabulary, emitted once,<br/>landing in all three, carrying no PII])
+
+    classDef gate fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef stopnode fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+    class reg,pii,where,consent,verify,ident gate
+    class trigger,done terminal
+    class strip,notproof stopnode

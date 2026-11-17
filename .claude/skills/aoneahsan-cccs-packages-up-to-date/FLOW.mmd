@@ -1,0 +1,63 @@
+%% aoneahsan-cccs-packages-up-to-date — full flow
+flowchart TD
+    trigger(["Add, remove, upgrade a dependency —<br/>or 'update packages'"]) --> which{Which operation?}
+
+    which -->|add| evaluate{Existing solution<br/>already in the project?}
+    evaluate -->|yes| reuse[Use it — do not add a second<br/>package for the same job]
+    evaluate -->|no| vet[Vet: 1M+ weekly downloads,<br/>bundle size, could 10 lines do it?]
+    vet --> banned{On the banned list?<br/>capacitor-firebase crashlytics/performance}
+    banned -->|yes| stop[REJECT — use Sentry for errors,<br/>native/Amplitude for perf]
+    banned -->|no| install[yarn add]
+    install --> inventory
+
+    which -->|remove| noimports[Confirm zero imports remain<br/>and no package needs it as a peer]
+    noimports --> drop[Remove + reinstall to update yarn.lock]
+    drop --> inventory
+
+    which -->|"'update packages' / upgrade"| ledger[/🔴 READ FIRST:<br/>~/.claude/rules/package-version-known-issues.md/]
+    ledger --> pinblocked[Pin every BLOCKED target to its safe<br/>version first e.g. typescript ~6.0.3<br/>— TS7 breaks typescript-eslint + cap sync]
+    pinblocked --> upgrade[Upgrade the rest to latest STABLE<br/>JS: npx ncu -u → yarn install<br/>PHP: widen constraint → composer update -W<br/>never --target greatest]
+    upgrade --> gates[Gates: yarn typecheck + lint + build<br/>+ any PHP check — zero warnings]
+    gates --> pass{All green?}
+    pass -->|no| triage{Our code,<br/>or the ecosystem?}
+    triage -->|our code| fixfwd[Fix forward — keep the new version.<br/>'we stay on updated versions']
+    triage -->|ecosystem broke it| newblocker[Pin the safe version AND record a<br/>NEW entry in the global ledger]
+    fixfwd --> gates
+    newblocker --> document[Record the pin + reason<br/>in docs/PACKAGES.md]
+    document --> deprecations
+    pass -->|yes| deprecations[Sweep + FIX every deprecation across the codebase<br/>build / lint / Node DeprecationWarning / PHP E_DEPRECATED<br/>fix the callsite — never blanket-suppress]
+
+    deprecations --> verify[Run-to-verify: start the server on its registered port,<br/>drive it in a CONTROLLED browser profile headed is fine —<br/>loads, no console errors, one real interaction works.<br/>Kill server + browser after]
+    verify --> vok{Builds AND loads?}
+    vok -->|"no — white screen = failed upgrade"| fixfwd
+    vok -->|yes| inventory
+
+    inventory[Update docs/PACKAGES.md<br/>in the SAME commit]
+    inventory --> ispkg{Is this an npm package<br/>and is the work finished?}
+    ispkg -->|no| done([Done — hand off to git-workflow])
+
+    ispkg -->|yes| firstpub{First-ever publish?<br/>npm view returns 404 / no versions}
+    firstpub -->|yes| askowner[🛑 ASK THE OWNER — a first publish<br/>creates a permanent public surface<br/>and squats the name]
+    firstpub -->|"no — already published"| pubgate[/PUBLISH GATE — every step a HARD STOP:<br/>1 clean tree AND pushed<br/>2 typecheck + lint + build green<br/>3 version strictly above the registry<br/>4 🔴 content-regression diff vs published latest<br/>5 tarball secret sweep<br/>6 smoke-install EVERY declared entry point/]
+    pubgate --> gateok{All six pass?}
+    gateok -->|"no — e.g. a file shrank or vanished"| halt[STOP. Do not publish.<br/>Report exactly what regressed]
+    gateok -->|yes| publish[npm publish]
+    publish --> confirm[7 Verify FROM THE REGISTRY:<br/>npm view version + smoke-install the<br/>PUBLISHED package, not the local tarball.<br/>Report MAJOR bumps loudly]
+    confirm --> done
+
+    badrel(["SEPARATE TRIGGER — an ALREADY-PUBLISHED<br/>release is found bad: content diff run after<br/>the fact, consumer bug, tarball ≠ repo tag, CVE"]) --> fixed{Is the FIXED version<br/>published AND verified<br/>from the registry?}
+    fixed -->|no| shipfix[Publish the fix FIRST — the deprecation<br/>message must point somewhere that exists]
+    shipfix --> fixed
+    fixed -->|yes| deprecate[/npm deprecate pkg@EXACT-VERSION — --dry-run first<br/>🔴 NEVER omit the version — that deprecates ALL versions<br/>🔴 NEVER a range — it sweeps up good releases<br/>🔴 NEVER npm unpublish — breaks every dependent + lockfile<br/>Message states the FAULT and the REMEDY/]
+    deprecate --> depverify{Bad version carries the notice<br/>AND a good neighbour is still clean<br/>AND latest did not move?}
+    depverify -->|no| undo[Reversible — npm deprecate pkg@ver ''<br/>then redo with the correct spec]
+    undo --> deprecate
+    depverify -->|yes| record[Record the reason in that version's<br/>CHANGELOG entry too]
+    record --> done
+
+    classDef gateNode fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef warn fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+    class which,evaluate,banned,pass,triage,vok,ispkg,firstpub,gateok,fixed,depverify gateNode
+    class trigger,done,badrel terminal
+    class stop,ledger,halt,askowner,pubgate,deprecate warn

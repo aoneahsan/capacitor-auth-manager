@@ -1,0 +1,61 @@
+%% aoneahsan-cccs-react-accessibility — full flow
+flowchart TD
+    trigger([Building or auditing<br/>an interactive element]) --> native{Is there a native element<br/>for this?}
+
+    native -->|yes| useit["Use it: button, a href, input,<br/>fieldset+legend, nav, main.<br/>Focus, keys, role, disabled<br/>and form participation come free"]
+    native -->|no| custom[Custom component —<br/>you now owe everything<br/>the native element gave]
+
+    useit --> hidden{Styling a choice control<br/>as a card?}
+    hidden -->|yes| srinput["Keep the REAL input in the DOM<br/>with sr-only, style the label.<br/>Arrow keys, submission and<br/>announcement keep working"]
+    hidden -->|no| keyboard
+    srinput --> keyboard
+
+    custom --> owe[Add: tabIndex, role, Enter AND Space<br/>handlers, aria-disabled...<br/>and it will still be subtly wrong]
+    owe --> reconsider{Can you restructure to<br/>use a native element?}
+    reconsider -->|yes| useit
+    reconsider -->|no| keyboard
+
+    keyboard{Fully operable by keyboard?}
+    keyboard -->|no| fixkb[Make every action reachable.<br/>Tab order must follow visual order]
+    keyboard -->|yes| focusvis
+    fixkb --> focusvis
+    focusvis{Focus outline removed?}
+    focusvis -->|yes| restore["NEVER remove it.<br/>Restyle with :focus-visible<br/>and a token ring"]
+    focusvis -->|no| overlay
+    restore --> overlay
+
+    overlay{Is it a modal, drawer<br/>or menu?}
+    overlay -->|yes| f1[Focus moves IN on open]
+    f1 --> f2[Focus TRAPPED while open]
+    f2 --> f3[Escape closes]
+    f3 --> f4[Focus RETURNS to the trigger —<br/>the step most often missed;<br/>without it the user is dropped<br/>at the top of the page]
+    overlay -->|no| aria
+    f4 --> aria
+
+    aria{Do native semantics<br/>cover the meaning?}
+    aria -->|yes| noaria[Add nothing. Wrong ARIA is<br/>worse than no ARIA]
+    aria -->|no| addaria[aria-label on icon-only buttons ·<br/>aria-invalid + describedby on fields ·<br/>aria-pressed on toggles ·<br/>aria-current on active nav ·<br/>aria-live for async status ·<br/>aria-hidden on decoration]
+
+    noaria --> visual
+    addaria --> stale{Will the value stay<br/>in sync with state?}
+    stale -->|no| fixstale[Bind it to state.<br/>A stale aria-expanded misinforms]
+    stale -->|yes| visual
+    fixstale --> visual
+
+    visual{Contrast checked against<br/>the REAL background?}
+    visual -->|no| ratios[Text 4.5:1 · large text and<br/>UI boundaries 3:1]
+    visual -->|yes| coloralone
+    ratios --> coloralone
+    coloralone{Is colour the ONLY<br/>carrier of meaning?}
+    coloralone -->|yes| pair[Pair it with an icon or text]
+    coloralone -->|no| motion
+    pair --> motion
+    motion[Honour prefers-reduced-motion]
+    motion --> done([Test: keyboard only, then a screen reader])
+
+    classDef gateNode fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef warn fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+    class native,hidden,reconsider,keyboard,focusvis,overlay,aria,stale,visual,coloralone gateNode
+    class trigger,done terminal
+    class owe,restore warn

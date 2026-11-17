@@ -1,0 +1,19 @@
+flowchart TD
+    start[Codex starts work or a new phase] --> concerns[Name the phase concerns:<br/>packages, UI, backend, DB, store, words]
+    concerns --> map[Map to owner skills:<br/>skill-bindings.md + skill-profiles.json]
+    map --> status[project-skills-sync.py status .]
+    status --> st{Each skill}
+    st -->|current| read
+    st -->|missing or stale| law{Repo law}
+    st -->|modified| merge[Diff with notebook,<br/>merge by hand, record localFixups]
+    merge --> read
+    law -->|client, team tracks .claude/skills| globals[Copy nothing:<br/>use global skills]
+    law -->|client or own public| local[add: copy, hide via<br/>.git/info/exclude, never commit]
+    law -->|own private| priv[add: copy, commit with the task]
+    local --> read
+    priv --> read
+    globals --> read
+    read[Read every SKILL.md fully,<br/>state the loadout] --> edit[First edit of the phase]
+
+    classDef gateNode fill:#7c2d12,stroke:#fb923c,color:#ffedd5
+    class st,law gateNode

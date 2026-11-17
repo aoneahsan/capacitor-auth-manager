@@ -1,0 +1,16 @@
+%% Guided tours — full flow
+%% Pure Mermaid.
+
+flowchart TD
+    land([Person opens an important page]) --> seen{Hint already seen<br/>for this page?}
+    seen -->|no| hint[Show the hint by the tour button;<br/>mark seen now: browser + account]
+    seen -->|yes| idle[Button only]
+    hint --> idle
+    idle --> press{Person presses the button?}
+    press -->|no| stay([Page stays fully usable])
+    press -->|yes| set[Pick step set: desktop /<br/>responsive / phone app view]
+    set --> steps[Step card: Back · Next · step list · Skip · Close]
+    steps --> exit{Finished, skipped<br/>or closed}
+    exit --> back([Focus returns to the button])
+    menu([Sidebar footer / Account tab]) --> walk[Walkthrough page ?step=n]
+    walk --> cta([Last step: main call to action])

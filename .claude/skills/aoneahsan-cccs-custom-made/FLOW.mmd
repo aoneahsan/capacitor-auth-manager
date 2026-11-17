@@ -1,0 +1,14 @@
+%% aoneahsan-cccs-custom-made — start from the product, take out the tells, test the real thing
+flowchart TD
+    trigger([Anything a person sees or reads,<br/>on any project, without being asked]) --> load[Load this skill and the surface's skills]
+    load --> read[The project read:<br/>who and when · its words · its look]
+    read --> kind{New product,<br/>or existing?}
+    kind -->|new| world[Its own world at every level]
+    kind -->|existing, team or client| belong[Its design language and voice are the material:<br/>belong, then raise it]
+    world --> make[Make it from those,<br/>with real objects and believable data]
+    belong --> make
+    make --> tells[Take out the tells for each surface touched]
+    tells --> tests{Swap · read aloud · looking ·<br/>why · stress}
+    tests -->|a test fails| rewrite[Go back to the project read,<br/>not to a synonym]
+    rewrite --> make
+    tests -->|all pass| report([Report honestly:<br/>the tests, and anything still generated])

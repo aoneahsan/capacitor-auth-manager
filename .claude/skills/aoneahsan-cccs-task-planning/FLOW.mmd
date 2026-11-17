@@ -1,0 +1,32 @@
+%% aoneahsan-cccs-task-planning — full flow
+flowchart TD
+    trigger([Approved design OR resume request]) --> exists{Tracker already<br/>exists for this feature?}
+    exists -->|yes| resume[Read tracker → first pending/in_progress sub-task.<br/>NEVER re-plan from zero]
+    exists -->|no| size{3+ files OR 2+ sessions?}
+
+    size -->|no| direct[No tracker — small change;<br/>still plan the steps + gate]
+    size -->|yes| write[Write the plan in ~/.claude/plans/:<br/>global constraints up front,<br/>bite-sized tasks, exact paths,<br/>complete content, task interfaces]
+
+    write --> note[Gate cycle per step — typecheck/lint/build<br/>+ run-to-verify. NO write-the-failing-test steps<br/>unless the design asks for tests]
+    note --> selfreview{Self-review: coverage,<br/>no placeholders, type/name consistency}
+    selfreview -->|gaps| write
+    selfreview -->|clean| scaffold[Scaffold docs/features/slug/00-tracker.json<br/>+ overview in the FIRST commit;<br/>human-only sub-tasks → awaitingUser + MANUAL-TASKS.md]
+
+    scaffold --> execute
+    resume --> execute
+    direct --> execute
+    execute[Execute a step → run its gate → mark complete →<br/>append runHistory row. Checkpoint at task boundaries]
+    execute --> blocker{Blocker / ambiguity /<br/>contradicts constraints?}
+    blocker -->|yes| stop[Stop + ask — aoneahsan-cccs-ask-the-owner.<br/>Do not force through]
+    blocker -->|no| more{More sub-tasks?}
+    more -->|yes| execute
+    more -->|no| done([Plan complete — one commit per prompt])
+
+    scaffold -.schema.-> reg[(../rules/feature-trackers.md)]
+
+    classDef gate fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef warn fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+    class exists,size,selfreview,blocker,more gate
+    class trigger,done terminal
+    class stop warn

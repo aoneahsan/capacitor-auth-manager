@@ -1,0 +1,50 @@
+%% aoneahsan-cccs-url-state-persistence — full flow
+flowchart TD
+    trigger([Adding or reviewing UI state]) --> test{Could someone paste this URL<br/>and see the SAME screen —<br/>and should they?}
+
+    test -->|no| transient{Is it loading, hover, focus,<br/>in-flight submit, validation,<br/>uncommitted input or animation?}
+    transient -->|yes| local[useState is correct.<br/>URL-encoding these creates history<br/>noise and a jittery address bar]
+    transient -->|no| reconsider[Re-read the table —<br/>most UI state IS shareable]
+    reconsider --> test
+
+    test -->|yes| which{Which state is it?}
+    which -->|modal / drawer| p1[?compose=1 or ?edit=id]
+    which -->|tab or section| p2[?tab= / ?section=]
+    which -->|form step| p3[?step=]
+    which -->|accordion| p4[?open=a,b]
+    which -->|filter / sort / page| p5[?status= &sort= &dir= &page=]
+    which -->|selected entity| p6[?view=id]
+    which -->|search| p7[?q=]
+
+    p1 --> naming
+    p2 --> naming
+    p3 --> naming
+    p4 --> naming
+    p5 --> naming
+    p6 --> naming
+    p7 --> naming
+    naming[Use the FLEET-WIDE param names —<br/>compose, edit, view, tab, section,<br/>step, page, q, status, range]
+    naming --> default{Is the value the default?}
+    default -->|yes| omit[OMIT the param.<br/>?tab=overview when overview is<br/>the default is noise]
+    default -->|no| hook
+    omit --> hook
+
+    hook[Read/write via the shared hooks in<br/>lib/hooks/useUrlState.ts — never<br/>hand-parse URLSearchParams per component]
+    hook --> history{Should Back undo this?}
+    history -->|yes — modal opened,<br/>wizard advanced| push[PUSH — Back closes the modal<br/>instead of leaving the page]
+    history -->|no — filter, search,<br/>tab switch| replace[REPLACE — the user should not<br/>press Back ten times to escape]
+
+    push --> legacy
+    replace --> legacy
+    legacy{Does a legacy path route<br/>just open this modal?}
+    legacy -->|yes| redirect["navigate to the URL-synced<br/>equivalent with replace: true —<br/>old links keep working,<br/>one source of truth"]
+    legacy -->|no| verify
+    redirect --> verify
+
+    local --> verify
+    verify([Verify: refresh mid-flow lands in the<br/>SAME place; a pasted link reproduces it])
+
+    classDef gateNode fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    class test,transient,which,default,history,legacy gateNode
+    class trigger,verify terminal

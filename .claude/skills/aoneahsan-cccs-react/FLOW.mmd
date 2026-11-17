@@ -1,0 +1,36 @@
+%% aoneahsan-cccs-react — full flow
+flowchart TD
+    trigger([React app work]) --> what{What are you doing?}
+
+    what -->|scaffolding| layout[Create the src/ layout:<br/>components, pages, stores, services,<br/>hooks, lib, config]
+    layout --> alias[Configure the @/ path alias<br/>relative paths only for siblings]
+    alias --> stack[Wire the fixed stack: zustand,<br/>TanStack Query, RHF+Zod, Tailwind]
+    stack --> baseline
+
+    what -->|adding a route| lazyroute[lazy import the page — EVERY route,<br/>no exception for 'small' pages]
+    lazyroute --> urlstate[Any UI state that must survive<br/>refresh goes in the URL —<br/>see url-state-persistence]
+    urlstate --> goback{Is it / or the<br/>post-login dashboard?}
+    goback -->|no| backbtn[Add a go-back button with an<br/>ABSOLUTE target route.<br/>NEVER router.back — it breaks on<br/>deep link, refresh and redirect]
+    goback -->|yes| baseline
+    backbtn --> baseline
+
+    what -->|writing an effect| deps{Does this dep actually<br/>change AND do you want<br/>the effect to react to it?}
+    deps -->|yes| adddep[Add it]
+    deps -->|no| disable["Omit it + explicit<br/>eslint-disable-next-line comment.<br/>Exhaustive deps cause excessive re-renders"]
+    adddep --> baseline
+    disable --> baseline
+
+    what -->|shipping a feature| admin[Extend the admin panel in the same change,<br/>and RE-DERIVE docs/admin/ADMIN-SURFACE.md —<br/>the new table/role/plan owes a capability]
+    admin --> baseline
+
+    baseline{Navigation baseline satisfied?}
+    baseline --> b1[ScrollToTop mounted —<br/>honours #hash, else top]
+    b1 --> b2[404/500/403/401 branded,<br/>each with a way home]
+    b2 --> b3[Every link leads somewhere real]
+    b3 --> b4[Footer version read LIVE —<br/>App.getInfo or build-injected,<br/>never hardcoded]
+    b4 --> gates([typecheck + lint + build])
+
+    classDef gateNode fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    class what,goback,deps,baseline gateNode
+    class trigger,gates terminal

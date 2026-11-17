@@ -1,0 +1,31 @@
+flowchart TD
+    A[User acts] --> B{Is the result visible<br/>on screen already?}
+
+    B -->|Yes| C[The state change IS the feedback<br/>≤100 ms · no toast]
+    B -->|No| D{Is it async?}
+
+    D -->|No| C
+    D -->|Yes| E{Reversible?}
+
+    E -->|Yes| F[Optimistic: apply now,<br/>reconcile behind it]
+    E -->|No| G[Pending state ON the control<br/>that was pressed]
+
+    F --> H{Did it succeed?}
+    G --> H
+
+    H -->|Success| I{Consequential?<br/>delete · publish · send}
+    H -->|Failure| J[Inline AT the cause<br/>+ move focus there<br/>+ role=alert]
+
+    I -->|Yes| K[Toast WITH undo<br/>window ≥5 s]
+    I -->|No| L[Success in place<br/>+ aria-live polite]
+
+    F -.rolled back.-> M[Visible correction<br/>+ explanation<br/>NEVER a silent revert]
+
+    C --> N{Long job with<br/>a known size?}
+    N -->|Yes| O[Determinate progress<br/>+ aria-busy · announce at end]
+
+    K --> P{Sound axis on?}
+    L --> P
+    J --> P
+    P -->|on| Q[≤300 ms cue<br/>never the only channel]
+    P -->|off — the default| R[Silent: visual + announcement<br/>already carry it]

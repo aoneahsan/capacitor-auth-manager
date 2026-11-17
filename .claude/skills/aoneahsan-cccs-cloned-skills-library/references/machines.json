@@ -1,0 +1,81 @@
+{
+  "$schema": "cloned-skills-machines/v1",
+  "description": "Where the cloned-skills library actually lives, per machine. The library itself is machine-local and is NOT in this repo; this file is the durable record of the path the owner chose on each machine, so no session ever has to guess or re-ask. Written by the bootstrap procedure in references/bootstrap.md.",
+  "idRule": "<lowercased `uname -s`, with mingw64_nt*/msys_nt*/cygwin_nt* normalised to `windows`>-<`whoami`>. CRITICAL: NOT reliably derivable — the Windows rows were shortened BY HAND, and windows-p52's whoami is `PC`, not `p52`, so that row can never be matched by derivation. Any consumer MUST fall back to the first registered `root` that exists on this filesystem (copy-procedure.md section 4, bootstrap.md section 1), and MUST pipe every jq read through `tr -d '\\r'` because the winget jq on Windows emits CRLF. —— 2026-08-26: when two machines share <os>-<user> the arch goes in the middle (<os>-<arch>-<user>); the two Macs are darwin-x64-pc and darwin-arm64-pc, and `aliases` keeps the older darwin-pc matchable.",
+  "resolutionOrder": [
+    "$AHSAN_GIT_CLONED_SKILLS if set and the folder exists",
+    "this file's entry for the current machine id, if that folder exists",
+    "sources.json defaultSuggestion, ONLY if that folder already exists",
+    "otherwise ASK the owner and stop — never invent a path"
+  ],
+  "lastUpdated": "2026-08-26",
+  "machines": [
+    {
+      "id": "darwin-x64-pc",
+      "label": "Mac Intel",
+      "user": "pc",
+      "root": "/Users/pc/Documents/ahsan-work/git-cloned",
+      "recordedOn": "2026-07-29",
+      "reposPresent": 13,
+      "reposExpected": 13,
+      "includesQuarantined": true,
+      "diskUsed": "555M",
+      "verifiedOn": "2026-07-29",
+      "notes": "All 13 repos present and sitting on their pinned commits. 399M of the 555M is agentic-awesome-skills, the quarantined aggregate.",
+      "aliases": [
+        "darwin-pc"
+      ],
+      "arch": "x64"
+    },
+    {
+      "id": "linux-ahsan",
+      "label": "Linux workstation P51",
+      "user": "ahsan",
+      "root": "/home/ahsan/Documents/05-git-cloned-skills",
+      "recordedOn": "2026-07-31",
+      "reposPresent": 12,
+      "reposExpected": 13,
+      "includesQuarantined": false,
+      "diskUsed": "163M",
+      "verifiedOn": "2026-07-31",
+      "notes": "Owner created the root folder and named it in the request, so the bootstrap's blocking question did not need asking. All 12 vetted repos verified on their pinned commits by rev-parse. The quarantined agentic-awesome-skills (399M) was skipped at the owner's choice — add it only when a skill inside it is named, and only through security.md. Root also exported as AHSAN_GIT_CLONED_SKILLS in this machine's settings.json.",
+      "arch": "x64"
+    },
+    {
+      "id": "windows-p52",
+      "label": "Windows P52",
+      "user": "PC",
+      "root": "D:/work/git-cloned-skills",
+      "recordedOn": "2026-07-31",
+      "reposPresent": 12,
+      "reposExpected": 13,
+      "includesQuarantined": false,
+      "diskUsed": "157M",
+      "verifiedOn": "2026-07-31",
+      "notes": "🔴 The root deliberately does NOT follow the ~/Documents/05-git-cloned-skills convention the other two machines use — the owner named D:\\work\\git-cloned-skills (2026-07-31) and pre-created it, because this machine keeps the notebook (D:\\ahsan-notebook) and the code workspace (D:\\work\\my-work) on D: while C: is at 88% full. Do not 'correct' it toward the default suggestion. D:\\work is outside every git repo — confirmed by git rev-parse. All 12 non-quarantined repos verified on their pinned commits by rev-parse; the 399M aggregate was skipped by owner decision, so reposPresent is 12 of 13 by design. Git Bash reports a mingw64_nt-* uname; the id stays windows-p52. CONFIRMS the windows-pcs CRLF trap on a second machine: the winget jq (1.8.2) here emits \\r\\n — verified directly with `printf '{\"a\":\"quarantined\"}' | jq -r .a | od -c` BEFORE cloning — so `tr -d '\\r'` is mandatory and the skip worked first time because of it. No repo needed a retry on this machine. Root also exported as AHSAN_GIT_CLONED_SKILLS in this machine's settings.json.",
+      "arch": "x64"
+    },
+    {
+      "id": "windows-pcs",
+      "label": "darakhshan-hp (Windows, C:\\Users\\pcs)",
+      "user": "pcs",
+      "root": "C:/Users/pcs/Documents/05-git-cloned-skills",
+      "recordedOn": "2026-07-31",
+      "reposPresent": 12,
+      "reposExpected": 13,
+      "includesQuarantined": false,
+      "diskUsed": "158M",
+      "verifiedOn": "2026-07-31",
+      "notes": "All 12 non-quarantined repos on their pinned commits; the 399M agentic-awesome-skills aggregate was deliberately skipped (owner decision 2026-07-31), so reposPresent is 12 of 13 by design. Git Bash reports a mingw64_nt-* uname; the id stays windows-pcs. 🔴 TRAP FOUND HERE: the bootstrap.md clone loop does NOT skip the quarantined repo on Windows — the jq 1.8.2 winget binary emits CRLF, so $tier reads as 'quarantined\\r' and the equality test never matches. It cloned all 435M before this was caught. Pipe jq through `tr -d '\\r'` on any Windows machine. accesslint-skills also needed a retry (Recv failure: connection reset) — the loop's `|| { echo FAILED; continue; }` moves past it silently, so re-check the count afterwards rather than trusting the run.",
+      "arch": "x64"
+    }
+  ],
+  "pending": [
+    {
+      "id": "darwin-arm64-pc",
+      "label": "Mac Apple Silicon (/Users/pc)",
+      "arch": "arm64",
+      "status": "library not bootstrapped — run references/bootstrap.md; it asks for the root and records it here"
+    }
+  ]
+}

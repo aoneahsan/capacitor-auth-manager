@@ -1,0 +1,15 @@
+%% aoneahsan-cccs-pwa-no-cache — flow (2026-11-17)
+flowchart TD
+    start([/pwa in ONE production root]) --> repos[List its own React web repos]
+    repos --> audit[Audit: manifest, sw.js, cache code, vite-plugin-pwa, offline hooks, @capacitor/network]
+    audit --> dummy[Dummy: overlay, back-online, install sheet in the product's own look]
+    dummy --> impl[Manifest + icons, cache-free worker, build gate, headers, install UX, ConnectivityProvider + overlay]
+    impl --> legacy{Existing outbox / cached reads?}
+    legacy -->|replays clean| keep[Keep, wired under the overlay]
+    legacy -->|errors| fix[Fix, else remove]
+    keep --> gates
+    fix --> gates[tsc -b, lint, build; planted fetch handler must fail the build]
+    gates --> local[Local CDP proof 1440 + 390]
+    local --> ship[Commit, push, deploy]
+    ship --> live[Live CDP proof, bundle hash match]
+    live --> rec[pwa-status.json row, MANUAL-TASKS phone install, scorecard]

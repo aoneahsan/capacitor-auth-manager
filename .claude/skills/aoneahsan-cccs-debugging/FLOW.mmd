@@ -1,0 +1,29 @@
+%% aoneahsan-cccs-debugging — full flow
+flowchart TD
+    trigger([Bug / failure / 403 / silent no-op]) --> law{Root cause found yet?}
+    law -->|no| p1[Phase 1 — Root cause:<br/>read full error, reproduce,<br/>git diff, instrument boundaries,<br/>trace bad value to source]
+    law -->|"tempted to just patch it"| p1
+
+    p1 --> repro{Reproduces<br/>consistently?}
+    repro -->|no| gather[Gather more data —<br/>do NOT guess a fix]
+    gather --> p1
+    repro -->|yes| p2[Phase 2 — Pattern:<br/>find working example,<br/>read reference fully]
+
+    p2 --> p3[Phase 3 — Hypothesis:<br/>state the specific cause<br/>+ the single fix + why]
+    p3 --> multi{Rules / permission /<br/>integration failure?}
+    multi -->|yes| probe[Live-probe: same request twice,<br/>change ONE variable, compare 403 vs 200.<br/>Seed data first · Origin-only · as non-admin]
+    multi -->|no| fix
+    probe --> fix[Phase 4 — Fix at the SOURCE<br/>minimal change]
+
+    fix --> verify{Verify vs the ORIGINAL symptom<br/>aoneahsan-cccs-verification.<br/>Green build is NOT proof;<br/>fire-and-forget needs a live call}
+    verify -->|still fails| p1
+    verify -->|symptom gone, evidence shown| done([Fixed at root, proven])
+
+    probe -.consult if present.-> reg[(../rules/data-fetch-budget.md<br/>fileshub-api.md)]
+
+    classDef gate fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef warn fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+    class law,repro,multi,verify gate
+    class trigger,done terminal
+    class gather warn

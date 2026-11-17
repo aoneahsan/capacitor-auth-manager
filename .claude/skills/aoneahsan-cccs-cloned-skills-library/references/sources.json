@@ -1,0 +1,173 @@
+{
+ "$schema": "cloned-skills-sources/v1",
+ "description": "Every repo in the local cloned-skills library, pinned to an exact commit. This is the complete recipe for rebuilding the library on any machine — clone each url, checkout its commit. Procedure: references/bootstrap.md.",
+ "generated": "2026-07-27",
+ "defaultSuggestion": "~/Documents/ahsan-work/git-cloned",
+ "defaultSuggestionNote": "A SUGGESTION, not a fact — it is where the Mac keeps it. The real per-machine root lives in references/machines.json, and a machine that has neither asks the owner rather than guessing. Resolution order is in bootstrap.md.",
+ "machineRoots": "references/machines.json",
+ "pinPolicy": "Clone at the pinned commit, not the branch tip. Every CATALOG.json entry was verified against these commits; moving a pin obliges a re-run of the catalog pass for that repo.",
+ "layout": {
+  "<root>/": "INBOX \u2014 anything here is a new clone that has not been reviewed yet",
+  "<root>/_reviewed/": "reviewed repos, still real git repos so `git pull` keeps working",
+  "<root>/_catalog/": "pointer back to the canonical catalog inside this skill"
+ },
+ "repos": [
+  {
+   "repo": "accesslint-skills",
+   "trustTier": "community-active",
+   "note": "Narrow a11y focus, no licence file",
+   "reviewed": true,
+   "reviewedOn": "2026-07-27",
+   "distinctSkills": 3,
+   "url": "https://github.com/AccessLint/skills.git",
+   "commit": "ceb3fa80fc8be8d8959f5b3eb812ac8cc33a5a59",
+   "commitDate": "2026-06-03T21:44:58-04:00",
+   "branch": "main"
+  },
+  {
+   "repo": "agent-skills",
+   "trustTier": "excluded-by-policy",
+   "note": "Requires paid SLEEK_API_KEY ($49.99/mo) \u2014 violates the zero-cost rule",
+   "reviewed": true,
+   "reviewedOn": "2026-07-27",
+   "distinctSkills": 1,
+   "url": "https://github.com/sleekdotdesign/agent-skills.git",
+   "commit": "9c821887c3e4c79366f8605b7738bbd1c38bf527",
+   "commitDate": "2026-07-24T14:28:57+02:00",
+   "branch": "main"
+  },
+  {
+   "repo": "agentic-awesome-skills",
+   "trustTier": "quarantined",
+   "note": "1,894 aggregated third-party skills, unvetted",
+   "reviewed": true,
+   "reviewedOn": "2026-07-27",
+   "distinctSkills": 1894,
+   "url": "https://github.com/sickn33/agentic-awesome-skills.git",
+   "commit": "f9073a13a65b0bd900068102843a3fd06c18834d",
+   "commitDate": "2026-07-27T07:10:22+02:00",
+   "branch": "main",
+   "index": "references/quarantined-index.txt"
+  },
+  {
+   "repo": "awesome-agent-skills",
+   "trustTier": "link-list",
+   "note": "No skills \u2014 a curated index of skills to clone",
+   "reviewed": true,
+   "reviewedOn": "2026-07-27",
+   "distinctSkills": 0,
+   "url": "https://github.com/VoltAgent/awesome-agent-skills.git",
+   "commit": "c97eda5e3406670f3285c6bf9eb7639a7ecc03cc",
+   "commitDate": "2026-07-10T16:55:37+03:00",
+   "branch": "main"
+  },
+  {
+   "repo": "awesome-claude-skills",
+   "trustTier": "link-list",
+   "note": "No skills \u2014 a curated index of skills to clone",
+   "reviewed": true,
+   "reviewedOn": "2026-07-27",
+   "distinctSkills": 0,
+   "url": "https://github.com/travisvn/awesome-claude-skills.git",
+   "commit": "1da55aa810f206d3fe2005e7e3989b15a275d942",
+   "commitDate": "2026-04-28T15:30:19-04:00",
+   "branch": "main"
+  },
+  {
+   "repo": "bencium-marketplace",
+   "trustTier": "community-active",
+   "note": "Active, no licence file \u2014 treat as all-rights-reserved",
+   "reviewed": true,
+   "reviewedOn": "2026-07-27",
+   "distinctSkills": 15,
+   "url": "https://github.com/bencium/bencium-marketplace.git",
+   "commit": "0e3ba0730338ec58992525e0d68fd151adf07e8e",
+   "commitDate": "2026-07-25T15:31:34+01:00",
+   "branch": "main"
+  },
+  {
+   "repo": "claudedesignskills",
+   "trustTier": "community-stale",
+   "note": "Last commit 2025-11-19 \u2014 content good, version claims stale",
+   "reviewed": true,
+   "reviewedOn": "2026-07-27",
+   "distinctSkills": 23,
+   "url": "https://github.com/freshtechbro/claudedesignskills.git",
+   "commit": "1da73febff0c3e1dfefc07f8a5ef8f7d1dfdb6cd",
+   "commitDate": "2025-11-19T19:57:57-06:00",
+   "branch": "main"
+  },
+  {
+   "repo": "developer-kit",
+   "trustTier": "community-active",
+   "note": "Active, MIT, broad backend/frontend coverage",
+   "reviewed": true,
+   "reviewedOn": "2026-07-27",
+   "distinctSkills": 128,
+   "url": "https://github.com/giuseppe-trisciuoglio/developer-kit.git",
+   "commit": "306f428f278d83722afdea44a7398dc46dab967f",
+   "commitDate": "2026-06-22T12:01:20+02:00",
+   "branch": "main"
+  },
+  {
+   "repo": "flutter-agent-plugins",
+   "trustTier": "official",
+   "note": "Google/Flutter team",
+   "reviewed": true,
+   "reviewedOn": "2026-07-27",
+   "distinctSkills": 36,
+   "url": "https://github.com/flutter/agent-plugins.git",
+   "commit": "bf27b276b754835abe1d92cb2f83c016bbda0361",
+   "commitDate": "2026-07-24T16:50:48-04:00",
+   "branch": "main"
+  },
+  {
+   "repo": "skills",
+   "trustTier": "official",
+   "note": "Anthropic \u2014 the reference implementation of the format",
+   "reviewed": true,
+   "reviewedOn": "2026-07-27",
+   "distinctSkills": 18,
+   "url": "https://github.com/anthropics/skills.git",
+   "commit": "b29e7cf65e5cb78a5ac33d582270551bc74a14eb",
+   "commitDate": "2026-07-24T16:12:34-04:00",
+   "branch": "main"
+  },
+  {
+   "repo": "taste-skill",
+   "trustTier": "community-active",
+   "note": "Active, MIT",
+   "reviewed": true,
+   "reviewedOn": "2026-07-27",
+   "distinctSkills": 13,
+   "url": "https://github.com/Leonxlnx/taste-skill.git",
+   "commit": "e988add20dab0fa97d7a76781c48961c8184288e",
+   "commitDate": "2026-07-23T18:01:24+02:00",
+   "branch": "main"
+  },
+  {
+   "repo": "ui-ux-pro-max-skill",
+   "trustTier": "community-active",
+   "note": "Active, MIT, large curated design DB",
+   "reviewed": true,
+   "reviewedOn": "2026-07-27",
+   "distinctSkills": 7,
+   "url": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git",
+   "commit": "3b5df7547964f0cb3424de74cff55b69039250d3",
+   "commitDate": "2026-07-27T13:30:30+07:00",
+   "branch": "main"
+  },
+  {
+   "repo": "vercel-labs-agent-skills",
+   "trustTier": "vendor",
+   "note": "Vercel Labs \u2014 official but vendor-shaped",
+   "reviewed": true,
+   "reviewedOn": "2026-07-27",
+   "distinctSkills": 9,
+   "url": "https://github.com/vercel-labs/agent-skills.git",
+   "commit": "7c180d9044c9ae2b442b567aad4e42a28dd5ed62",
+   "commitDate": "2026-07-24T12:25:23+02:00",
+   "branch": "main"
+  }
+ ]
+}

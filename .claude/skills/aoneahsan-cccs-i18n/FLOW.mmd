@@ -1,0 +1,46 @@
+%% i18n — full flow
+%% Pure Mermaid. No Markdown fence.
+
+flowchart TD
+    trigger([Adding user-visible content]) --> kind{What kind?}
+
+    kind -->|text| key[Add a key in the feature's namespace.<br/>Name it by MEANING — water.logged —<br/>never by the English text, which<br/>breaks on every copy edit]
+    kind -->|"a date or a number"| intl[Format with Intl.<br/>date-fns for arithmetic,<br/>Intl.DateTimeFormat for display]
+    kind -->|"a MEASUREMENT — kg, ml, cm"| unit
+
+    key --> sentence{Is the string assembled<br/>from fragments?}
+    sentence -->|yes| whole["🔴 One key, one WHOLE sentence,<br/>with interpolation.<br/>t('you.have') + n + t('entries')<br/>has a word order no other<br/>language can express"]
+    whole --> sentence
+    sentence -->|no| plural{Does it vary by count?}
+
+    plural -->|yes| forms[Use _one / _other plural keys —<br/>not an if statement in the component]
+    plural -->|no| lazy
+    forms --> lazy
+
+    unit{🔴 Is the unit driven by LOCALE<br/>or by the USER'S SETTING?}
+    unit -->|locale| wrong[Wrong. A US user may want kg;<br/>a UK user may want stones.<br/>Locale decides LANGUAGE and FORMATTING,<br/>never the measurement system]
+    wrong --> unit
+    unit -->|"the user's stored preference"| store{What is in the DATABASE?}
+
+    store -->|"the converted value"| bad[🔴 The stored number's meaning now<br/>depends on a setting that can change.<br/>Store CANONICAL, convert at display]
+    bad --> store
+    store -->|canonical| lazy
+
+    intl --> tz{Does a date cross a day boundary?}
+    tz -->|yes| zone[Format in the USER'S timezone.<br/>A date rendered in UTC lands on the<br/>wrong day for users near midnight]
+    tz -->|no| lazy
+    zone --> lazy
+
+    lazy[Load 'common' at boot,<br/>each feature namespace with its route]
+
+    lazy --> rtl{Layout uses LOGICAL properties?<br/>margin-inline-start, text-align: start}
+    rtl -->|"physical: margin-left"| fix[Switch to logical utilities — ms-4, pe-2.<br/>Free now; a rewrite later]
+    fix --> rtl
+    rtl -->|logical| done([Done: nothing hardcoded, units respected,<br/>and a second locale is config, not a refactor])
+
+    classDef gate fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef stopnode fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+    class kind,sentence,plural,unit,store,tz,rtl gate
+    class trigger,done terminal
+    class whole,wrong,bad stopnode

@@ -1,0 +1,62 @@
+%% aoneahsan-cccs-react-ui-ux — full flow
+flowchart TD
+    trigger([Building a page or flow]) --> data{Does it render<br/>data?}
+
+    data -->|yes| four{All FOUR states handled?}
+    four --> s1{Loading}
+    s1 -->|spinner| skel[Use a SKELETON matching the<br/>eventual layout — a spinner causes<br/>the shift a skeleton prevents]
+    s1 -->|skeleton| s2
+    skel --> s2
+    s2{Empty}
+    s2 -->|'No data'| explain[Explain WHY it is empty and give<br/>the action that fills it]
+    s2 -->|explained + action| s3
+    explain --> s3
+    s3{Error}
+    s3 -->|raw error object| plain[Plain language + a retry]
+    s3 -->|plain + retry| s4
+    plain --> s4
+    s4{Are empty and loading<br/>visually DISTINCT?}
+    s4 -->|no| distinct[Fix — an empty list shown as a<br/>spinner is the most common<br/>'app is broken' report that is not a bug]
+    s4 -->|yes| boot
+    distinct --> boot
+
+    data -->|no| boot
+    boot{Is this the app shell?}
+    boot -->|yes| loader[Boot loader: full page until theme<br/>hydrated AND auth resolved.<br/>Logo + spinner + rotating copy ~3s.<br/>This is the FOUC guard]
+    boot -->|no| nav
+    loader --> nav
+
+    nav[Navigation affordances]
+    nav --> n1{Is this / or the<br/>post-login dashboard?}
+    n1 -->|no| back[Go-back button with an ABSOLUTE<br/>target. Never router.back — it breaks<br/>after deep link, refresh or redirect]
+    n1 -->|yes| n2
+    back --> n2
+    n2[Scroll-to-top on route change,<br/>honouring #hash]
+    n2 --> n3[Live version in the footer]
+    n3 --> n4{Abandoned multi-step flow?}
+    n4 -->|yes| nudge[Dismissible resume nudge,<br/>dismissal SHARED across surfaces<br/>so it never nags twice]
+    n4 -->|no| share
+    nudge --> share
+
+    share{Adding a share action?}
+    share -->|yes| platform{Which platform?}
+    platform -->|web| modal[In-app WebShareModal:<br/>social grid + explicit copy-link<br/>with a Copied! state]
+    platform -->|native| capshare["@capacitor/share.<br/>Cancel is a no-op, not an error"]
+    share -->|no| copy
+    modal --> banned[NEVER navigator.share as the primary<br/>web path with a silent clipboard<br/>fallback — absent on desktop Firefox<br/>and most Linux Chrome, so the<br/>button appears to do nothing]
+    banned --> copy
+    capshare --> copy
+
+    copy[Copy is design: errors, empty states<br/>and button labels carry the voice]
+    copy --> errpages{Are the branded 404/500/403/401<br/>pages in place?}
+    errpages -->|no| makepages[Create them — styled with the app,<br/>each with a way home]
+    errpages -->|yes| done
+    makepages --> done
+    done([Every link leads somewhere real])
+
+    classDef gateNode fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef warn fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+    class data,four,s1,s2,s3,s4,boot,n1,n4,share,platform,errpages gateNode
+    class trigger,done terminal
+    class banned,distinct warn

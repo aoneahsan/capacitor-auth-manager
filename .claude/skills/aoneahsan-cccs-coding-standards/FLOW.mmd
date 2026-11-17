@@ -1,0 +1,40 @@
+%% aoneahsan-cccs-coding-standards — full flow
+flowchart TD
+    trigger([Writing, reviewing or finishing code]) --> stack{Project stack identified?}
+    stack -->|no| readdocs[Read root CLAUDE.md for the<br/>Per-Project Stack Override block]
+    readdocs --> stack
+    stack -->|yes| write[Apply the hard rules while writing]
+
+    write --> secrets{Any credential<br/>in the code?}
+    secrets -->|yes| envvar[Move to an env var<br/>server secrets never in VITE_/NEXT_PUBLIC_]
+    envvar --> threefile[Three-file commit:<br/>env module + type decl + .env.example]
+    threefile --> required{Required for boot?}
+    required -->|yes| loud[Fail loudly at boot<br/>name the var, never the value]
+    required -->|no| degrade[Degrade gracefully]
+    secrets -->|no| logging
+
+    loud --> logging
+    degrade --> logging
+    logging{Any console.* call?}
+    logging -->|yes| logger[Route through the project logger]
+    logging -->|no| dead
+    logger --> dead
+
+    dead{Unused code or a TODO left?}
+    dead -->|yes| delete[Delete it — never underscore-rename,<br/>never leave a placeholder]
+    dead -->|no| gates
+    delete --> gates
+
+    gates[Run typecheck + lint + build]
+    gates --> clean{Zero errors AND<br/>zero warnings?}
+    clean -->|no| triage{Real bug or lint noise?}
+    triage -->|real bug| fix[Fix the code properly<br/>no workarounds]
+    triage -->|noise| config[Fix the ESLint/TS config,<br/>not the symptom]
+    fix --> gates
+    config --> gates
+    clean -->|yes| done([Ready to commit —<br/>hand off to git-workflow])
+
+    classDef gateNode fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    class stack,secrets,required,logging,dead,clean,triage gateNode
+    class trigger,done terminal

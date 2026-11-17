@@ -1,0 +1,52 @@
+%% aoneahsan-cccs-frontend-design — full flow
+flowchart TD
+    trigger([Any UI design work]) --> stage{What stage?}
+
+    stage -->|new project| identity[Establish the visual identity]
+    identity --> registry[/Read the global palette registry —<br/>same pattern as the dev-port registry/]
+    registry --> unique{Is the intended primary hue<br/>already claimed by another project?}
+    unique -->|yes| rechoose[Choose another. Repeating a palette<br/>across projects is the failure<br/>this registry prevents]
+    rechoose --> unique
+    unique -->|no| claim[Claim it: project, primary, accent, date]
+    claim --> tokens[Express it as SEMANTIC TOKENS —<br/>accent/surface/ink/success/warning/danger,<br/>50 through 950]
+
+    stage -->|existing project| lib{Is a component library<br/>in use?}
+    lib -->|yes, and this is<br/>not a redo| keeplib[Keep it. Work within it.<br/>Do not migrate unprompted]
+    lib -->|yes, and this IS<br/>a deliberate redo| custom
+    lib -->|no| custom
+    custom[Tailwind + custom components]
+    custom --> criteria{Do the custom components deliver<br/>ALL SIX: theme, colour, font,<br/>contrast, a11y, typography?}
+    criteria -->|no| notready[Not shippable. Dropping any of them<br/>is a regression, not a redesign]
+    notready --> criteria
+    criteria -->|yes| tokens
+
+    tokens --> build[Build the surface]
+    keeplib --> build
+
+    build --> hex{Any raw hex in a component?}
+    hex -->|yes| replacehex[Replace with a token.<br/>Raw hex ignores the theme,<br/>the palette and any rebrand]
+    hex -->|no| life
+    replacehex --> life
+
+    life[Add life — with restraint]
+    life --> l1{Is this a hero, divider<br/>or empty state?}
+    l1 -->|yes| decor[Decorative SVG, 10-25% opacity,<br/>aria-hidden]
+    l1 -->|no| l2[No ornament here —<br/>not every card gets treatment]
+    decor --> motion
+    l2 --> motion
+    motion[Entrance motion: CSS-only, <=600ms,<br/>staggered. No JS animation libraries]
+    motion --> reduced[Honour prefers-reduced-motion]
+    reduced --> copy[Personality in the COPY too:<br/>errors, empty states, button labels]
+
+    copy --> asset{Creating an asset?}
+    asset -->|yes| svg[Author and COMMIT the SVG.<br/>Export raster last. To change it,<br/>edit the SVG and re-export —<br/>never hand-edit the PNG]
+    asset -->|no| check
+    svg --> check
+    check([Verify: dark mode, reduced motion,<br/>every accent option, 320-1920px])
+
+    classDef gateNode fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef warn fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+    class stage,unique,lib,criteria,hex,l1,asset gateNode
+    class trigger,check terminal
+    class notready,rechoose warn

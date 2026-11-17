@@ -1,0 +1,43 @@
+%% Design system — full flow
+%% Pure Mermaid. No Markdown fence.
+
+flowchart TD
+    trigger([Need a component]) --> exists{Does the system<br/>already have it?}
+
+    exists -->|yes| compose[Compose it in the feature.<br/>Tokens and variants only —<br/>never restyle a primitive from a feature]
+    exists -->|no| belongs{Does it BELONG in the system?}
+
+    belongs -->|"composes primitives with<br/>feature copy or data"| feature[Build it in the feature.<br/>Not everything is a primitive]
+    belongs -->|"interactive, or presentational<br/>and reused, or the 2nd identical markup"| phase{Is the primitive layer<br/>built and approved yet?}
+
+    phase -->|"no — features started first"| stop[🔴 STOP. Build the primitive layer<br/>and the gallery FIRST.<br/>Otherwise every feature invents its own button]
+    phase -->|yes| build
+
+    stop --> order
+    build[Add the primitive] --> order
+
+    order[Build order: leaves first<br/>Button, Checkbox, Separator<br/>then fields, overlays, collections]
+
+    order --> contract[Apply the composition contract:<br/>RAC behaviour + our tokens<br/>+ cva variants + instrumentation]
+
+    contract -.wrapper pattern:<br/>cva + twMerge + render-prop trap.-> ra[(aoneahsan-cccs-react-aria<br/>references/migration-and-patterns.md)]
+
+    contract --> api{API discipline?<br/>forwardRef · controlled AND uncontrolled<br/>· compound over prop explosion}
+    api -->|no| fixapi[Fix it — a primitive that cannot be<br/>composed or measured is a dead end]
+    fixapi --> api
+
+    api -->|yes| gallery[Add it to the GALLERY:<br/>every state × 320 and 1920 × light and dark]
+
+    gallery --> review{Gallery review}
+    review -->|"keyboard pass finds a gap"| a11y[Fix — or confirm it is RAC's job<br/>and you are fighting the primitive]
+    review -->|"owner wants visual changes"| contract
+    a11y --> review
+
+    review -->|approved| done([Done: in the system, in the gallery,<br/>instrumented once, ready for features])
+
+    classDef gate fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef stopnode fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+    class exists,belongs,phase,api,review gate
+    class trigger,done terminal
+    class stop stopnode

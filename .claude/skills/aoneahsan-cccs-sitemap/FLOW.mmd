@@ -1,0 +1,52 @@
+%% D009: evidence contract first; numeric examples are optional editorial choices.
+%% aoneahsan-cccs-sitemap — full flow
+flowchart TD
+    trigger([Sitemap work]) --> both{Does the project have<br/>BOTH /sitemap and /sitemap.xml?}
+    both -->|only the XML| missing[Build the /sitemap page too —<br/>the XML serves crawlers,<br/>the page serves users]
+    both -->|neither| missing
+    both -->|yes| source
+    missing --> source
+
+    source{Where do the entries<br/>come from?}
+    source -->|a hand-maintained list| fix[Generate from the app's ROUTE REGISTRY.<br/>Two independent lists always drift]
+    source -->|the route registry| onegen
+    fix --> onegen
+    onegen[ONE generator emits both outputs,<br/>in the same build step as the static HTML]
+
+    onegen --> page[/sitemap page/]
+    page --> p1[Card per page: title, short description,<br/>descriptive SVG icon]
+    p1 --> p2[Categorised, so the product's<br/>shape is visible at a glance]
+    p2 --> p3[Keywords and tags per entry]
+    p3 --> p4[Fuzzy search across title, description,<br/>tags and keywords]
+    p4 --> p5[Search state in the URL as ?q=]
+    p5 --> p6[Links to /sitemap.xml and /feed.xml<br/>at the TOP, each explained]
+    p6 --> p7[Linked from the footer]
+
+    onegen --> xml[/sitemap.xml/]
+    xml --> x1{Are private routes excluded?}
+    x1 -->|no| exclude[Remove admin, auth, dashboard,<br/>account — they are also Disallowed<br/>in robots.txt]
+    x1 -->|yes| x2
+    exclude --> x2
+    x2{Is lastmod genuine?}
+    x2 -->|'today' for everything| realdates[Use real modification dates —<br/>omit lastmod when genuine dates are unknown]
+    x2 -->|yes| x3
+    realdates --> x3
+    x3[Optional priority/changefreq.<br/>Google ignores both]
+    x3 --> x4{Dynamic routes?}
+    x4 -->|yes| enumerate[Enumerate from the data source<br/>at build time]
+    x4 -->|no| x5
+    enumerate --> x5
+    x5{Does robots.txt carry an<br/>ABSOLUTE Sitemap: line?}
+    x5 -->|no| addline[Add it]
+    x5 -->|yes| submit
+    addline --> submit
+
+    p7 --> submit
+    submit[Submit to GSC + Bing + Yandex]
+    submit --> record[Record the verified state and evidence<br/>under the project's monitoring cadence]
+    record --> cadence([Regenerate when a public route or its<br/>meaningful source content changes;<br/>keep unchanged dates unchanged])
+
+    classDef gateNode fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    class both,source,x1,x2,x4,x5 gateNode
+    class trigger,cadence terminal

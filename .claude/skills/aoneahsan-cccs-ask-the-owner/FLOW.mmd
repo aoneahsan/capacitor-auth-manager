@@ -1,0 +1,13 @@
+flowchart TD
+    q[A question arises during planning,<br/>review or implementation] --> mat{Owner-only decision,<br/>material ambiguity, rule conflict,<br/>missing input, or scope surprise?}
+    mat -->|no - routine call| decide[Decide it yourself and<br/>state the call in the report]
+    decide --> work[Continue the work]
+    mat -->|yes - it blocks| ask[Ask the owner:<br/>I NEED THIS FROM YOU +<br/>what, why, 2-4 options,<br/>recommendation first]
+    ask --> ans{Clear answer received?}
+    ans -->|yes| rec[Record the answer where the<br/>next session finds it:<br/>tracker userDecisions,<br/>plan file, or record]
+    rec --> work
+    ans -->|no - silence, or told to continue| hold[PAUSE and HOLD.<br/>Re-state the ask verbatim.<br/>Continue is not an answer]
+    hold --> ans
+
+    classDef gateNode fill:#7c2d12,stroke:#fb923c,color:#ffedd5
+    class mat,ans,hold gateNode

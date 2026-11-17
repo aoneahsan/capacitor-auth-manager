@@ -1,0 +1,43 @@
+%% D009: evidence contract first; numeric examples are optional editorial choices.
+%% aoneahsan-cccs-feed — full flow
+flowchart TD
+    trigger([Feed or publishing work]) --> hasblog{Does the project have<br/>approved recurring content?}
+    hasblog -->|no| decide[Define the real source and publishing<br/>workflow before generating a feed]
+    decide --> seed[Plan only the material<br/>the audience needs]
+    seed --> quality
+    hasblog -->|yes| audit[Audit that every post still<br/>reflects the current product]
+    audit --> quality
+
+    quality{Post quality}
+    quality --> q1[Enough original detail<br/>to complete the post's purpose]
+    q1 --> q2[Accurate title and description;<br/>media only when it helps]
+    q2 --> q3[Lists, quotes and facts<br/>only when supported and useful]
+    q3 --> q4[Supports discovery with useful posts,<br/>applicable visible-content schema,<br/>and contextual product links]
+
+    q4 --> gen{Where does the feed<br/>get its posts?}
+    gen -->|a separate list| onesource[Use the SAME source as the sitemap.<br/>Two lists always drift]
+    gen -->|the same post source| xml
+    onesource --> xml
+
+    xml[/feed.xml — valid RSS 2.0/]
+    xml --> ch{Required channel<br/>elements present?}
+    ch --> c1[title · link · description]
+    c1 --> c2[Optional dates stay truthful;<br/>extensions match consumer needs]
+    c2 --> items[Per item: at least title or description;<br/>add stable links, GUIDs, dates and<br/>categories when the source has them]
+    items --> order[Newest first when dated.<br/>Regenerate when the source changes]
+
+    order --> discover[Discovery wiring]
+    discover --> d1["link rel=alternate type=application/rss+xml<br/>in the head of EVERY page"]
+    d1 --> d2[/feed linked from the footer<br/>and from /sitemap]
+
+    d2 --> changelog{Does the project publish<br/>release notes?}
+    changelog -->|yes| single[Source them from<br/>docs/play-store/RELEASE-NOTES.md<br/>so store, website and in-app<br/>what's-new cannot diverge]
+    changelog -->|no| record
+    single --> record
+    record[Record Sitemap/Feed Last Updated<br/>in the project CLAUDE.md]
+    record --> done([Validate the XML and a real reader;<br/>recheck on the project's cadence])
+
+    classDef gateNode fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    class hasblog,quality,gen,ch,changelog gateNode
+    class trigger,done terminal

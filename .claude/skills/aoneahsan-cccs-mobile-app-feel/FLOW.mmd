@@ -1,0 +1,17 @@
+%% Mobile app feel — full flow
+%% Pure Mermaid.
+
+flowchart TD
+    trigger([A page must feel like an app on phones]) --> dummy[Draw the app view in the click dummy<br/>+ a numbered amendment, approved words]
+    dummy --> approve{Owner approved the dummy?}
+    approve -->|no| dummy
+    approve -->|yes| snippet[Pre-paint snippet in index.html:<br/>native OR narrow + coarse pointer → data-view]
+
+    snippet --> hook[useViewMode reads data-view once]
+    hook --> split[Route selects web-*.tsx or app-*.tsx;<br/>shared words, data, components]
+    split --> crawl[Prerender keeps the web view]
+
+    crawl --> verify{390 touch = app · 1440 = web ·<br/>desktop at 390 = web responsive ·<br/>CLS ≤ 0.1 · first load not larger}
+    verify -->|fails| fix[Fix, re-verify]
+    fix --> verify
+    verify -->|passes| done([Deploy; verify live])

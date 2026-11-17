@@ -1,0 +1,28 @@
+%% aoneahsan-cccs-report-project-issues — full flow
+flowchart TD
+    trigger([Bug found in an OWNED project<br/>while consuming or testing it]) --> owned{Is the faulty code<br/>one of the owner's<br/>own projects?}
+    owned -->|no — third-party| thirdparty[Record in the consuming project +<br/>the relevant rules KB only.<br/>This skill is for OUR projects]
+    owned -->|yes| detail[Gather FULL detail first:<br/>verbatim symptom, minimal repro,<br/>affected version, root cause with<br/>file:line evidence if diagnosed]
+
+    detail --> queue{Target repo has<br/>docs/REPORTED-ISSUES.md?}
+    queue -->|no| create[Create BOTH files:<br/>REPORTED-ISSUES.md + RESOLVED-ISSUES.md<br/>+ one-line pointer in the target repo<br/>CLAUDE.md AND AGENTS.md]
+    queue -->|yes| number
+    create --> number[Next ISSUE-NNN — continue from the<br/>highest number across BOTH files]
+    number --> file[Write the entry as<br/>### ISSUE-NNN — title<br/>Status OPEN, reporter project + date]
+
+    file --> publiccheck{Target repo public?}
+    publiccheck -->|yes| sanitize[Entry stays honest but carries<br/>NO secrets and no private-project<br/>internals]
+    publiccheck -->|no| mirror
+    sanitize --> mirror{Affects other<br/>consumers?}
+    mirror -->|yes| kb[Mirror the quirk + workaround into<br/>the matching global rules KB<br/>fileshub-api / native-update-package /<br/>capacitor-plugins-and-issues]
+    mirror -->|no| consumer
+    kb --> consumer{Consumer-side convention<br/>exists for this package?}
+    consumer -->|yes| cfile[Also record per that rule<br/>e.g. docs/NATIVE_UPDATE_PACKAGE_ISSUES.md<br/>in the consuming project]
+    consumer -->|no| commit
+    cfile --> commit[Commit ONLY the queue files +<br/>guidance pointers in the target repo,<br/>per that repo's commit rules]
+    commit --> done([Filed — the session-start check in<br/>the target project picks it up;<br/>fixing = aoneahsan-cccs-fix-reported-issues])
+
+    classDef gateNode fill:#fff4e6,stroke:#d97706,color:#7c2d12
+    classDef terminal fill:#ecfdf5,stroke:#059669,color:#064e3b
+    class owned,queue,publiccheck,mirror,consumer gateNode
+    class trigger,done,thirdparty terminal
