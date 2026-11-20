@@ -105,7 +105,7 @@
     "node": ">=24.0.0"
   },
   "bin": {
-    "capacitor-auth-configure": "./scripts/configure.js"
+    "capacitor-auth-configure": "scripts/configure.js"
   },
   "dependencies": {
     "tslib": "^2.9.1"
