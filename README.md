@@ -17,6 +17,15 @@
 
 </div>
 
+<a id="available-on"></a>
+## 📦 Available on&nbsp;[#](#available-on)
+
+| Where | Link |
+|---|---|
+| npm | [`capacitor-auth-manager`](https://www.npmjs.com/package/capacitor-auth-manager) |
+| Docs | [capacitor-auth-manager-docs.aoneahsan.com](https://capacitor-auth-manager-docs.aoneahsan.com) |
+| Everything | [All apps](https://capacitor-auth-manager-docs.aoneahsan.com/apps) |
+
 > [!IMPORTANT]
 > - **Google is the only enabled provider in `3.x`.** The other fourteen are present in the source but
 >   un-registered — calling one throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. They are re-enabled one at a
@@ -31,7 +40,7 @@ adapters ship with it, so the sign-in button is a few lines in whichever framewo
 
 | | |
 |---|---|
-| **Version** | `3.2.1` |
+| **Version** | `3.2.2` |
 | **License** | MIT |
 | **Node** | `>=24.0.0` |
 | **Platforms** | Web · iOS · Android |
@@ -42,6 +51,7 @@ adapters ship with it, so the sign-in button is a few lines in whichever framewo
 <a id="table-of-contents"></a>
 ## 🧭 Table of Contents&nbsp;[#](#table-of-contents)
 
+- [📦 Available on](#available-on)
 - [💡 Why capacitor-auth-manager](#why-capacitor-auth-manager)
 - [✨ Features](#features)
 - [📱 Platform Support](#platform-support)
@@ -468,7 +478,7 @@ Server imports are safe. Configure/prepare/sign in in browser code or client com
 <a id="changelog"></a>
 ## 🔄 Changelog&nbsp;[#](#changelog)
 
-Latest release: **`3.2.1`** — maintenance: the library is rebuilt with current build tools on Node 26.13.1 LTS. No API or behaviour change. See the changelog for the full history.
+Latest release: **`3.2.2`** — documentation only: an "Available on" table under the badges lists npm, the docs and the page listing both. No API or behaviour change. See the changelog for the full history.
 
 Full history: [CHANGELOG.md](https://github.com/aoneahsan/capacitor-auth-manager/blob/main/CHANGELOG.md).
 
