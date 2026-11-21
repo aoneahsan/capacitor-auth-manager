@@ -35,6 +35,8 @@ one at a time.
 
 <!-- fleet:node-26-13-1 v1 --> Node 26.13.1 LTS (.nvmrc), packages latest — 2026-11-16
 
+**AI routing:** `DONE-001` closed on 2026-11-21: this authentication package does not call an AI model.
+
 ## Local development
 
 ```bash
